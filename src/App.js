@@ -51,6 +51,88 @@ import "./App.css";
 import {blake2b} from "blakejs";
 let Buffer = require('buffer/').Buffer
 let blake = require('blakejs')
+//import "./../node_modules/minipaint/src/css/layout.css";
+var minipaint = require('./../node_modules/minipaint/dist/minipaint.js');
+
+class Square extends React.Component {
+  render() {
+    return (
+<div>
+    <div className="wrapper">
+
+        <nav aria-label="Main Menu" className="main_menu" id="main_menu"></nav>
+        
+        <div className="submenu">
+            <a className="logo" href="#">ADA NFT Creator</a>
+            <div className="block attributes" id="action_attributes"></div>
+            <button className="undo_button" id="undo_button" type="button">
+                <span className="sr_only">Undo</span>
+            </button>
+        </div>
+        
+        <div className="sidebar_left" id="tools_container"></div>
+
+
+        <div className="middle_area" id="middle_area">
+
+            <canvas className="ruler_left" id="ruler_left"></canvas>
+            <canvas className="ruler_top" id="ruler_top"></canvas>
+
+            <div className="main_wrapper" id="main_wrapper">
+                <div className="canvas_wrapper" id="canvas_wrapper">
+                    <div id="mouse"></div>
+                    <div className="transparent-grid" id="canvas_minipaint_background"></div>
+                    <canvas id="canvas_minipaint">
+                        <div className="trn error">
+                            Your browser does not support canvas or JavaScript is not enabled.
+                        </div>
+                    </canvas>
+                </div>
+            </div>
+        </div>
+
+        <div className="sidebar_right">
+            <div className="preview block">
+                <h2 className="trn toggle" data-target="toggle_preview">Preview</h2>
+                <div id="toggle_preview"></div>
+            </div>
+            
+            <div className="colors block">
+                <h2 className="trn toggle" data-target="toggle_colors">Colors</h2>
+                <div className="content" id="toggle_colors"></div>
+            </div>
+            
+            <div className="block" id="info_base">
+                <h2 className="trn toggle toggle-full" data-target="toggle_info">Information</h2>
+                <div className="content" id="toggle_info"></div>
+            </div>
+            
+            <div className="details block" id="details_base">
+                <h2 className="trn toggle toggle-full" data-target="toggle_details">Layer details</h2>
+                <div className="content" id="toggle_details"></div>
+            </div>
+            
+            <div className="layers block">
+                <h2 className="trn">Layers</h2>
+                <div className="content" id="layers_base"></div>
+            </div>
+        </div>
+    </div>
+    <div className="mobile_menu">
+        <button className="left_mobile_menu" id="left_mobile_menu_button" type="button">
+            <span className="sr_only">Toggle Menu</span>
+        </button>
+        <button className="right_mobile_menu" id="mobile_menu_button" type="button">
+            <span className="sr_only">Toggle Menu</span>
+        </button>
+    </div>
+    <div className="hidden" id="tmp"></div>
+    <div id="popups"></div>
+</div>
+
+    );
+  }
+}
 
 
 export default class App extends React.Component
@@ -1085,15 +1167,17 @@ export default class App extends React.Component
         await this.refreshData();
     }
 
-    render()
+    renderWalletInfo()
     {
 
         return (
             <div style={{margin: "20px"}}>
 
 
+                <h1>NFT Creator</h1>
 
-                <h1>Boilerplate DApp connector to Wallet</h1>
+
+
                 <div style={{paddingTop: "10px"}}>
                     <div style={{marginBottom: 15}}>Select wallet:</div>
                     <RadioGroup
@@ -1627,4 +1711,17 @@ export default class App extends React.Component
             </div>
         )
     }
+
+  render() {
+    return (
+        <div>
+
+
+    <Square  />;
+    {this.renderWalletInfo()}
+        </div>
+    );
+  }
+
+
 }
