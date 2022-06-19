@@ -52,9 +52,28 @@ import {blake2b} from "blakejs";
 let Buffer = require('buffer/').Buffer
 let blake = require('blakejs')
 //import "./../node_modules/minipaint/src/css/layout.css";
-var minipaint = require('./../node_modules/minipaint/dist/minipaint.js');
+//var minipaint = require('./../node_modules/minipaint/dist/minipaint.js');
+var minipaint = require('./../node_modules/minipaintlink/dist/minipaint.js'); // USING SYMLINK
 
-class Square extends React.Component {
+class WalletSelect extends React.Component {
+    render() {
+      return (
+        <div class="bp4-html-select .modifier">
+            <select>
+                <option selected>Choose an item...</option>
+                <option value="1">One</option>
+                <option value="2">Two</option>
+                <option value="3">Three</option>
+                <option value="4">Four</option>
+            </select>
+            <span class="bp4-icon bp4-icon-double-caret-vertical"></span>
+        </div>
+      );
+    }
+  }
+
+
+class PaintCanvas extends React.Component {
   render() {
     return (
 <div>
@@ -164,7 +183,7 @@ export default class App extends React.Component
             txBodyCborHex_signed: "",
             submittedTxHash: "",
 
-            addressBech32SendADA: "addr_test1qrt7j04dtk4hfjq036r2nfewt59q8zpa69ax88utyr6es2ar72l7vd6evxct69wcje5cs25ze4qeshejy828h30zkydsu4yrmm",
+            addressBech32SendADA: "addr_test1qzafd4kv7lfpwvs5ln0puuwqf5u982t5he6y4wns464lp7x9w00v9ljd6duvwz3unkn84el30j30lpk35txg2h7el2zsjhcmly",
             lovelaceToSend: 3000000,
             assetNameHex: "4c494645",
             assetPolicyIdHex: "ae02017105527c6c0c9840397a39cc5ca39fabe5b9998ba70fda5f2f",
@@ -1715,10 +1734,13 @@ export default class App extends React.Component
   render() {
     return (
         <div>
-
-
-    <Square  />;
-    {this.renderWalletInfo()}
+            <div className='topDiv'>
+                <WalletSelect></WalletSelect>
+                <PaintCanvas  />
+            </div>
+            <div className='bottomDiv'>
+                {this.renderWalletInfo()}
+            </div>
         </div>
     );
   }
