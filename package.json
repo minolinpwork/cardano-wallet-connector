@@ -5,7 +5,11 @@
   "dependencies": {
     "@blueprintjs/core": "^3.53.0",
     "@blueprintjs/icons": "^3.32.0",
+    "@blueprintjs/select": "^4.4.1",
+    "@emotion/react": "^11.9.3",
+    "@emotion/styled": "^11.9.3",
     "@emurgo/cardano-serialization-lib-asmjs": "^10.0.4-beta.4",
+    "@mui/material": "^5.8.4",
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",

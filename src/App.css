@@ -1,5 +1,13 @@
 .topDiv {
-  height: 700px;
+  height: 600px;
+}
+
+.walletMenu {
+  z-index: 10;
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  padding: 0px;
 }
 
 .bottomDiv {

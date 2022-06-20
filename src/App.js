@@ -1,7 +1,8 @@
 import React from 'react'
-import { Tab, Tabs, RadioGroup, Radio, FormGroup, InputGroup, NumericInput } from "@blueprintjs/core";
+import { Tab, Tabs, RadioGroup, Radio, FormGroup, InputGroup, NumericInput, Menu, MenuItem } from "@blueprintjs/core";
 import "../node_modules/@blueprintjs/core/lib/css/blueprint.css";
 import "../node_modules/@blueprintjs/icons/lib/css/blueprint-icons.css";
+
 import "../node_modules/normalize.css/normalize.css";
 import {
     Address,
@@ -52,22 +53,19 @@ import {blake2b} from "blakejs";
 let Buffer = require('buffer/').Buffer
 let blake = require('blakejs')
 //import "./../node_modules/minipaint/src/css/layout.css";
-//var minipaint = require('./../node_modules/minipaint/dist/minipaint.js');
-var minipaint = require('./../node_modules/minipaintlink/dist/minipaint.js'); // USING SYMLINK
+var minipaint = require('./../node_modules/minipaint/dist/minipaint.js');
+//var minipaint = require('./../node_modules/minipaintlink/dist/minipaint.js'); // USING SYMLINK
 
 class WalletSelect extends React.Component {
     render() {
       return (
-        <div class="bp4-html-select .modifier">
-            <select>
-                <option selected>Choose an item...</option>
-                <option value="1">One</option>
-                <option value="2">Two</option>
-                <option value="3">Three</option>
-                <option value="4">Four</option>
-            </select>
-            <span class="bp4-icon bp4-icon-double-caret-vertical"></span>
-        </div>
+<Menu className='walletMenu'>
+    <MenuItem text="Connect Wallet">
+        <MenuItem text="Child one" />
+        <MenuItem text="Child two" />
+        <MenuItem text="Child three" />
+    </MenuItem>
+</Menu>
       );
     }
   }
@@ -1186,19 +1184,43 @@ export default class App extends React.Component
         await this.refreshData();
     }
 
+    handleClick(x) {
+        console.log(x)
+        const whichWalletSelected = x
+        this.setState({whichWalletSelected},
+            () => {
+                this.refreshData()
+            })        
+        //this.setState({msg : 'Welcome to the React world!'})
+    }
+
+    renderWalletList() {
+        return (
+
+
+
+        )
+
+    }
+
     renderWalletInfo()
     {
 
         return (
             <div style={{margin: "20px"}}>
-
-
-                <h1>NFT Creator</h1>
-
-
-
-                <div style={{paddingTop: "10px"}}>
-                    <div style={{marginBottom: 15}}>Select wallet:</div>
+                <Menu className='walletMenu'>
+                    <MenuItem text="Connect Wallet" key="Wallet">
+                    { this.state.wallets.map(key =>
+                        <MenuItem 
+                        text={window.cardano[key].name} label={key} key={key}
+                        icon={<img src={window.cardano[key].icon} width={24} height={24} alt={key}/>} 
+                        onClick={e => this.handleClick(key)}
+                        />
+                        )}                        
+                    </MenuItem>
+                </Menu>
+                <div>
+                    <div>Select wallet:</div>
                     <RadioGroup
                         onChange={this.handleWalletSelect}
                         selectedValue={this.state.whichWalletSelected}
@@ -1735,7 +1757,6 @@ export default class App extends React.Component
     return (
         <div>
             <div className='topDiv'>
-                <WalletSelect></WalletSelect>
                 <PaintCanvas  />
             </div>
             <div className='bottomDiv'>
