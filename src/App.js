@@ -50,11 +50,25 @@ import {
 } from "@emurgo/cardano-serialization-lib-asmjs"
 import "./App.css";
 import {blake2b} from "blakejs";
+import PropTypes from 'prop-types';
+import Button from '@mui/material/Button';
+import Avatar from '@mui/material/Avatar';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemAvatar from '@mui/material/ListItemAvatar';
+import ListItemText from '@mui/material/ListItemText';
+import DialogTitle from '@mui/material/DialogTitle';
+import Dialog from '@mui/material/Dialog';
+import PersonIcon from '@mui/icons-material/Person';
+import AddIcon from '@mui/icons-material/Add';
+import Typography from '@mui/material/Typography';
+import { blue } from '@mui/material/colors';
 let Buffer = require('buffer/').Buffer
 let blake = require('blakejs')
 //import "./../node_modules/minipaint/src/css/layout.css";
 var minipaint = require('./../node_modules/minipaint/dist/minipaint.js');
 //var minipaint = require('./../node_modules/minipaintlink/dist/minipaint.js'); // USING SYMLINK
+
 
 class WalletSelect extends React.Component {
     render() {
@@ -194,6 +208,8 @@ export default class App extends React.Component
             lovelaceLocked: 3000000,
             manualFee: 900000,
 
+            open: false,
+
         }
 
         /**
@@ -257,7 +273,7 @@ export default class App extends React.Component
             wallets,
             whichWalletSelected: wallets[0]
         }, () => {
-            this.refreshData()
+            //this.refreshData()
         });
     }
 
@@ -1181,7 +1197,7 @@ export default class App extends React.Component
 
     async componentDidMount() {
         this.pollWallets();
-        await this.refreshData();
+       // await this.refreshData();
     }
 
     handleClick(x) {
@@ -1194,20 +1210,53 @@ export default class App extends React.Component
         //this.setState({msg : 'Welcome to the React world!'})
     }
 
-    renderWalletList() {
-        return (
+    handleClickOpen = () => {
+      this.setState({open: true});
+    };
+    
+    handleClose = (value) => {
+        this.setState({open: false});
+    };
+  
+    handleListItemClick = (value) => {
+        this.setState({open: false});
+        this.handleClick(value);
+    };
 
-
-
-        )
-
-    }
+    emails = ['username@gmail.com', 'user02@gmail.com'];
 
     renderWalletInfo()
     {
 
         return (
             <div style={{margin: "20px"}}>
+
+                <Button id="walletConnectButton" variant="outlined" onClick={this.handleClickOpen}>
+                    Connect Wallet...
+                </Button>
+                <div>
+                    <Typography variant="subtitle1" component="div">
+                    Selected: {this.state.whichWalletSelected}
+                    </Typography>
+                    <br />
+                    <Dialog onClose={this.handleClose} open={this.state.open}>
+                        <DialogTitle>Choose a wallet</DialogTitle>
+                        <List sx={{ pt: 0 }}>
+                        { this.state.wallets.map(key => (
+                            <ListItem button onClick={() => this.handleListItemClick(key)} key={key}>
+                                <ListItemAvatar>
+                                    <img src={window.cardano[key].icon} width={24} height={24} alt={key}/>
+                                </ListItemAvatar>
+                                <ListItemText primary={window.cardano[key].name} secondary={key}/>
+                            </ListItem>
+                        ))}
+                        </List>
+                    </Dialog>       
+                </div>                
+                
+                
+                {/*
+                <SimpleDialogDemo/>
                 <Menu className='walletMenu'>
                     <MenuItem text="Connect Wallet" key="Wallet">
                     { this.state.wallets.map(key =>
@@ -1219,6 +1268,7 @@ export default class App extends React.Component
                         )}                        
                     </MenuItem>
                 </Menu>
+                    */}
                 <div>
                     <div>Select wallet:</div>
                     <RadioGroup
