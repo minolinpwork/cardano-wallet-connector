@@ -17,6 +17,7 @@
     "blakejs": "^1.1.1",
     "buffer": "^6.0.3",
     "cbor-web": "^8.1.0",
+    "clipboardy": "^3.0.0",
     "encodr": "^1.3.2",
     "minipaint": "git@github.com:minolinpwork/miniPaint.git",
     "react": "^17.0.2",

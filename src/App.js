@@ -63,6 +63,14 @@ import PersonIcon from '@mui/icons-material/Person';
 import AddIcon from '@mui/icons-material/Add';
 import Typography from '@mui/material/Typography';
 import { blue } from '@mui/material/colors';
+import { ListItemButton } from '@mui/material';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import Tooltip from '@mui/material/Tooltip';
+
+import clipboard from 'clipboardy';
+
+
 let Buffer = require('buffer/').Buffer
 let blake = require('blakejs')
 //import "./../node_modules/minipaint/src/css/layout.css";
@@ -208,8 +216,10 @@ export default class App extends React.Component
             lovelaceLocked: 3000000,
             manualFee: 900000,
 
-            open: false,
+            openAvailableWalletsDialog: false,
+            openWalletDetailsDialog: false,
 
+            changeAddressDisplayTrimmed: undefined,
         }
 
         /**
@@ -543,6 +553,13 @@ export default class App extends React.Component
         }
     }
 
+    shortenedAddress = (addr) => {
+        const truncate = addr.length > 20 
+        ? addr.substring(0, 10) + '...' + addr.substring(addr.length-5, addr.length) 
+        : addr;
+        return truncate;
+    }    
+
     /**
      * Get the address from the wallet into which any spare UTXO should be sent
      * as change when building transactions.
@@ -553,6 +570,8 @@ export default class App extends React.Component
             const raw = await this.API.getChangeAddress();
             const changeAddress = Address.from_bytes(Buffer.from(raw, "hex")).to_bech32()
             this.setState({changeAddress})
+            const changeAddressDisplayTrimmed = this.shortenedAddress(changeAddress)
+            this.setState({changeAddressDisplayTrimmed})
         } catch (err) {
             console.log(err)
         }
@@ -628,6 +647,8 @@ export default class App extends React.Component
                         txBodyCborHex_unsigned: "",
                         txBodyCborHex_signed: "",
                         submittedTxHash: "",
+
+                        changeAddressDisplayTrimmed: null,
                     });
                 }
             } else {
@@ -645,6 +666,8 @@ export default class App extends React.Component
                     txBodyCborHex_unsigned: "",
                     txBodyCborHex_signed: "",
                     submittedTxHash: "",
+
+                    changeAddressDisplayTrimmed: null,
                 });
             }
         } catch (err) {
@@ -1200,7 +1223,7 @@ export default class App extends React.Component
        // await this.refreshData();
     }
 
-    handleClick(x) {
+    handleConnect(x) {
         console.log(x)
         const whichWalletSelected = x
         this.setState({whichWalletSelected},
@@ -1210,20 +1233,42 @@ export default class App extends React.Component
         //this.setState({msg : 'Welcome to the React world!'})
     }
 
-    handleClickOpen = () => {
-      this.setState({open: true});
+    clickOpenAvailableWalletsDialog = () => {
+      this.setState({openAvailableWalletsDialog: true});
     };
     
-    handleClose = (value) => {
-        this.setState({open: false});
-    };
-  
-    handleListItemClick = (value) => {
-        this.setState({open: false});
-        this.handleClick(value);
+    closeAvailableWalletsDialog = (value) => {
+        this.setState({openAvailableWalletsDialog: false});
     };
 
-    emails = ['username@gmail.com', 'user02@gmail.com'];
+    handleConnectClick = (value) => {
+        this.setState({openAvailableWalletsDialog: false});
+        this.handleConnect(value);
+    };
+  
+    copyToClipboard = (value) => {
+        clipboard.write(value)
+    };
+    
+    clickOpenWalletDetailsDialog = () => {
+        this.setState({openWalletDetailsDialog: true});
+    };
+    
+    closeWalletDetailsDialog = (value) => {
+        this.setState({openWalletDetailsDialog: false});
+    };
+
+    handleDisconnectClick = () => {
+        this.setState({openWalletDetailsDialog: false});
+        this.setState({
+            whichWalletSelected: undefined,
+            walletFound: false,
+            walletIsEnabled: false,
+        },
+        () => {
+            this.refreshData()
+        })  
+    };
 
     renderWalletInfo()
     {
@@ -1231,19 +1276,19 @@ export default class App extends React.Component
         return (
             <div style={{margin: "20px"}}>
 
-                <Button id="walletConnectButton" variant="outlined" onClick={this.handleClickOpen}>
-                    Connect Wallet...
-                </Button>
+                {(!this.state.walletIsEnabled)
+                &&
                 <div>
-                    <Typography variant="subtitle1" component="div">
-                    Selected: {this.state.whichWalletSelected}
-                    </Typography>
-                    <br />
-                    <Dialog onClose={this.handleClose} open={this.state.open}>
-                        <DialogTitle>Choose a wallet</DialogTitle>
-                        <List sx={{ pt: 0 }}>
+                    <Button id="walletConnectButton" variant="contained" onClick={this.clickOpenAvailableWalletsDialog} size="large">
+                        Connect Wallet...
+                    </Button>
+                    <Dialog onClose={this.closeAvailableWalletsDialog} open={this.state.openAvailableWalletsDialog} maxWidth='lg'>
+                        <DialogTitle>Your installed wallets</DialogTitle>
+                        <List>
                         { this.state.wallets.map(key => (
-                            <ListItem button onClick={() => this.handleListItemClick(key)} key={key}>
+                            <ListItem button onClick={() => this.handleConnectClick(key)} key={key} divider={true}
+                            sx={{
+                            }}>
                                 <ListItemAvatar>
                                     <img src={window.cardano[key].icon} width={24} height={24} alt={key}/>
                                 </ListItemAvatar>
@@ -1253,8 +1298,44 @@ export default class App extends React.Component
                         </List>
                     </Dialog>       
                 </div>                
-                
-                
+                }
+
+                {(this.state.walletIsEnabled)
+                &&
+                <div>
+                    <Button id="walletConnectButton" variant="contained" onClick={this.clickOpenWalletDetailsDialog} size="large"
+        endIcon={<Avatar src={window.cardano[this.state.whichWalletSelected].icon} sx={{ width: 12, height: 12 }}/>}
+                        >
+                        {this.state.balance}                        
+                    </Button>
+                    <Dialog onClose={this.closeWalletDetailsDialog} open={this.state.openWalletDetailsDialog} maxWidth='lg'>
+                        <DialogTitle>Connected Wallet</DialogTitle>
+                        <List>
+                            <ListItem 
+                            sx={{
+                            }}>
+                                <ListItemAvatar>
+                                    <img src={window.cardano[this.state.whichWalletSelected].icon} width={24} height={24} alt={this.state.whichWalletSelected}/>
+                                </ListItemAvatar>
+
+                                <Tooltip title="Copy address">
+                                <ListItemButton onClick={this.copyToClipboard(this.state.changeAddress)}>
+                                    <ListItemText primary={window.cardano[this.state.whichWalletSelected].name} secondary={this.state.changeAddressDisplayTrimmed}/>
+                                    <ListItemIcon>
+                                            <ContentCopyIcon/>
+                                        </ListItemIcon>
+                                </ListItemButton>
+                                </Tooltip>
+
+                                <ListItemButton onClick={this.handleDisconnectClick} >
+                                    <ListItemText primary="Disconnect" />
+                                </ListItemButton>
+                            </ListItem>
+                        </List>
+                    </Dialog>       
+                </div>                
+                }
+                                
                 {/*
                 <SimpleDialogDemo/>
                 <Menu className='walletMenu'>
