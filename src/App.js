@@ -67,6 +67,7 @@ import { ListItemButton } from '@mui/material';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import Tooltip from '@mui/material/Tooltip';
+import ButtonGroup from '@mui/material/ButtonGroup';
 
 import clipboard from 'clipboardy';
 
@@ -203,7 +204,8 @@ export default class App extends React.Component
             txBodyCborHex_signed: "",
             submittedTxHash: "",
 
-            addressBech32SendADA: "addr_test1qzafd4kv7lfpwvs5ln0puuwqf5u982t5he6y4wns464lp7x9w00v9ljd6duvwz3unkn84el30j30lpk35txg2h7el2zsjhcmly",
+            addressBech32SendADA: "addr_test1qzzre46w67vq8vah4fu5dnw3z6m55yeyvy4j2adjyrffm6w9w00v9ljd6duvwz3unkn84el30j30lpk35txg2h7el2zsjy4zxy",
+            // original addressBech32SendADA: "addr_test1qzafd4kv7lfpwvs5ln0puuwqf5u982t5he6y4wns464lp7x9w00v9ljd6duvwz3unkn84el30j30lpk35txg2h7el2zsjhcmly",
             lovelaceToSend: 3000000,
             assetNameHex: "4c494645",
             assetPolicyIdHex: "ae02017105527c6c0c9840397a39cc5ca39fabe5b9998ba70fda5f2f",
@@ -218,8 +220,6 @@ export default class App extends React.Component
 
             openAvailableWalletsDialog: false,
             openWalletDetailsDialog: false,
-
-            changeAddressDisplayTrimmed: undefined,
         }
 
         /**
@@ -553,13 +553,6 @@ export default class App extends React.Component
         }
     }
 
-    shortenedAddress = (addr) => {
-        const truncate = addr.length > 20 
-        ? addr.substring(0, 10) + '...' + addr.substring(addr.length-5, addr.length) 
-        : addr;
-        return truncate;
-    }    
-
     /**
      * Get the address from the wallet into which any spare UTXO should be sent
      * as change when building transactions.
@@ -570,8 +563,6 @@ export default class App extends React.Component
             const raw = await this.API.getChangeAddress();
             const changeAddress = Address.from_bytes(Buffer.from(raw, "hex")).to_bech32()
             this.setState({changeAddress})
-            const changeAddressDisplayTrimmed = this.shortenedAddress(changeAddress)
-            this.setState({changeAddressDisplayTrimmed})
         } catch (err) {
             console.log(err)
         }
@@ -648,7 +639,6 @@ export default class App extends React.Component
                         txBodyCborHex_signed: "",
                         submittedTxHash: "",
 
-                        changeAddressDisplayTrimmed: null,
                     });
                 }
             } else {
@@ -667,7 +657,6 @@ export default class App extends React.Component
                     txBodyCborHex_signed: "",
                     submittedTxHash: "",
 
-                    changeAddressDisplayTrimmed: null,
                 });
             }
         } catch (err) {
@@ -1247,9 +1236,14 @@ export default class App extends React.Component
     };
   
     copyToClipboard = (value) => {
-        clipboard.write(value)
+        (clipboard.write(value)).then((message)=>{  
+            console.log("copyToClipboard success. The message is:" + message)
+        }).catch((message)=>{  
+            console.log("copyToClipboard failed. The message is:" + message)  
+        })  
+
     };
-    
+
     clickOpenWalletDetailsDialog = () => {
         this.setState({openWalletDetailsDialog: true});
     };
@@ -1269,6 +1263,19 @@ export default class App extends React.Component
             this.refreshData()
         })  
     };
+
+    truncate = (val) => {
+        const truncate = val?.length > 20 
+        ? val.substring(0, 10) + '...' + val.substring(val.length-5, val.length) 
+        : val;
+        return truncate;
+    }
+
+    formatAda = (val) => {
+        console.log(val)
+        const truncate = Math.trunc(val/1000000)
+        return truncate;
+    }
 
     renderWalletInfo()
     {
@@ -1303,11 +1310,14 @@ export default class App extends React.Component
                 {(this.state.walletIsEnabled)
                 &&
                 <div>
-                    <Button id="walletConnectButton" variant="contained" onClick={this.clickOpenWalletDetailsDialog} size="large"
-        endIcon={<Avatar src={window.cardano[this.state.whichWalletSelected].icon} sx={{ width: 12, height: 12 }}/>}
+<ButtonGroup id="walletConnectButton" variant="contained" aria-label="outlined primary button group">
+  <Button onClick={this.buildSendADATransaction}>Pay</Button>
+                    <Button onClick={this.clickOpenWalletDetailsDialog} size="large"
+        startIcon={<Avatar src={window.cardano[this.state.whichWalletSelected].icon} sx={{ width: 12, height: 12 }}/>}
                         >
-                        {this.state.balance}                        
+                        {this.state.balance && this.formatAda(this.state.balance)} ADA                        
                     </Button>
+</ButtonGroup>                    
                     <Dialog onClose={this.closeWalletDetailsDialog} open={this.state.openWalletDetailsDialog} maxWidth='lg'>
                         <DialogTitle>Connected Wallet</DialogTitle>
                         <List>
@@ -1319,8 +1329,8 @@ export default class App extends React.Component
                                 </ListItemAvatar>
 
                                 <Tooltip title="Copy address">
-                                <ListItemButton onClick={this.copyToClipboard(this.state.changeAddress)}>
-                                    <ListItemText primary={window.cardano[this.state.whichWalletSelected].name} secondary={this.state.changeAddressDisplayTrimmed}/>
+                                <ListItemButton onClick={() => this.copyToClipboard(this.state.changeAddress)}>
+                                    <ListItemText primary={window.cardano[this.state.whichWalletSelected].name} secondary={this.truncate(this.state.changeAddress)}/>
                                     <ListItemIcon>
                                             <ContentCopyIcon/>
                                         </ListItemIcon>
