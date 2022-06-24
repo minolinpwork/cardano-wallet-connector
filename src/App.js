@@ -750,6 +750,42 @@ export default class App extends React.Component
 
     }
 
+    sendFile2(blob, fname) {
+        console.log('sendFile2', fname);
+
+        let loc = 'http://localhost:8080/file-upload'
+        var data = new FormData();
+        data.append("myFile", blob);        
+        fetch(loc, {
+            method: "POST",
+            body: data,
+            headers: {
+                  'Access-Control-Allow-Origin': '*',
+                }
+          })
+          .then(response => response.json()) 
+          .then(json => console.log(json))
+          .catch(err => console.log(err));        
+    }
+
+    sendFile = async () => {
+        var user_response = { 
+            name:"test3.png", 
+            quality:90, 
+            delay:400,
+            type:"PNG",
+            layers:"All?"
+         };         
+         window.FileSave.save_action(user_response, false)
+
+        window.FileSave.export_blob_action(user_response, false, this.sendFile2)
+        
+    }
+
+    process = async () => {
+        //await this.buildSendADATransaction();
+        await this.sendFile();
+    }
 
     buildSendTokenTransaction = async () => {
 
@@ -1296,7 +1332,7 @@ export default class App extends React.Component
                 <div>
                     <div id="walletConnectButton">
                     <ButtonGroup variant="contained" aria-label="outlined primary button group">
-                        <Button onClick={this.buildSendADATransaction}>Pay</Button>
+                        <Button onClick={this.process}>Pay</Button>
                         <Button onClick={this.clickOpenWalletDetailsDialog} size="large"
                             startIcon={<Avatar src={window.cardano[this.state.whichWalletSelected].icon} sx={{ width: 12, height: 12 }}/>}>
                             {this.state.balance && this.formatAda(this.state.balance)} ADA                        
