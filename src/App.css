@@ -1,5 +1,5 @@
 .topDiv {
-  height: 600px;
+  height: 400px;
 }
 
 #walletConnectButton {
@@ -7,6 +7,7 @@
   position: absolute;
   right: 0px;
   top: 0px;
+  text-align: right;
 }
 
 .walletMenu {
@@ -16,8 +17,18 @@
   top: 0px;
 }
 
+.newWalletConnect {
+  z-index: 9;
+  position: abosolute;
+}
+
 .bottomDiv {
-  height: 300px;
+  margin: 50px;
+  height: 400px;
+  width: 800px;
+  overflow: scroll;
+  position: absolute;
+  line-height: 1em;
 }
 
 .App {

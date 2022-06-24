@@ -68,6 +68,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import Tooltip from '@mui/material/Tooltip';
 import ButtonGroup from '@mui/material/ButtonGroup';
+import TextField from '@mui/material/TextField';
 
 import clipboard from 'clipboardy';
 
@@ -77,21 +78,6 @@ let blake = require('blakejs')
 //import "./../node_modules/minipaint/src/css/layout.css";
 var minipaint = require('./../node_modules/minipaint/dist/minipaint.js');
 //var minipaint = require('./../node_modules/minipaintlink/dist/minipaint.js'); // USING SYMLINK
-
-
-class WalletSelect extends React.Component {
-    render() {
-      return (
-<Menu className='walletMenu'>
-    <MenuItem text="Connect Wallet">
-        <MenuItem text="Child one" />
-        <MenuItem text="Child two" />
-        <MenuItem text="Child three" />
-    </MenuItem>
-</Menu>
-      );
-    }
-  }
 
 
 class PaintCanvas extends React.Component {
@@ -1277,11 +1263,11 @@ export default class App extends React.Component
         return truncate;
     }
 
-    renderWalletInfo()
+    renderNewButtonInfo()
     {
 
         return (
-            <div style={{margin: "20px"}}>
+            <div>
 
                 {(!this.state.walletIsEnabled)
                 &&
@@ -1293,9 +1279,7 @@ export default class App extends React.Component
                         <DialogTitle>Your installed wallets</DialogTitle>
                         <List>
                         { this.state.wallets.map(key => (
-                            <ListItem button onClick={() => this.handleConnectClick(key)} key={key} divider={true}
-                            sx={{
-                            }}>
+                            <ListItem button onClick={() => this.handleConnectClick(key)} key={key} divider={true}>
                                 <ListItemAvatar>
                                     <img src={window.cardano[key].icon} width={24} height={24} alt={key}/>
                                 </ListItemAvatar>
@@ -1310,20 +1294,20 @@ export default class App extends React.Component
                 {(this.state.walletIsEnabled)
                 &&
                 <div>
-<ButtonGroup id="walletConnectButton" variant="contained" aria-label="outlined primary button group">
-  <Button onClick={this.buildSendADATransaction}>Pay</Button>
-                    <Button onClick={this.clickOpenWalletDetailsDialog} size="large"
-        startIcon={<Avatar src={window.cardano[this.state.whichWalletSelected].icon} sx={{ width: 12, height: 12 }}/>}
-                        >
-                        {this.state.balance && this.formatAda(this.state.balance)} ADA                        
-                    </Button>
-</ButtonGroup>                    
+                    <div id="walletConnectButton">
+                    <ButtonGroup variant="contained" aria-label="outlined primary button group">
+                        <Button onClick={this.buildSendADATransaction}>Pay</Button>
+                        <Button onClick={this.clickOpenWalletDetailsDialog} size="large"
+                            startIcon={<Avatar src={window.cardano[this.state.whichWalletSelected].icon} sx={{ width: 12, height: 12 }}/>}>
+                            {this.state.balance && this.formatAda(this.state.balance)} ADA                        
+                        </Button>
+                    </ButtonGroup>     
+                    <p>{this.state.submittedTxHash ? 'Submitted Tx Hash: ' +  this.state.submittedTxHash : ''}</p>
+                    </div>               
                     <Dialog onClose={this.closeWalletDetailsDialog} open={this.state.openWalletDetailsDialog} maxWidth='lg'>
                         <DialogTitle>Connected Wallet</DialogTitle>
                         <List>
-                            <ListItem 
-                            sx={{
-                            }}>
+                            <ListItem>
                                 <ListItemAvatar>
                                     <img src={window.cardano[this.state.whichWalletSelected].icon} width={24} height={24} alt={this.state.whichWalletSelected}/>
                                 </ListItemAvatar>
@@ -1345,7 +1329,16 @@ export default class App extends React.Component
                     </Dialog>       
                 </div>                
                 }
-                                
+                </div>
+        )
+    }
+                        
+    renderWalletInfo()
+    {
+
+        return (
+            <div style={{margin: "20px"}}>
+                               
                 {/*
                 <SimpleDialogDemo/>
                 <Menu className='walletMenu'>
@@ -1382,24 +1375,24 @@ export default class App extends React.Component
 
 
 
-                <button style={{padding: "20px"}} onClick={this.refreshData}>Refresh</button>
+                <button onClick={this.refreshData}>Refresh</button>
 
-                <p style={{paddingTop: "20px"}}><span style={{fontWeight: "bold"}}>Wallet Found: </span>{`${this.state.walletFound}`}</p>
+                <p ><span style={{fontWeight: "bold"}}>Wallet Found: </span>{`${this.state.walletFound}`}</p>
                 <p><span style={{fontWeight: "bold"}}>Wallet Connected: </span>{`${this.state.walletIsEnabled}`}</p>
                 <p><span style={{fontWeight: "bold"}}>Wallet API version: </span>{this.state.walletAPIVersion}</p>
                 <p><span style={{fontWeight: "bold"}}>Wallet name: </span>{this.state.walletName}</p>
 
                 <p><span style={{fontWeight: "bold"}}>Network Id (0 = testnet; 1 = mainnet): </span>{this.state.networkId}</p>
-                <p style={{paddingTop: "20px"}}><span style={{fontWeight: "bold"}}>UTXOs: (UTXO #txid = ADA amount + AssetAmount + policyId.AssetName + ...): </span>{this.state.Utxos?.map(x => <li style={{fontSize: "10px"}} key={`${x.str}${x.multiAssetStr}`}>{`${x.str}${x.multiAssetStr}`}</li>)}</p>
-                <p style={{paddingTop: "20px"}}><span style={{fontWeight: "bold"}}>Balance: </span>{this.state.balance}</p>
+                <p><span style={{fontWeight: "bold"}}>UTXOs: (UTXO #txid = ADA amount + AssetAmount + policyId.AssetName + ...): </span>{this.state.Utxos?.map(x => <li style={{fontSize: "10px"}} key={`${x.str}${x.multiAssetStr}`}>{`${x.str}${x.multiAssetStr}`}</li>)}</p>
+                <p><span style={{fontWeight: "bold"}}>Balance: </span>{this.state.balance}</p>
                 <p><span style={{fontWeight: "bold"}}>Change Address: </span>{this.state.changeAddress}</p>
                 <p><span style={{fontWeight: "bold"}}>Staking Address: </span>{this.state.rewardAddress}</p>
                 <p><span style={{fontWeight: "bold"}}>Used Address: </span>{this.state.usedAddress}</p>
-                <hr style={{marginTop: "40px", marginBottom: "40px"}}/>
+                <hr/>
 
                 <Tabs id="TabsExample" vertical={true} onChange={this.handleTabId} selectedTabId={this.state.selectedTabId}>
                     <Tab id="1" title="1. Send ADA to Address" panel={
-                        <div style={{marginLeft: "20px"}}>
+                        <div >
 
                             <FormGroup
                                 helperText="insert an address where you want to send some ADA ..."
@@ -1431,7 +1424,7 @@ export default class App extends React.Component
                                 />
                             </FormGroup>
 
-                            <button style={{padding: "10px"}} onClick={this.buildSendADATransaction}>Run</button>
+                            <button onClick={this.buildSendADATransaction}>Run</button>
                         </div>
                     } />
                     <Tab id="2" title="2. Send Token to Address" panel={
@@ -1899,6 +1892,9 @@ export default class App extends React.Component
         <div>
             <div className='topDiv'>
                 <PaintCanvas  />
+            </div>
+            <div className='newWalletConnect'>
+            {this.renderNewButtonInfo()}
             </div>
             <div className='bottomDiv'>
                 {this.renderWalletInfo()}
