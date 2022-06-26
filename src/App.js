@@ -46,7 +46,8 @@ import {
     hash_transaction,
     hash_script_data,
     hash_plutus_data,
-    ScriptDataHash, Ed25519KeyHash, NativeScript, StakeCredential
+    ScriptDataHash, Ed25519KeyHash, NativeScript, StakeCredential,
+    CoinSelectionStrategyCIP2
 } from "@emurgo/cardano-serialization-lib-asmjs"
 import "./App.css";
 import {blake2b} from "blakejs";
@@ -730,7 +731,7 @@ export default class App extends React.Component
         // Find the available UTXOs in the wallet and
         // us them as Inputs
         const txUnspentOutputs = await this.getTxUnspentOutputs();
-        txBuilder.add_inputs_from(txUnspentOutputs, 1)
+        txBuilder.add_inputs_from(txUnspentOutputs, CoinSelectionStrategyCIP2.RandomImprove)
 
         // calculate the min fee required and send any change to an address
         txBuilder.add_change_if_needed(shelleyChangeAddress)
@@ -793,13 +794,13 @@ export default class App extends React.Component
              }) 
             .catch(err => {
                 console.log("sendFile2: " + err)
-                this.setState({openNFTFailureAltert: true})
+                this.setState({openNFTFailureAlert: true})
             });        
     }
 
     sendFile = async () => {
         var user_response = { 
-            name:this.state.submittedTxHash, 
+            name:'tmpFile', 
             quality:90, 
             delay:400,
             type:this.state.nft_imageType,
@@ -819,7 +820,7 @@ export default class App extends React.Component
             await this.sendFile();
         } catch (err) {
             console.log("process: " + err)
-            this.setState({openNFTFailureAltert: true})
+            this.setState({openNFTFailureAlert: true})
         }
     }
 
