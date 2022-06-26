@@ -1,9 +1,9 @@
 import React from 'react'
-import { Tab, Tabs, RadioGroup, Radio, FormGroup, InputGroup, NumericInput, Menu, MenuItem } from "@blueprintjs/core";
+import { Tab, Tabs, RadioGroup, Radio, FormGroup, InputGroup, NumericInput } from "@blueprintjs/core";
 import "../node_modules/@blueprintjs/core/lib/css/blueprint.css";
 import "../node_modules/@blueprintjs/icons/lib/css/blueprint-icons.css";
 
-import "../node_modules/normalize.css/normalize.css";
+//import "../node_modules/normalize.css/normalize.css";
 import {
     Address,
     BaseAddress,
@@ -69,9 +69,15 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import Tooltip from '@mui/material/Tooltip';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import TextField from '@mui/material/TextField';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 
 import clipboard from 'clipboardy';
 
+import { properties } from './properties/properties.js'
 
 let Buffer = require('buffer/').Buffer
 let blake = require('blakejs')
@@ -160,7 +166,6 @@ class PaintCanvas extends React.Component {
   }
 }
 
-
 export default class App extends React.Component
 {
     constructor(props)
@@ -206,6 +211,14 @@ export default class App extends React.Component
 
             openAvailableWalletsDialog: false,
             openWalletDetailsDialog: false,
+            openNFTDetailsDialog: true,
+
+            nft_policyName: 'ADANFTCreator',
+            nft_name: '',
+            nft_description: '',
+            nft_imageType: 'PNG',
+            statusUpdate: "",
+
         }
 
         /**
@@ -267,9 +280,9 @@ export default class App extends React.Component
         }
         this.setState({
             wallets,
-            whichWalletSelected: wallets[0]
+            whichWalletSelected: 'eternl',//wallets[0]
         }, () => {
-            //this.refreshData()
+            this.refreshData()
         });
     }
 
@@ -713,7 +726,7 @@ export default class App extends React.Component
         // us them as Inputs
         const txUnspentOutputs = await this.getTxUnspentOutputs();
         txBuilder.add_inputs_from(txUnspentOutputs, 1)
-
+                txBuilder.
         // calculate the min fee required and send any change to an address
         txBuilder.add_change_if_needed(shelleyChangeAddress)
 
@@ -753,19 +766,28 @@ export default class App extends React.Component
     sendFile2(blob, fname) {
         console.log('sendFile2', fname);
 
-        let loc = 'http://localhost:8080/file-upload'
         var data = new FormData();
-        data.append("myFile", blob);        
-        fetch(loc, {
+        data.append("blob", blob);  
+        data.append("txHash", this.state.submittedTxHash );     
+        data.append("policyName", this.state.nft_policyName);    
+        data.append("nftName", this.state.nft_name);    
+        data.append("nftDescription", this.state.nft_description);   
+        data.append("imageType", this.state.nft_imageType);      
+        data.append("receiverAddr", this.state.changeAddress);      
+        fetch(properties.uploadFileUrl, {
             method: "POST",
             body: data,
             headers: {
                   'Access-Control-Allow-Origin': '*',
                 }
           })
-          .then(response => response.json()) 
-          .then(json => console.log(json))
-          .catch(err => console.log(err));        
+            .then(response => response.text())
+            .then(resp => { 
+                console.log(resp); 
+                const statusUpdate = this.state.statusUpdate + "\n" + "Submitted Successfully"
+                this.setState({statusUpdate})
+            }) 
+            .catch(err => console.log("sendFile2: " + err));        
     }
 
     sendFile = async () => {
@@ -776,14 +798,15 @@ export default class App extends React.Component
             type:"PNG",
             layers:"All?"
          };         
-         window.FileSave.save_action(user_response, false)
+        // window.FileSave.save_action(user_response, false)
 
-        window.FileSave.export_blob_action(user_response, false, this.sendFile2)
+        window.FileSave.export_blob_action(user_response, false, this.sendFile2.bind(this))
         
     }
 
     process = async () => {
         //await this.buildSendADATransaction();
+        this.setState({submittedTxHash: 'xyz1'})
         await this.sendFile();
     }
 
@@ -1274,6 +1297,14 @@ export default class App extends React.Component
         this.setState({openWalletDetailsDialog: false});
     };
 
+    clickOpenNFTDetailsDialog = () => {
+        this.setState({openNFTDetailsDialog: true});
+    };
+
+    closeNFTDetailsDialog = (value) => {
+        this.setState({openNFTDetailsDialog: false});
+    };
+
     handleDisconnectClick = () => {
         this.setState({openWalletDetailsDialog: false});
         this.setState({
@@ -1332,13 +1363,13 @@ export default class App extends React.Component
                 <div>
                     <div id="walletConnectButton">
                     <ButtonGroup variant="contained" aria-label="outlined primary button group">
-                        <Button onClick={this.process}>Pay</Button>
+                        <Button disabled={!this.state.changeAddress} onClick={this.clickOpenNFTDetailsDialog}>Create NFT</Button>
                         <Button onClick={this.clickOpenWalletDetailsDialog} size="large"
                             startIcon={<Avatar src={window.cardano[this.state.whichWalletSelected].icon} sx={{ width: 12, height: 12 }}/>}>
                             {this.state.balance && this.formatAda(this.state.balance)} ADA                        
                         </Button>
                     </ButtonGroup>     
-                    <p>{this.state.submittedTxHash ? 'Submitted Tx Hash: ' +  this.state.submittedTxHash : ''}</p>
+                    <p>{this.state.statusUpdate}</p>
                     </div>               
                     <Dialog onClose={this.closeWalletDetailsDialog} open={this.state.openWalletDetailsDialog} maxWidth='lg'>
                         <DialogTitle>Connected Wallet</DialogTitle>
@@ -1362,7 +1393,32 @@ export default class App extends React.Component
                                 </ListItemButton>
                             </ListItem>
                         </List>
-                    </Dialog>       
+                    </Dialog>    
+        <Dialog open={this.state.openNFTDetailsDialog} onClose={this.closeNFTDetailsDialog}>
+          <DialogTitle>Create NFT</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Please enter NFT details
+            </DialogContentText>
+            <TextField type="txt" autoFocus id="nftName" label="NFT Name" onChange={(event) => this.setState({nft_name: event.target.value})} fullWidth margin='dense' variant='outlined'>{this.state.nft_name}</TextField>
+            <TextField type="txt" id="nftDescription" label="NFT Description" onChange={(event) => this.setState({nft_description: event.target.value})} fullWidth margin='dense'>{this.state.nft_description}</TextField>
+            <TextField type="txt" id="nftPolicyName" label="Policy Name" onChange={(event) => this.setState({nft_policyName: event.target.value})} fullWidth margin='dense'>{this.state.nft_policyName}</TextField>
+            <Select variant="outlined"
+                labelId="selectImageTypeLabel"
+                id="selectImageType"
+                value={this.state.nft_imageType}
+                label="Image Type"
+                onChange={(event) => this.setState({nft_imageType: event.target.value})}
+            >
+                <MenuItem value='PNG'>Image</MenuItem>
+                <MenuItem value='GIF'>Animation</MenuItem>
+            </Select>
+          </DialogContent>
+          <DialogActions>
+            <Button variant="contained" size="large" onClick={this.closeNFTDetailsDialog}>Cancel</Button>
+            <Button variant="contained" size="large" onClick={this.process}>Pay</Button>
+          </DialogActions>
+        </Dialog>
                 </div>                
                 }
                 </div>
@@ -1412,6 +1468,8 @@ export default class App extends React.Component
 
 
                 <button onClick={this.refreshData}>Refresh</button>
+                <p>{`Submitted Tx Hash: ${this.state.submittedTxHash}`}</p>
+                <p>{this.state.submittedTxHash ? 'check your wallet !' : ''}</p>
 
                 <p ><span style={{fontWeight: "bold"}}>Wallet Found: </span>{`${this.state.walletFound}`}</p>
                 <p><span style={{fontWeight: "bold"}}>Wallet Connected: </span>{`${this.state.walletIsEnabled}`}</p>
@@ -1914,8 +1972,6 @@ export default class App extends React.Component
 
                 {/*<p>{`Unsigned txBodyCborHex: ${this.state.txBodyCborHex_unsigned}`}</p>*/}
                 {/*<p>{`Signed txBodyCborHex: ${this.state.txBodyCborHex_signed}`}</p>*/}
-                <p>{`Submitted Tx Hash: ${this.state.submittedTxHash}`}</p>
-                <p>{this.state.submittedTxHash ? 'check your wallet !' : ''}</p>
 
 
 
