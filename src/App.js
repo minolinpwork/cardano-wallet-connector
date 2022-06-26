@@ -74,7 +74,9 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import Collapse from '@mui/material/Collapse';
 
+import Alert from '@mui/material/Alert';
 import clipboard from 'clipboardy';
 
 import { properties } from './properties/properties.js'
@@ -211,7 +213,10 @@ export default class App extends React.Component
 
             openAvailableWalletsDialog: false,
             openWalletDetailsDialog: false,
-            openNFTDetailsDialog: true,
+            openNFTDetailsDialog: false,
+            openNFTSuccessAlert: false,
+            openNFTFailureAlert: false,
+            showWalletInfo: false,
 
             nft_policyName: 'ADANFTCreator',
             nft_name: '',
@@ -726,7 +731,7 @@ export default class App extends React.Component
         // us them as Inputs
         const txUnspentOutputs = await this.getTxUnspentOutputs();
         txBuilder.add_inputs_from(txUnspentOutputs, 1)
-                txBuilder.
+
         // calculate the min fee required and send any change to an address
         txBuilder.add_change_if_needed(shelleyChangeAddress)
 
@@ -784,30 +789,38 @@ export default class App extends React.Component
             .then(response => response.text())
             .then(resp => { 
                 console.log(resp); 
-                const statusUpdate = this.state.statusUpdate + "\n" + "Submitted Successfully"
-                this.setState({statusUpdate})
-            }) 
-            .catch(err => console.log("sendFile2: " + err));        
+                this.setState({openNFTSuccessAlert: true})
+             }) 
+            .catch(err => {
+                console.log("sendFile2: " + err)
+                this.setState({openNFTFailureAltert: true})
+            });        
     }
 
     sendFile = async () => {
         var user_response = { 
-            name:"test3.png", 
+            name:this.state.submittedTxHash, 
             quality:90, 
             delay:400,
-            type:"PNG",
+            type:this.state.nft_imageType,
             layers:"All?"
          };         
-        // window.FileSave.save_action(user_response, false)
+        //window.FileSave.save_action(user_response, false)
 
         window.FileSave.export_blob_action(user_response, false, this.sendFile2.bind(this))
         
     }
 
     process = async () => {
-        //await this.buildSendADATransaction();
-        this.setState({submittedTxHash: 'xyz1'})
-        await this.sendFile();
+        this.closeNFTDetailsDialog()
+        try {
+            await this.buildSendADATransaction();
+        //this.setState({submittedTxHash: 'xyz1'})
+            await this.sendFile();
+        } catch (err) {
+            console.log("process: " + err)
+            this.setState({openNFTFailureAltert: true})
+        }
     }
 
     buildSendTokenTransaction = async () => {
@@ -1271,7 +1284,7 @@ export default class App extends React.Component
       this.setState({openAvailableWalletsDialog: true});
     };
     
-    closeAvailableWalletsDialog = (value) => {
+    closeAvailableWalletsDialog = () => {
         this.setState({openAvailableWalletsDialog: false});
     };
 
@@ -1293,15 +1306,16 @@ export default class App extends React.Component
         this.setState({openWalletDetailsDialog: true});
     };
     
-    closeWalletDetailsDialog = (value) => {
+    closeWalletDetailsDialog = () => {
         this.setState({openWalletDetailsDialog: false});
     };
 
     clickOpenNFTDetailsDialog = () => {
+        console.log(this.state.nft_policyName)
         this.setState({openNFTDetailsDialog: true});
     };
 
-    closeNFTDetailsDialog = (value) => {
+    closeNFTDetailsDialog = () => {
         this.setState({openNFTDetailsDialog: false});
     };
 
@@ -1369,7 +1383,12 @@ export default class App extends React.Component
                             {this.state.balance && this.formatAda(this.state.balance)} ADA                        
                         </Button>
                     </ButtonGroup>     
-                    <p>{this.state.statusUpdate}</p>
+                    <Collapse in={this.state.openNFTSuccessAlert}>
+                        <Alert severity="info" onClose={() => {this.setState({openNFTSuccessAlert: false})}}>Success.  You will receive your NFT shortly.</Alert>
+                    </Collapse>
+                    <Collapse in={this.state.openNFTFailureAlert}>
+                        <Alert severity="error" onClose={() => {this.setState({openNFTFailureAlert: false})}}>An error has occurred.  Please try again</Alert>
+                    </Collapse>
                     </div>               
                     <Dialog onClose={this.closeWalletDetailsDialog} open={this.state.openWalletDetailsDialog} maxWidth='lg'>
                         <DialogTitle>Connected Wallet</DialogTitle>
@@ -1400,9 +1419,9 @@ export default class App extends React.Component
             <DialogContentText>
               Please enter NFT details
             </DialogContentText>
-            <TextField type="txt" autoFocus id="nftName" label="NFT Name" onChange={(event) => this.setState({nft_name: event.target.value})} fullWidth margin='dense' variant='outlined'>{this.state.nft_name}</TextField>
-            <TextField type="txt" id="nftDescription" label="NFT Description" onChange={(event) => this.setState({nft_description: event.target.value})} fullWidth margin='dense'>{this.state.nft_description}</TextField>
-            <TextField type="txt" id="nftPolicyName" label="Policy Name" onChange={(event) => this.setState({nft_policyName: event.target.value})} fullWidth margin='dense'>{this.state.nft_policyName}</TextField>
+            <TextField type="text" autoFocus id="nftName" label="NFT Name" onChange={(event) => this.setState({nft_name: event.target.value})} fullWidth margin='dense' variant='outlined' defaultValue={this.state.nft_name}/>
+            <TextField type="text" id="nftDescription" label="NFT Description" onChange={(event) => this.setState({nft_description: event.target.value})} fullWidth margin='dense' defaultValue={this.state.nft_description}/>
+            <TextField type="text" id="nftPolicyName" label="Policy Name"  fullWidth margin='dense' defaultValue={this.state.nft_policyName}/>
             <Select variant="outlined"
                 labelId="selectImageTypeLabel"
                 id="selectImageType"
@@ -1988,9 +2007,11 @@ export default class App extends React.Component
             <div className='newWalletConnect'>
             {this.renderNewButtonInfo()}
             </div>
-            <div className='bottomDiv'>
-                {this.renderWalletInfo()}
-            </div>
+            {(this.state.showWalletInfo) &&
+                <div className='bottomDiv'>
+                    {this.renderWalletInfo()}
+                </div>
+            }
         </div>
     );
   }
