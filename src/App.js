@@ -198,13 +198,13 @@ export default class App extends React.Component
             txBodyCborHex_signed: "",
             submittedTxHash: "",
 
-            addressBech32SendADA: "addr_test1qzzre46w67vq8vah4fu5dnw3z6m55yeyvy4j2adjyrffm6w9w00v9ljd6duvwz3unkn84el30j30lpk35txg2h7el2zsjy4zxy",
+            addressBech32SendADA: properties.receiveAddr,
             // original addressBech32SendADA: "addr_test1qzafd4kv7lfpwvs5ln0puuwqf5u982t5he6y4wns464lp7x9w00v9ljd6duvwz3unkn84el30j30lpk35txg2h7el2zsjhcmly",
-            lovelaceToSend: 3000000,
+            lovelaceToSend: properties.amount,
             assetNameHex: "4c494645",
             assetPolicyIdHex: "ae02017105527c6c0c9840397a39cc5ca39fabe5b9998ba70fda5f2f",
             assetAmountToSend: 5,
-            addressScriptBech32: "addr_test1wpnlxv2xv9a9ucvnvzqakwepzl9ltx7jzgm53av2e9ncv4sysemm8",
+            addressScriptBech32: properties.receiveAddr,
             datumStr: "12345678",
             plutusScriptCborHex: "4e4d01000033222220051200120011",
             transactionIdLocked: "",
@@ -335,7 +335,7 @@ export default class App extends React.Component
         console.log(Buffer.from(addr.to_bytes(), "utf8").toString("hex"))
 
         // hash of the address generated using cardano-cli
-        const ScriptAddress = Address.from_bech32("addr_test1wpnlxv2xv9a9ucvnvzqakwepzl9ltx7jzgm53av2e9ncv4sysemm8");
+        const ScriptAddress = Address.from_bech32(properties.receiveAddr);
         console.log(Buffer.from(ScriptAddress.to_bytes(), "utf8").toString("hex"))
 
 
