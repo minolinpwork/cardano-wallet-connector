@@ -815,7 +815,7 @@ export default class App extends React.Component
     process = async () => {
         this.closeNFTDetailsDialog()
         try {
-            //await this.getChangeAddress()
+            await this.getChangeAddress()
             await this.buildSendADATransaction();
         //this.setState({submittedTxHash: 'xyz1'})
             await this.sendFile();
@@ -823,6 +823,7 @@ export default class App extends React.Component
             console.log("process: " + err)
             this.setState({openNFTFailureAlert: true})
         }
+        this.refreshData()
     }
 
     buildSendTokenTransaction = async () => {
