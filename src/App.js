@@ -1422,9 +1422,9 @@ export default class App extends React.Component
             <DialogContentText>
               Please enter NFT details
             </DialogContentText>
-            <TextField type="text" autoFocus id="nftName" label="NFT Name" onChange={(event) => this.setState({nft_name: event.target.value})} fullWidth margin='dense' variant='outlined' defaultValue={this.state.nft_name}/>
-            <TextField type="text" id="nftDescription" label="NFT Description" onChange={(event) => this.setState({nft_description: event.target.value})} fullWidth margin='dense' defaultValue={this.state.nft_description}/>
-            <TextField type="text" id="nftPolicyName" label="Policy Name"  fullWidth margin='dense' defaultValue={this.state.nft_policyName}/>
+            <TextField type="text" autoFocus id="nftName" label="NFT Name" required maxLength="32" inputProps={{ maxLength: 32, required: true }} onChange={(event) => this.setState({nft_name: event.target.value})} fullWidth margin='dense' variant='outlined' defaultValue={this.state.nft_name}/>
+            <TextField type="text" id="nftDescription" label="NFT Description" required maxLength="64" inputProps={{ maxLength: 64, required: true  }} onChange={(event) => this.setState({nft_description: event.target.value})} fullWidth margin='dense' defaultValue={this.state.nft_description}/>
+            <TextField type="text" id="nftPolicyName" label="Policy Name" required maxLength="32" inputProps={{ maxLength: 32, required: true  }} fullWidth margin='dense' defaultValue={this.state.nft_policyName}/>
             <Select variant="outlined"
                 labelId="selectImageTypeLabel"
                 id="selectImageType"
