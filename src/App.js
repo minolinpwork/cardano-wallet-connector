@@ -326,21 +326,21 @@ export default class App extends React.Component
         const scripthash = ScriptHash.from_bytes(Buffer.from(blake2bhash,"hex"));
 
         const cred = StakeCredential.from_scripthash(scripthash);
-        const networkId = NetworkInfo.testnet().network_id();
+        const networkId = NetworkInfo.mainnet().network_id();
         const baseAddr = EnterpriseAddress.new(networkId, cred);
         const addr = baseAddr.to_address();
         const addrBech32 = addr.to_bech32();
 
         // hash of the address generated from script
-        console.log(Buffer.from(addr.to_bytes(), "utf8").toString("hex"))
+        console.log("Script base addr hash", Buffer.from(addr.to_bytes(), "utf8").toString("hex"))
 
         // hash of the address generated using cardano-cli
         const ScriptAddress = Address.from_bech32(properties.receiveAddr);
-        console.log(Buffer.from(ScriptAddress.to_bytes(), "utf8").toString("hex"))
+        console.log("Send to addr hash", Buffer.from(ScriptAddress.to_bytes(), "utf8").toString("hex"))
 
 
-        console.log(ScriptAddress.to_bech32())
-        console.log(addrBech32)
+        console.log("Send to addr bech32", ScriptAddress.to_bech32())
+        console.log("Script base addr bech32", addrBech32)
 
     }
 
@@ -750,7 +750,7 @@ export default class App extends React.Component
 
         let txVkeyWitnesses = await this.API.signTx(Buffer.from(tx.to_bytes(), "utf8").toString("hex"), true);
 
-        console.log(txVkeyWitnesses)
+        console.log("txVkeyWitnesses", txVkeyWitnesses)
 
         txVkeyWitnesses = TransactionWitnessSet.from_bytes(Buffer.from(txVkeyWitnesses, "hex"));
 
@@ -761,9 +761,11 @@ export default class App extends React.Component
             transactionWitnessSet
         );
 
+        const signedHex = Buffer.from(signedTx.to_bytes(), "utf8").toString("hex");
+        console.log("signedHex", signedHex)
 
-        const submittedTxHash = await this.API.submitTx(Buffer.from(signedTx.to_bytes(), "utf8").toString("hex"));
-        console.log(submittedTxHash)
+        const submittedTxHash = await this.API.submitTx(signedHex);
+        console.log("submittedTxHash", submittedTxHash)
         this.setState({submittedTxHash});
 
 
@@ -789,11 +791,11 @@ export default class App extends React.Component
           })
             .then(response => response.text())
             .then(resp => { 
-                console.log(resp); 
+                console.log("sendFile2 resp", resp); 
                 this.setState({openNFTSuccessAlert: true})
              }) 
             .catch(err => {
-                console.log("sendFile2: " + err)
+                console.log("sendFile2 err", err)
                 this.setState({openNFTFailureAlert: true})
             });        
     }
@@ -820,7 +822,7 @@ export default class App extends React.Component
         //this.setState({submittedTxHash: 'xyz1'})
             await this.sendFile();
         } catch (err) {
-            console.log("process: " + err)
+            console.log("process err", err)
             this.setState({openNFTFailureAlert: true})
         }
         this.refreshData()
@@ -1274,7 +1276,7 @@ export default class App extends React.Component
     }
 
     handleConnect(x) {
-        console.log(x)
+        console.log("handleConnect", x)
         const whichWalletSelected = x
         this.setState({whichWalletSelected},
             () => {
@@ -1314,7 +1316,6 @@ export default class App extends React.Component
     };
 
     clickOpenNFTDetailsDialog = () => {
-        console.log(this.state.nft_policyName)
         this.setState({openNFTDetailsDialog: true});
     };
 
@@ -1342,7 +1343,6 @@ export default class App extends React.Component
     }
 
     formatAda = (val) => {
-        console.log(val)
         const truncate = Math.trunc(val/1000000)
         return truncate;
     }
