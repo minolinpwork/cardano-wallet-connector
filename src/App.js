@@ -716,6 +716,7 @@ export default class App extends React.Component
      * @returns {Promise<void>}
      */
     buildSendADATransaction = async () => {
+        await this.getUtxos();
 
         const txBuilder = await this.initTransactionBuilder();
         const shelleyOutputAddress = Address.from_bech32(this.state.addressBech32SendADA);
@@ -731,7 +732,7 @@ export default class App extends React.Component
         // Find the available UTXOs in the wallet and
         // us them as Inputs
         const txUnspentOutputs = await this.getTxUnspentOutputs();
-        txBuilder.add_inputs_from(txUnspentOutputs, CoinSelectionStrategyCIP2.RandomImprove)
+        txBuilder.add_inputs_from(txUnspentOutputs, CoinSelectionStrategyCIP2.LargestFirst)
 
         // calculate the min fee required and send any change to an address
         txBuilder.add_change_if_needed(shelleyChangeAddress)
@@ -1286,7 +1287,10 @@ export default class App extends React.Component
     }
 
     clickOpenAvailableWalletsDialog = () => {
-      this.setState({openAvailableWalletsDialog: true});
+        //if (this.state.wallets.length==0) {
+        //    this.pollWallets();
+        //}
+        this.setState({openAvailableWalletsDialog: true});
     };
     
     closeAvailableWalletsDialog = () => {
@@ -1361,6 +1365,19 @@ export default class App extends React.Component
                     </Button>
                     <Dialog onClose={this.closeAvailableWalletsDialog} open={this.state.openAvailableWalletsDialog} maxWidth='lg'>
                         <DialogTitle>Your installed wallets</DialogTitle>
+                        {(this.state.wallets.length==0)
+                        &&
+                        <DialogContent>
+                        <DialogContentText>
+                          No installed wallets found.
+                          </DialogContentText>
+                          <DialogContentText>
+                          Please install / enable wallet and refresh the page.
+                        </DialogContentText>
+                        </DialogContent>
+                        }
+                        {(this.state.wallets.length>0)
+                        &&
                         <List>
                         { this.state.wallets.map(key => (
                             <ListItem button onClick={() => this.handleConnectClick(key)} key={key} divider={true}>
@@ -1371,6 +1388,7 @@ export default class App extends React.Component
                             </ListItem>
                         ))}
                         </List>
+                        }
                     </Dialog>       
                 </div>                
                 }
