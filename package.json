@@ -16,11 +16,13 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "5.0.0",
+    "source-map-explorer": "^2.5.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts --max-old-space-size=8192 start",
     "build": "react-scripts --max-old-space-size=8192 build",
+    "buildprod": "GENERATE_SOURCEMAP=false react-scripts --max-old-space-size=8192 build",    
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

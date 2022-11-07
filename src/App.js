@@ -60,7 +60,7 @@ export default class App extends React.Component
         super(props);
 
         this.state = {
-            selectedTabId: "1",
+            selectedTabId: "5",
             whichWalletSelected: undefined,
             walletFound: false,
             walletIsEnabled: false,
@@ -82,6 +82,31 @@ export default class App extends React.Component
             txBodyCborHex_signed: "",
             submittedTxHash: "",
 
+
+       
+            plutusScriptCborHex: "59072d59072a01000033232323232323232323232323232332232323232222232325335333006375c00a6eb8010cccd5cd19b8735573aa004900011991091980080180119191919191919191919191999ab9a3370e6aae754029200023333333333222222222212333333333300100b00a009008007006005004003002335014232323333573466e1cd55cea80124000466442466002006004603e6ae854008c064d5d09aba2500223263202833573805205004c26aae7940044dd50009aba1500a33501401535742a012666aa02eeb94058d5d0a804199aa80bbae501635742a00e66a02803e6ae854018cd4050cd54088081d69aba150053232323333573466e1cd55cea801240004664424660020060046464646666ae68cdc39aab9d5002480008cc8848cc00400c008cd4095d69aba150023026357426ae8940088c98c80b0cd5ce01681601509aab9e5001137540026ae854008c8c8c8cccd5cd19b8735573aa004900011991091980080180119a812bad35742a004604c6ae84d5d1280111931901619ab9c02d02c02a135573ca00226ea8004d5d09aba2500223263202833573805205004c26aae7940044dd50009aba1500433501475c6ae85400ccd4050cd54089d710009aba15002301c357426ae8940088c98c8090cd5ce01281201109aba25001135744a00226ae8940044d5d1280089aba25001135744a00226ae8940044d5d1280089aab9e5001137540026ae854008c8c8c8cccd5cd19b875001480188c848888c010014c05cd5d09aab9e500323333573466e1d400920042321222230020053019357426aae7940108cccd5cd19b875003480088c848888c004014c054d5d09aab9e500523333573466e1d40112000232122223003005375c6ae84d55cf280311931900f99ab9c02001f01d01c01b01a135573aa00226ea8004d5d09aba2500223263201833573803203002c202e264c6402e66ae7124010350543500017135573ca00226ea800448c88c008dd6000990009aa80a111999aab9f00125009233500830043574200460066ae8800804c8c8c8c8cccd5cd19b8735573aa00690001199911091998008020018011919191999ab9a3370e6aae7540092000233221233001003002301535742a00466a01c0286ae84d5d1280111931900c19ab9c019018016135573ca00226ea8004d5d0a801999aa803bae500635742a00466a014eb8d5d09aba2500223263201433573802a02802426ae8940044d55cf280089baa0011335500175ceb44488c88c008dd5800990009aa80911191999aab9f0022500823350073355015300635573aa004600a6aae794008c010d5d100180909aba100111220021221223300100400312232323333573466e1d4005200023212230020033005357426aae79400c8cccd5cd19b8750024800884880048c98c8040cd5ce00880800700689aab9d500113754002464646666ae68cdc39aab9d5002480008cc8848cc00400c008c014d5d0a8011bad357426ae8940088c98c8034cd5ce00700680589aab9e5001137540024646666ae68cdc39aab9d5001480008dd71aba135573ca004464c6401666ae7003002c0244dd500089119191999ab9a3370ea00290021091100091999ab9a3370ea00490011190911180180218031aba135573ca00846666ae68cdc3a801a400042444004464c6401c66ae7003c03803002c0284d55cea80089baa0012323333573466e1d40052002212200223333573466e1d40092000212200123263200a33573801601401000e26aae74dd5000919191919191999ab9a3370ea002900610911111100191999ab9a3370ea004900510911111100211999ab9a3370ea00690041199109111111198008048041bae35742a00a6eb4d5d09aba2500523333573466e1d40112006233221222222233002009008375c6ae85401cdd71aba135744a00e46666ae68cdc3a802a400846644244444446600c01201060186ae854024dd71aba135744a01246666ae68cdc3a8032400446424444444600e010601a6ae84d55cf280591999ab9a3370ea00e900011909111111180280418071aba135573ca018464c6402466ae7004c04804003c03803403002c0284d55cea80209aab9e5003135573ca00426aae7940044dd50009191919191999ab9a3370ea002900111999110911998008028020019bad35742a0086eb4d5d0a8019bad357426ae89400c8cccd5cd19b875002480008c8488c00800cc020d5d09aab9e500623263200b33573801801601201026aae75400c4d5d1280089aab9e500113754002464646666ae68cdc3a800a400446424460020066eb8d5d09aab9e500323333573466e1d400920002321223002003375c6ae84d55cf280211931900419ab9c009008006005135573aa00226ea800444888c8c8cccd5cd19b8735573aa0049000119aa80518031aba150023005357426ae8940088c98c8020cd5ce00480400309aab9e5001137540029309000a490350543100112212330010030021123230010012233003300200200122232333573466e3c010004488008488004dc90011",
+            addressScriptBech32: "addr_test1wq5uxrjetegdstljjc924gfmph5tknxu4u5dlusngef00cqwrn27u",
+            datumStr: "HelloWorld",
+            transactionIdLocked: "0a4a437e7d04e5eedbff48a9e1f2982e2fc6efeccaedd2c9d96ad792ec71a27f",
+            lovelaceToSend: 10000000,
+            lovelaceLocked: 10000000,
+
+
+/**
+            plutusScriptCborHex: "582e582c01000032222533532333573466ebc010004488008488004dd42418579c78d5b32482008264c6a00893090009",
+            addressScriptBech32: "addr_test1wpqlucmdf8tttq79nac9tdq4p4rytq56qzxp8numhcmjllg0xkr6m",
+            datumStr: "51234",
+            transactionIdLocked: "",
+            lovelaceToSend: 3000000,
+            lovelaceLocked: 3000000,
+*/
+            addressBech32SendADA: "addr_test1qrt7j04dtk4hfjq036r2nfewt59q8zpa69ax88utyr6es2ar72l7vd6evxct69wcje5cs25ze4qeshejy828h30zkydsu4yrmm",
+            assetNameHex: "4c494645",
+            assetPolicyIdHex: "ae02017105527c6c0c9840397a39cc5ca39fabe5b9998ba70fda5f2f",
+            assetAmountToSend: 5,
+            transactionIndxLocked: 0,
+            manualFee: 900000,
+/**
             addressBech32SendADA: "addr_test1qrt7j04dtk4hfjq036r2nfewt59q8zpa69ax88utyr6es2ar72l7vd6evxct69wcje5cs25ze4qeshejy828h30zkydsu4yrmm",
             lovelaceToSend: 3000000,
             assetNameHex: "4c494645",
@@ -94,7 +119,7 @@ export default class App extends React.Component
             transactionIndxLocked: 0,
             lovelaceLocked: 3000000,
             manualFee: 900000,
-
+ */            
         }
 
         /**
@@ -722,7 +747,20 @@ export default class App extends React.Component
 
         let txOutputBuilder = TransactionOutputBuilder.new();
         txOutputBuilder = txOutputBuilder.with_address(ScriptAddress);
-        const dataHash = hash_plutus_data(PlutusData.new_integer(BigInt.from_str(this.state.datumStr)))
+
+        const datumFields = PlutusList.new();
+        datumFields.add(PlutusData.new_bytes(Buffer.from(this.state.datumStr, "utf8")));
+        const datumConstr = ConstrPlutusData.new(
+            BigNum.from_str('0'),
+            datumFields
+        );
+        const datumX = PlutusData.new_constr_plutus_data(datumConstr);       
+        const dataHash =
+        hash_plutus_data(datumX);
+        //hash_plutus_data(PlutusData.new_bytes(Buffer.from(this.state.datumStr, "utf8")));
+        // hash_plutus_data(PlutusData.new_integer(BigInt.from_str(this.state.datumStr)))
+
+        console.log("dataHash: " + dataHash)
         txOutputBuilder = txOutputBuilder.with_data_hash(dataHash)
 
         txOutputBuilder = txOutputBuilder.next();
@@ -879,9 +917,20 @@ export default class App extends React.Component
             inputs.add(utxo.input());
         });
 
+        //let datumX = PlutusData.new_bytes(Buffer.from(this.state.datumStr, "utf8"));
+
+        const datumFields = PlutusList.new();
+        datumFields.add(PlutusData.new_bytes(Buffer.from(this.state.datumStr, "utf8")));
+        const datumConstr = ConstrPlutusData.new(
+            BigNum.from_str('0'),
+            datumFields
+        );
+        const datumX = PlutusData.new_constr_plutus_data(datumConstr);
+
         let datums = PlutusList.new();
         // datums.add(PlutusData.from_bytes(Buffer.from(this.state.datumStr, "utf8")))
-        datums.add(PlutusData.new_integer(BigInt.from_str(this.state.datumStr)))
+        datums.add(datumX);
+        //datums.add(PlutusData.new_integer(BigInt.from_str(this.state.datumStr)))
 
         const redeemers = Redeemers.new();
 
@@ -895,7 +944,10 @@ export default class App extends React.Component
         const redeemer = Redeemer.new(
             RedeemerTag.new_spend(),
             BigNum.from_str("0"),
-            data,
+            //datumX,
+            //PlutusData.new_bytes(Buffer.from(this.state.datumStr, "utf8")),
+            //            data,
+            datumX,
             ExUnits.new(
                 BigNum.from_str("7000000"),
                 BigNum.from_str("3000000000")
@@ -973,6 +1025,8 @@ export default class App extends React.Component
             txBody,
             TransactionWitnessSet.from_bytes(transactionWitnessSet.to_bytes())
         )
+
+        console.log("Valid: " + tx.is_valid());
 
         let txVkeyWitnesses = await this.API.signTx(Buffer.from(tx.to_bytes(), "utf8").toString("hex"), true);
         txVkeyWitnesses = TransactionWitnessSet.from_bytes(Buffer.from(txVkeyWitnesses, "hex"));
