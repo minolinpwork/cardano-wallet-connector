@@ -170,7 +170,8 @@ export default class App extends React.Component
             lotteries: lotteriesX,
             selectedLottery: lotteriesX[0],
 
-            createNewLottery: true,
+            //selectedLottery : new Lottery("", 1, 1),
+            createNewLottery: false,
 
 /**            
             selectedTabId: "5",
@@ -1423,11 +1424,15 @@ export default class App extends React.Component
         //console.log("handleLotteryMaxNoChange: " + JSON.stringify(this.state.selectedLottery, null, 4))
       }
       handleLotteryMaxChoicesChange = (input) => {
-        //console.log("handleLotteryMaxNoChange: " + input)
         const selectedLottery = this.state.selectedLottery;
         selectedLottery.maxChoices = input;
         this.setState({selectedLottery});
         //console.log("handleLotteryMaxNoChange: " + JSON.stringify(this.state.selectedLottery, null, 4))
+      }
+      handleLotteryAmountChange = (input) => {
+        const selectedLottery = this.state.selectedLottery;
+        selectedLottery.amount = input;
+        this.setState({selectedLottery});
       }
 
       createLotteries() {
@@ -1475,6 +1480,7 @@ export default class App extends React.Component
                     handleLotteryNameChange={this.handleLotteryNameChange} 
                     handleLotteryMaxNoChange={this.handleLotteryMaxNoChange} 
                     handleLotteryMaxChoicesChange={this.handleLotteryMaxChoicesChange} 
+                    handleLotteryAmountChange={this.handleLotteryAmountChange} 
                     createLotteryClick={this.handleClickCreateNewLottery}>                        
                     </NewLottery>
                     <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
@@ -1487,6 +1493,11 @@ export default class App extends React.Component
 
                 <Grid item xs={12} md={6}>
                     <LottoView lottery={selectedLottery}></LottoView>
+                    <br></br><br></br>
+                    {(!createNewLottery)
+                    &&
+                    <Button variant="contained">Play</Button>
+                    }
                 </Grid>
             </Grid>
         )

@@ -75,10 +75,11 @@ class LottoNumbers extends React.Component {
 }
 
 export class Lottery {
-    constructor(name, maxNo, maxChoices) {
+    constructor(name, maxNo, maxChoices, amount) {
         this.name = name;
         this.maxNo = maxNo;
         this.maxChoices = maxChoices;
+        this.amount = amount;
         this.choices = new Array(maxNo+1).fill(false);
     }
 
@@ -103,6 +104,11 @@ export class Lottery {
         console.log("countTrue", count);
         return count;
     }    
+
+    isValidToCreate() {
+        const valid = this.name.length>0 && this.countTrue==this.maxChoices;
+        return valid;
+    }
 }
 
 export default class LottoView extends React.Component {
@@ -130,6 +136,7 @@ export default class LottoView extends React.Component {
         const name = this.props.lottery.name;
         const choices = this.props.lottery.choices;
         const maxChoices = this.props.lottery.maxChoices;
+        const amount = this.props.lottery.amount;
 
         //console.log("render choices: " + choices)
 
@@ -155,23 +162,24 @@ export default class LottoView extends React.Component {
 
             <div>
 
-          <Typography variant="h4" gutterBottom>
-            {name}
-          </Typography>
-          <Typography variant="h4" gutterBottom>
-            Pick your {maxChoices} lucky numbers:
-          </Typography>
-          <LottoNumbers
-              choices={choices}
-              onClick={(i) => this.handleClick(i)}
-            />
-            <br></br>
-            <Typography variant="h4" gutterBottom>
-            Your {maxChoices} chosen numbers:
-          </Typography>
+                <Typography variant="h4" gutterBottom>
+                    {name}
+                </Typography>                
+                <Typography variant="h4" gutterBottom>
+                    {amount} ADA
+                </Typography>
+                <Typography variant="h4" gutterBottom>
+                    Pick your {maxChoices} lucky numbers:
+                </Typography>
+                <LottoNumbers
+                    choices={choices}
+                    onClick={(i) => this.handleClick(i)}
+                    />
+                <br></br>
+                <Typography variant="h4" gutterBottom>
+                    Your {maxChoices} chosen numbers:
+                </Typography>
                 <div>{chosen}</div>
-            <br></br>
-                <Button variant="contained">Play</Button>
 
             </div>
         );

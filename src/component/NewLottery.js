@@ -43,6 +43,7 @@ export default class NewLottery extends React.Component {
         <TextField  
           required
           id="name"
+          defaultValue="Dummy"
           label="Name of Lottery"
           onChange={(e) => this.props.handleLotteryNameChange(e.target.value)}
           sx={{ mt: 2, mb: 6 }}
@@ -79,7 +80,20 @@ export default class NewLottery extends React.Component {
                 onChange={(e) => this.props.handleLotteryMaxChoicesChange(e.target.value)}
                 aria-labelledby="input-slider"
               />
-    
+
+<Typography id="amount-slider" gutterBottom mt={5} mb={4}>
+                Prize in ADA - From 10 to ...
+              </Typography>
+          <Slider
+                min={10}
+                max={100}
+                step={1}
+                defaultValue={10}
+                valueLabelDisplay="on"
+                onChange={(e) => this.props.handleLotteryAmountChange(e.target.value)}
+                aria-labelledby="input-slider"
+              />
+        
 
 
     </Box>
