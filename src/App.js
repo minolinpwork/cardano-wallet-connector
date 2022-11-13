@@ -52,9 +52,42 @@ import {
 } from "@emurgo/cardano-serialization-lib-asmjs"
 import "./App.css";
 import {blake2b} from "blakejs";
+
+import Button from '@mui/material/Button';
+import Avatar from '@mui/material/Avatar';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemAvatar from '@mui/material/ListItemAvatar';
+import ListItemText from '@mui/material/ListItemText';
+import DialogTitle from '@mui/material/DialogTitle';
+import Dialog from '@mui/material/Dialog';
+import PersonIcon from '@mui/icons-material/Person';
+import AddIcon from '@mui/icons-material/Add';
+import Typography from '@mui/material/Typography';
+import { blue } from '@mui/material/colors';
+import { ListItemButton } from '@mui/material';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import Tooltip from '@mui/material/Tooltip';
+import ButtonGroup from '@mui/material/ButtonGroup';
+import TextField from '@mui/material/TextField';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import Collapse from '@mui/material/Collapse';
+
+import Alert from '@mui/material/Alert';
+import clipboard from 'clipboardy';
+
+import { properties } from './properties/properties.js'
+import MinimumDistanceSlider from './component/Slider'
+import CircleButton from './component/CircleButton'
+import LottoView, {Lottery} from './component/Lottery'
+
 let Buffer = require('buffer/').Buffer
 let blake = require('blakejs')
-
 
 export default class App extends React.Component
 {
@@ -106,6 +139,19 @@ export default class App extends React.Component
             transactionIdLocked: "85d607cba9edd396eb4a87591cb4df84f0c8a265f8fc64bb5a1a0309ee3da8bb",
             lovelaceToSend: 4400000,
             lovelaceLocked: 4400000,
+
+            openAvailableWalletsDialog: false,
+            openWalletDetailsDialog: false,
+            openNFTDetailsDialog: false,
+            openNFTSuccessAlert: false,
+            openNFTFailureAlert: false,
+            showWalletInfo: true,
+
+            nft_policyName: 'ADANFTCreator',
+            nft_name: '',
+            nft_description: '',
+            nft_imageType: 'PNG',
+            statusUpdate: "",
 
 /**            
             selectedTabId: "5",
@@ -1215,7 +1261,233 @@ export default class App extends React.Component
         await this.refreshData();
     }
 
-    render()
+    handleConnect(x) {
+        console.log("handleConnect", x)
+        const whichWalletSelected = x
+        this.setState({whichWalletSelected},
+            () => {
+                this.refreshData()
+            })        
+        //this.setState({msg : 'Welcome to the React world!'})
+    }
+
+    clickOpenAvailableWalletsDialog = () => {
+        //if (this.state.wallets.length==0) {
+        //    this.pollWallets();
+        //}
+        this.setState({openAvailableWalletsDialog: true});
+    };
+    
+    closeAvailableWalletsDialog = () => {
+        this.setState({openAvailableWalletsDialog: false});
+    };
+
+    handleConnectClick = (value) => {
+        this.setState({openAvailableWalletsDialog: false});
+        this.handleConnect(value);
+    };
+  
+    copyToClipboard = (value) => {
+        (clipboard.write(value)).then((message)=>{  
+            console.log("copyToClipboard success. The message is:" + message)
+        }).catch((message)=>{  
+            console.log("copyToClipboard failed. The message is:" + message)  
+        })  
+
+    };
+
+    clickOpenWalletDetailsDialog = () => {
+        this.setState({openWalletDetailsDialog: true});
+    };
+    
+    closeWalletDetailsDialog = () => {
+        this.setState({openWalletDetailsDialog: false});
+    };
+
+    clickOpenNFTDetailsDialog = () => {
+        this.setState({openNFTDetailsDialog: true});
+    };
+
+    closeNFTDetailsDialog = () => {
+        this.setState({openNFTDetailsDialog: false});
+    };
+
+    handleDisconnectClick = () => {
+        this.setState({openWalletDetailsDialog: false});
+        this.setState({
+            whichWalletSelected: undefined,
+            walletFound: false,
+            walletIsEnabled: false,
+        },
+        () => {
+            this.refreshData()
+        })  
+    };
+
+    truncate = (val) => {
+        const truncate = val?.length > 20 
+        ? val.substring(0, 10) + '...' + val.substring(val.length-5, val.length) 
+        : val;
+        return truncate;
+    }
+
+    formatAda = (val) => {
+        const truncate = Math.trunc(val/1000000)
+        return truncate;
+    }
+
+    handleSliderChange = (x) => {
+        console.log("Min: " + x)
+    };
+
+    render() {
+        return (
+            <div>
+                <div className='topDiv'>
+                    {this.renderLotto()}
+                </div>
+                <div className='newWalletConnect'>
+                {this.renderNewButtonInfo()}
+                </div>
+                {(this.state.showWalletInfo) &&
+                    <div className='bottomDiv'>
+                        {this.renderWalletInfo()}
+                    </div>
+                }
+            </div>
+        );
+      }
+
+      renderLotto()
+      {
+        //MinimumDistanceSlider onChange={this.handleSliderChange}/>
+        let lottery1 = new Lottery(55, 6)
+        console.log("App.js: maxNo" + lottery1.maxNo)
+        console.log("App.js: maxChoices" + lottery1.maxChoices)
+        console.log("App.js: choices" + lottery1.choices)
+        return (
+            <div>
+<LottoView lottery={lottery1}></LottoView>
+            </div>
+        )
+      }
+            
+
+      renderNewButtonInfo()
+      {
+  
+          return (
+              <div>
+  
+                  {(!this.state.walletIsEnabled)
+                  &&
+                  <div>
+                      <Button id="walletConnectButton" variant="contained" onClick={this.clickOpenAvailableWalletsDialog} size="large">
+                          Connect Wallet...
+                      </Button>
+                      <Dialog onClose={this.closeAvailableWalletsDialog} open={this.state.openAvailableWalletsDialog} maxWidth='lg'>
+                          <DialogTitle>Your installed wallets</DialogTitle>
+                          {(this.state.wallets.length==0)
+                          &&
+                          <DialogContent>
+                          <DialogContentText>
+                            No installed wallets found.
+                            </DialogContentText>
+                            <DialogContentText>
+                            Please install / enable wallet and refresh the page.
+                          </DialogContentText>
+                          </DialogContent>
+                          }
+                          {(this.state.wallets.length>0)
+                          &&
+                          <List>
+                          { this.state.wallets.map(key => (
+                              <ListItem button onClick={() => this.handleConnectClick(key)} key={key} divider={true}>
+                                  <ListItemAvatar>
+                                      <img src={window.cardano[key].icon} width={24} height={24} alt={key}/>
+                                  </ListItemAvatar>
+                                  <ListItemText primary={window.cardano[key].name} secondary={key}/>
+                              </ListItem>
+                          ))}
+                          </List>
+                          }
+                      </Dialog>       
+                  </div>                
+                  }
+  
+                  {(this.state.walletIsEnabled)
+                  &&
+                  <div>
+                      <div id="walletConnectButton">
+                      <ButtonGroup variant="contained" aria-label="outlined primary button group">
+                          <Button disabled={!this.state.changeAddress} onClick={this.clickOpenNFTDetailsDialog}>Create NFT</Button>
+                          <Button onClick={this.clickOpenWalletDetailsDialog} size="large"
+                              startIcon={<Avatar src={window.cardano[this.state.whichWalletSelected].icon} sx={{ width: 12, height: 12 }}/>}>
+                              {this.state.balance && this.formatAda(this.state.balance)} ADA                        
+                          </Button>
+                      </ButtonGroup>     
+                      <Collapse in={this.state.openNFTSuccessAlert}>
+                          <Alert severity="info" onClose={() => {this.setState({openNFTSuccessAlert: false})}}>Success.  You will receive your NFT shortly.</Alert>
+                      </Collapse>
+                      <Collapse in={this.state.openNFTFailureAlert}>
+                          <Alert severity="error" onClose={() => {this.setState({openNFTFailureAlert: false})}}>An error has occurred.  Please try again</Alert>
+                      </Collapse>
+                      </div>               
+                      <Dialog onClose={this.closeWalletDetailsDialog} open={this.state.openWalletDetailsDialog} maxWidth='lg'>
+                          <DialogTitle>Connected Wallet</DialogTitle>
+                          <List>
+                              <ListItem>
+                                  <ListItemAvatar>
+                                      <img src={window.cardano[this.state.whichWalletSelected].icon} width={24} height={24} alt={this.state.whichWalletSelected}/>
+                                  </ListItemAvatar>
+  
+                                  <Tooltip title="Copy address">
+                                  <ListItemButton onClick={() => this.copyToClipboard(this.state.changeAddress)}>
+                                      <ListItemText primary={window.cardano[this.state.whichWalletSelected].name} secondary={this.truncate(this.state.changeAddress)}/>
+                                      <ListItemIcon>
+                                              <ContentCopyIcon/>
+                                          </ListItemIcon>
+                                  </ListItemButton>
+                                  </Tooltip>
+  
+                                  <ListItemButton onClick={this.handleDisconnectClick} >
+                                      <ListItemText primary="Disconnect" />
+                                  </ListItemButton>
+                              </ListItem>
+                          </List>
+                      </Dialog>    
+          <Dialog open={this.state.openNFTDetailsDialog} onClose={this.closeNFTDetailsDialog}>
+            <DialogTitle>Create NFT</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                Please enter NFT details
+              </DialogContentText>
+              <TextField type="text" autoFocus id="nftName" label="NFT Name" required maxLength="32" inputProps={{ maxLength: 32, required: true }} onChange={(event) => this.setState({nft_name: event.target.value})} fullWidth margin='dense' variant='outlined' defaultValue={this.state.nft_name}/>
+              <TextField type="text" id="nftDescription" label="NFT Description" required maxLength="64" inputProps={{ maxLength: 64, required: true  }} onChange={(event) => this.setState({nft_description: event.target.value})} fullWidth margin='dense' defaultValue={this.state.nft_description}/>
+              <TextField type="text" id="nftPolicyName" label="Policy Name" required maxLength="32" inputProps={{ maxLength: 32, required: true  }} fullWidth margin='dense' defaultValue={this.state.nft_policyName}/>
+              <Select variant="outlined"
+                  labelId="selectImageTypeLabel"
+                  id="selectImageType"
+                  value={this.state.nft_imageType}
+                  label="Image Type"
+                  onChange={(event) => this.setState({nft_imageType: event.target.value})}
+              >
+                  <MenuItem value='PNG'>Image</MenuItem>
+                  <MenuItem value='GIF'>Animation</MenuItem>
+              </Select>
+            </DialogContent>
+            <DialogActions>
+              <Button variant="contained" size="large" onClick={this.closeNFTDetailsDialog}>Cancel</Button>
+              <Button variant="contained" size="large" onClick={this.process}>Pay</Button>
+            </DialogActions>
+          </Dialog>
+                  </div>                
+                  }
+                  </div>
+          )
+      }
+                     
+    renderWalletInfo()
     {
 
         return (

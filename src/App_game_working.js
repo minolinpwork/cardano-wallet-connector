@@ -46,7 +46,9 @@ import {
     hash_script_data,
     hash_plutus_data,
     ScriptDataHash, Ed25519KeyHash, NativeScript, StakeCredential,
-    TxBuilderConstants
+    TxBuilderConstants,
+    encode_json_str_to_plutus_datum,
+    PlutusDatumSchema
 } from "@emurgo/cardano-serialization-lib-asmjs"
 import "./App.css";
 import {blake2b} from "blakejs";
@@ -61,7 +63,7 @@ export default class App extends React.Component
         super(props);
 
         this.state = {
-            selectedTabId: "5",
+            //selectedTabId: "1",
             whichWalletSelected: undefined,
             walletFound: false,
             walletIsEnabled: false,
@@ -83,50 +85,37 @@ export default class App extends React.Component
             txBodyCborHex_signed: "",
             submittedTxHash: "",
 
-            plutusScriptCborHex: "59076d59076a01000033232323232323232323232323232332232323232222232325335333006375c00a6666ae68cdc39aab9d37540089000100c11931a99ab9c01a0180170163333573466e1cd55cea8012400046644246600200600464646464646464646464646666ae68cdc39aab9d500a480008cccccccccc888888888848cccccccccc00402c02802402001c01801401000c008cd40508c8c8cccd5cd19b8735573aa0049000119910919800801801180f9aba150023019357426ae8940088c98d4cd5ce01501401381309aab9e5001137540026ae854028cd4050054d5d0a804999aa80bbae501635742a010666aa02eeb94058d5d0a80399a80a00f9aba15006335014335502202075a6ae854014c8c8c8cccd5cd19b8735573aa00490001199109198008018011919191999ab9a3370e6aae754009200023322123300100300233502575a6ae854008c098d5d09aba2500223263533573805c05805605426aae7940044dd50009aba150023232323333573466e1cd55cea8012400046644246600200600466a04aeb4d5d0a80118131aba135744a004464c6a66ae700b80b00ac0a84d55cf280089baa001357426ae8940088c98d4cd5ce01501401381309aab9e5001137540026ae854010cd4051d71aba15003335014335502275c40026ae854008c070d5d09aba2500223263533573804c04804604426ae8940044d5d1280089aba25001135744a00226ae8940044d5d1280089aba25001135744a00226aae7940044dd50009aba150023232323333573466e1d400520062321222230040053017357426aae79400c8cccd5cd19b875002480108c848888c008014c064d5d09aab9e500423333573466e1d400d20022321222230010053015357426aae7940148cccd5cd19b875004480008c848888c00c014dd71aba135573ca00c464c6a66ae7008407c07807407006c0684d55cea80089baa001357426ae8940088c98d4cd5ce00d00c00b80b080b89931a99ab9c4910350543500017016135573ca00226ea800448c88c008dd6000990009aa80a111999aab9f00125009233500830043574200460066ae8800804c8c8c8c8cccd5cd19b8735573aa00690001199911091998008020018011919191999ab9a3370e6aae7540092000233221233001003002301535742a00466a01c0286ae84d5d1280111931a99ab9c01a018017016135573ca00226ea8004d5d0a801999aa803bae500635742a00466a014eb8d5d09aba2500223263533573802c02802602426ae8940044d55cf280089baa0011335500175ceb44488c88c008dd5800990009aa80911191999aab9f0022500823350073355014300635573aa004600a6aae794008c010d5d100180909aba100111220021221223300100400312232323333573466e1d4005200023212230020033005357426aae79400c8cccd5cd19b8750024800884880048c98d4cd5ce00900800780700689aab9d500113754002464646666ae68cdc39aab9d5002480008cc8848cc00400c008c014d5d0a8011bad357426ae8940088c98d4cd5ce00780680600589aab9e5001137540024646666ae68cdc39aab9d5001480008dd71aba135573ca004464c6a66ae7003402c0280244dd500089119191999ab9a3370ea00290021091100091999ab9a3370ea00490011190911180180218031aba135573ca00846666ae68cdc3a801a400042444004464c6a66ae7004003803403002c0284d55cea80089baa0012323333573466e1d40052002212200223333573466e1d40092000212200123263533573801801401201000e26aae74dd5000919191919191999ab9a3370ea002900610911111100191999ab9a3370ea004900510911111100211999ab9a3370ea00690041199109111111198008048041bae35742a00a6eb4d5d09aba2500523333573466e1d40112006233221222222233002009008375c6ae85401cdd71aba135744a00e46666ae68cdc3a802a400846644244444446600c01201060186ae854024dd71aba135744a01246666ae68cdc3a8032400446424444444600e010601a6ae84d55cf280591999ab9a3370ea00e900011909111111180280418071aba135573ca018464c6a66ae7005004804404003c03803403002c0284d55cea80209aab9e5003135573ca00426aae7940044dd50009191919191999ab9a3370ea002900111999110911998008028020019bad35742a0086eb4d5d0a8019bad357426ae89400c8cccd5cd19b875002480008c8488c00800cc020d5d09aab9e500623263533573801a01601401201026aae75400c4d5d1280089aab9e500113754002464646666ae68cdc3a800a400446424460020066eb8d5d09aab9e500323333573466e1d400920002321223002003375c6ae84d55cf280211931a99ab9c00a008007006005135573aa00226ea800444888c8c8cccd5cd19b8735573aa0049000119aa80498031aba150023005357426ae8940088c98d4cd5ce00500400380309aab9e500113754002930900088910919800801801249035054310011232300100122330033002002001333222222323253350011008133573800400e666ae68cdc78028020038031b993371400800624400424400291010c48656c6c6f20576f726c64210001",
-            addressScriptBech32: "addr_test1wrck8y8kgr5065thlzz5h9e38d9wpcufhrw5s5jzzue3zns4csddy",
-            datumStr: "48656c6c6f20576f726c6421",
-            transactionIdLocked: "0729ee3fbca33661ece7a8f4a2ee192235fdd6027a6c419bdd8262386be0d5bf",
-            lovelaceToSend: 5000000,
-            lovelaceLocked: 5000000,
+            addressBech32SendADA: "addr_test1qrt7j04dtk4hfjq036r2nfewt59q8zpa69ax88utyr6es2ar72l7vd6evxct69wcje5cs25ze4qeshejy828h30zkydsu4yrmm",
+            //lovelaceToSend: 3000000,
+            assetNameHex: "4c494645",
+            assetPolicyIdHex: "ae02017105527c6c0c9840397a39cc5ca39fabe5b9998ba70fda5f2f",
+            assetAmountToSend: 5,
+            //addressScriptBech32: "addr_test1wpnlxv2xv9a9ucvnvzqakwepzl9ltx7jzgm53av2e9ncv4sysemm8",
+            //datumStr: "12345678",
+            //plutusScriptCborHex: "4e4d01000033222220051200120011",
+            //transactionIdLocked: "",
+            transactionIndxLocked: 0,
+            //lovelaceLocked: 3000000,
+            manualFee: 900000,
 
-
-/**       
+            selectedTabId: "5",
             plutusScriptCborHex: "59072d59072a01000033232323232323232323232323232332232323232222232325335333006375c00a6eb8010cccd5cd19b8735573aa004900011991091980080180119191919191919191919191999ab9a3370e6aae754029200023333333333222222222212333333333300100b00a009008007006005004003002335014232323333573466e1cd55cea80124000466442466002006004603e6ae854008c064d5d09aba2500223263202833573805205004c26aae7940044dd50009aba1500a33501401535742a012666aa02eeb94058d5d0a804199aa80bbae501635742a00e66a02803e6ae854018cd4050cd54088081d69aba150053232323333573466e1cd55cea801240004664424660020060046464646666ae68cdc39aab9d5002480008cc8848cc00400c008cd4095d69aba150023026357426ae8940088c98c80b0cd5ce01681601509aab9e5001137540026ae854008c8c8c8cccd5cd19b8735573aa004900011991091980080180119a812bad35742a004604c6ae84d5d1280111931901619ab9c02d02c02a135573ca00226ea8004d5d09aba2500223263202833573805205004c26aae7940044dd50009aba1500433501475c6ae85400ccd4050cd54089d710009aba15002301c357426ae8940088c98c8090cd5ce01281201109aba25001135744a00226ae8940044d5d1280089aba25001135744a00226ae8940044d5d1280089aab9e5001137540026ae854008c8c8c8cccd5cd19b875001480188c848888c010014c05cd5d09aab9e500323333573466e1d400920042321222230020053019357426aae7940108cccd5cd19b875003480088c848888c004014c054d5d09aab9e500523333573466e1d40112000232122223003005375c6ae84d55cf280311931900f99ab9c02001f01d01c01b01a135573aa00226ea8004d5d09aba2500223263201833573803203002c202e264c6402e66ae7124010350543500017135573ca00226ea800448c88c008dd6000990009aa80a111999aab9f00125009233500830043574200460066ae8800804c8c8c8c8cccd5cd19b8735573aa00690001199911091998008020018011919191999ab9a3370e6aae7540092000233221233001003002301535742a00466a01c0286ae84d5d1280111931900c19ab9c019018016135573ca00226ea8004d5d0a801999aa803bae500635742a00466a014eb8d5d09aba2500223263201433573802a02802426ae8940044d55cf280089baa0011335500175ceb44488c88c008dd5800990009aa80911191999aab9f0022500823350073355015300635573aa004600a6aae794008c010d5d100180909aba100111220021221223300100400312232323333573466e1d4005200023212230020033005357426aae79400c8cccd5cd19b8750024800884880048c98c8040cd5ce00880800700689aab9d500113754002464646666ae68cdc39aab9d5002480008cc8848cc00400c008c014d5d0a8011bad357426ae8940088c98c8034cd5ce00700680589aab9e5001137540024646666ae68cdc39aab9d5001480008dd71aba135573ca004464c6401666ae7003002c0244dd500089119191999ab9a3370ea00290021091100091999ab9a3370ea00490011190911180180218031aba135573ca00846666ae68cdc3a801a400042444004464c6401c66ae7003c03803002c0284d55cea80089baa0012323333573466e1d40052002212200223333573466e1d40092000212200123263200a33573801601401000e26aae74dd5000919191919191999ab9a3370ea002900610911111100191999ab9a3370ea004900510911111100211999ab9a3370ea00690041199109111111198008048041bae35742a00a6eb4d5d09aba2500523333573466e1d40112006233221222222233002009008375c6ae85401cdd71aba135744a00e46666ae68cdc3a802a400846644244444446600c01201060186ae854024dd71aba135744a01246666ae68cdc3a8032400446424444444600e010601a6ae84d55cf280591999ab9a3370ea00e900011909111111180280418071aba135573ca018464c6402466ae7004c04804003c03803403002c0284d55cea80209aab9e5003135573ca00426aae7940044dd50009191919191999ab9a3370ea002900111999110911998008028020019bad35742a0086eb4d5d0a8019bad357426ae89400c8cccd5cd19b875002480008c8488c00800cc020d5d09aab9e500623263200b33573801801601201026aae75400c4d5d1280089aab9e500113754002464646666ae68cdc3a800a400446424460020066eb8d5d09aab9e500323333573466e1d400920002321223002003375c6ae84d55cf280211931900419ab9c009008006005135573aa00226ea800444888c8c8cccd5cd19b8735573aa0049000119aa80518031aba150023005357426ae8940088c98c8020cd5ce00480400309aab9e5001137540029309000a490350543100112212330010030021123230010012233003300200200122232333573466e3c010004488008488004dc90011",
             addressScriptBech32: "addr_test1wq5uxrjetegdstljjc924gfmph5tknxu4u5dlusngef00cqwrn27u",
-            datumStr: "872e4e50ce9990d8b041330c47c9ddd11bec6b503ae9386a99da8584e9bb12c4",
-            transactionIdLocked: "4baeda6ec3d37c33e05d159e52a04a28dbefbfa6a119e74ce371b991b37360f3",
-            lovelaceToSend: 5000000,
-            lovelaceLocked: 5000000,
+            datumStr: "872e4e50ce9990d8b041330c47c9ddd11bec6b503ae9386a99da8584e9bb12c4".toUpperCase(),
+            redeemStr: "HelloWorld",
+            transactionIdLocked: "85d607cba9edd396eb4a87591cb4df84f0c8a265f8fc64bb5a1a0309ee3da8bb",
+            lovelaceToSend: 4400000,
+            lovelaceLocked: 4400000,
 
-
-            plutusScriptCborHex: "582e582c01000032222533532333573466ebc010004488008488004dd42418579c78d5b32482008264c6a00893090009",
-            addressScriptBech32: "addr_test1wpqlucmdf8tttq79nac9tdq4p4rytq56qzxp8numhcmjllg0xkr6m",
-            datumStr: "51234",
-            transactionIdLocked: "",
-            lovelaceToSend: 3000000,
-            lovelaceLocked: 3000000,
-*/
-            addressBech32SendADA: "addr_test1qrt7j04dtk4hfjq036r2nfewt59q8zpa69ax88utyr6es2ar72l7vd6evxct69wcje5cs25ze4qeshejy828h30zkydsu4yrmm",
-            assetNameHex: "4c494645",
-            assetPolicyIdHex: "ae02017105527c6c0c9840397a39cc5ca39fabe5b9998ba70fda5f2f",
-            assetAmountToSend: 5,
-            transactionIndxLocked: 0,
-            manualFee: 1259401,
-/**
-            addressBech32SendADA: "addr_test1qrt7j04dtk4hfjq036r2nfewt59q8zpa69ax88utyr6es2ar72l7vd6evxct69wcje5cs25ze4qeshejy828h30zkydsu4yrmm",
-            lovelaceToSend: 3000000,
-            assetNameHex: "4c494645",
-            assetPolicyIdHex: "ae02017105527c6c0c9840397a39cc5ca39fabe5b9998ba70fda5f2f",
-            assetAmountToSend: 5,
-            addressScriptBech32: "addr_test1wpnlxv2xv9a9ucvnvzqakwepzl9ltx7jzgm53av2e9ncv4sysemm8",
-            datumStr: "12345678",
-            plutusScriptCborHex: "4e4d01000033222220051200120011",
-            transactionIdLocked: "",
-            transactionIndxLocked: 0,
-            lovelaceLocked: 3000000,
-            manualFee: 900000,
- */            
+/**            
+            selectedTabId: "5",
+            plutusScriptCborHex: "59076d59076a01000033232323232323232323232323232332232323232222232325335333006375c00a6666ae68cdc39aab9d37540089000100c11931a99ab9c01a0180170163333573466e1cd55cea8012400046644246600200600464646464646464646464646666ae68cdc39aab9d500a480008cccccccccc888888888848cccccccccc00402c02802402001c01801401000c008cd40508c8c8cccd5cd19b8735573aa0049000119910919800801801180f9aba150023019357426ae8940088c98d4cd5ce01501401381309aab9e5001137540026ae854028cd4050054d5d0a804999aa80bbae501635742a010666aa02eeb94058d5d0a80399a80a00f9aba15006335014335502202075a6ae854014c8c8c8cccd5cd19b8735573aa00490001199109198008018011919191999ab9a3370e6aae754009200023322123300100300233502575a6ae854008c098d5d09aba2500223263533573805c05805605426aae7940044dd50009aba150023232323333573466e1cd55cea8012400046644246600200600466a04aeb4d5d0a80118131aba135744a004464c6a66ae700b80b00ac0a84d55cf280089baa001357426ae8940088c98d4cd5ce01501401381309aab9e5001137540026ae854010cd4051d71aba15003335014335502275c40026ae854008c070d5d09aba2500223263533573804c04804604426ae8940044d5d1280089aba25001135744a00226ae8940044d5d1280089aba25001135744a00226aae7940044dd50009aba150023232323333573466e1d400520062321222230040053017357426aae79400c8cccd5cd19b875002480108c848888c008014c064d5d09aab9e500423333573466e1d400d20022321222230010053015357426aae7940148cccd5cd19b875004480008c848888c00c014dd71aba135573ca00c464c6a66ae7008407c07807407006c0684d55cea80089baa001357426ae8940088c98d4cd5ce00d00c00b80b080b89931a99ab9c4910350543500017016135573ca00226ea800448c88c008dd6000990009aa80a111999aab9f00125009233500830043574200460066ae8800804c8c8c8c8cccd5cd19b8735573aa00690001199911091998008020018011919191999ab9a3370e6aae7540092000233221233001003002301535742a00466a01c0286ae84d5d1280111931a99ab9c01a018017016135573ca00226ea8004d5d0a801999aa803bae500635742a00466a014eb8d5d09aba2500223263533573802c02802602426ae8940044d55cf280089baa0011335500175ceb44488c88c008dd5800990009aa80911191999aab9f0022500823350073355014300635573aa004600a6aae794008c010d5d100180909aba100111220021221223300100400312232323333573466e1d4005200023212230020033005357426aae79400c8cccd5cd19b8750024800884880048c98d4cd5ce00900800780700689aab9d500113754002464646666ae68cdc39aab9d5002480008cc8848cc00400c008c014d5d0a8011bad357426ae8940088c98d4cd5ce00780680600589aab9e5001137540024646666ae68cdc39aab9d5001480008dd71aba135573ca004464c6a66ae7003402c0280244dd500089119191999ab9a3370ea00290021091100091999ab9a3370ea00490011190911180180218031aba135573ca00846666ae68cdc3a801a400042444004464c6a66ae7004003803403002c0284d55cea80089baa0012323333573466e1d40052002212200223333573466e1d40092000212200123263533573801801401201000e26aae74dd5000919191919191999ab9a3370ea002900610911111100191999ab9a3370ea004900510911111100211999ab9a3370ea00690041199109111111198008048041bae35742a00a6eb4d5d09aba2500523333573466e1d40112006233221222222233002009008375c6ae85401cdd71aba135744a00e46666ae68cdc3a802a400846644244444446600c01201060186ae854024dd71aba135744a01246666ae68cdc3a8032400446424444444600e010601a6ae84d55cf280591999ab9a3370ea00e900011909111111180280418071aba135573ca018464c6a66ae7005004804404003c03803403002c0284d55cea80209aab9e5003135573ca00426aae7940044dd50009191919191999ab9a3370ea002900111999110911998008028020019bad35742a0086eb4d5d0a8019bad357426ae89400c8cccd5cd19b875002480008c8488c00800cc020d5d09aab9e500623263533573801a01601401201026aae75400c4d5d1280089aab9e500113754002464646666ae68cdc3a800a400446424460020066eb8d5d09aab9e500323333573466e1d400920002321223002003375c6ae84d55cf280211931a99ab9c00a008007006005135573aa00226ea800444888c8c8cccd5cd19b8735573aa0049000119aa80498031aba150023005357426ae8940088c98d4cd5ce00500400380309aab9e500113754002930900088910919800801801249035054310011232300100122330033002002001333222222323253350011008133573800400e666ae68cdc78028020038031b993371400800624400424400291010c48656c6c6f20576f726c64210001",
+            addressScriptBech32: "addr_test1wrck8y8kgr5065thlzz5h9e38d9wpcufhrw5s5jzzue3zns4csddy",
+            datumStr: "Hello World!",
+            transactionIdLocked: "85d607cba9edd396eb4a87591cb4df84f0c8a265f8fc64bb5a1a0309ee3da8bb",
+            lovelaceToSend: 4400000,
+            lovelaceLocked: 4400000,
+*/            
         }
 
         /**
@@ -193,7 +182,7 @@ export default class App extends React.Component
         }
         this.setState({
             wallets,
-            whichWalletSelected: wallets[1]
+            whichWalletSelected: wallets[0]
         }, () => {
             this.refreshData()
         });
@@ -228,8 +217,8 @@ export default class App extends React.Component
         // const blake2bhash = blake.blake2b(cbor, 0, 28);
 
         const script = PlutusScript.from_bytes(Buffer.from(this.state.plutusScriptCborHex, "hex"))
-        const blake2bhash = blake.blake2b(script.to_bytes(), 0, 28);
-        //const blake2bhash = "67f33146617a5e61936081db3b2117cbf59bd2123748f58ac9678656";
+        // const blake2bhash = blake.blake2b(script.to_bytes(), 0, 28);
+        const blake2bhash = "67f33146617a5e61936081db3b2117cbf59bd2123748f58ac9678656";
         const scripthash = ScriptHash.from_bytes(Buffer.from(blake2bhash,"hex"));
 
         const cred = StakeCredential.from_scripthash(scripthash);
@@ -239,31 +228,18 @@ export default class App extends React.Component
         const addrBech32 = addr.to_bech32();
 
         // hash of the address generated from script
-        console.log("min gcs 1: " + Buffer.from(addr.to_bytes(), "utf8").toString("hex"))
+        console.log(Buffer.from(addr.to_bytes(), "utf8").toString("hex"))
 
         // hash of the address generated using cardano-cli
-        const ScriptAddress = Address.from_bech32("addr_test1wq5uxrjetegdstljjc924gfmph5tknxu4u5dlusngef00cqwrn27u");
-        console.log("min gcs 2: " + Buffer.from(ScriptAddress.to_bytes(), "utf8").toString("hex"))
+        const ScriptAddress = Address.from_bech32("addr_test1wpnlxv2xv9a9ucvnvzqakwepzl9ltx7jzgm53av2e9ncv4sysemm8");
+        console.log(Buffer.from(ScriptAddress.to_bytes(), "utf8").toString("hex"))
 
 
-        console.log("min gcs 3: " + ScriptAddress.to_bech32())
-        console.log("min gcs 4: " + addrBech32)
+        console.log(ScriptAddress.to_bech32())
+        console.log(addrBech32)
 
-        let dataHash = hash_plutus_data(PlutusData.new_bytes(Buffer.from("HelloWorld", "utf8")));
-        console.log("dataHash 1: " + Buffer.from(dataHash.to_bytes(), "utf8").toString("hex"))
-
-        dataHash = hash_plutus_data(PlutusData.new_bytes(Buffer.from("872e4e50ce9990d8b041330c47c9ddd11bec6b503ae9386a99da8584e9bb12c4", "hex")));
-        console.log("dataHash 2: " + Buffer.from(dataHash.to_bytes(), "utf8").toString("hex"))
-
-        dataHash = hash_plutus_data(PlutusData.new_bytes(Buffer.from("48656c6c6f576f726c64", "hex")));
-        console.log("dataHash 3: " + Buffer.from(dataHash.to_bytes(), "utf8").toString("hex"))
-
-        dataHash = hash_plutus_data(PlutusData.new_bytes(Buffer.from("48656c6c6f576f726c64", "utf-8")));
-        console.log("dataHash 4: " + Buffer.from(dataHash.to_bytes(), "utf8").toString("hex"))
-
-        dataHash = hash_plutus_data(PlutusData.new_bytes(Buffer.from("Hello World!", "utf-8")));
-        console.log("dataHash 5: " + Buffer.from(dataHash.to_bytes(), "utf8").toString("hex"))
-
+        this.createStringDatum_hex_to_hex(this.state.datumStr, "generateScriptAddress")
+        this.createStringDatum_utf_to_hex(this.state.redeemStr, "generateScriptAddress ")
     }
 
     /**
@@ -758,6 +734,41 @@ export default class App extends React.Component
 
     }
 
+    createStringDatum_utf_to_hex(str, desc)  {
+        console.log("Buffer" + desc)
+        //let str=this.state.datumStr
+        let strUtf=Buffer.from(str, "utf-8")
+        let strHex=Buffer.from(str, "hex")
+        let strUtfToHex=strUtf.toString("hex").toUpperCase()
+        console.log("Buffer0: " + str)
+        console.log("Buffer1: " + strUtf)
+        console.log("Buffer2: " + strHex)
+        console.log("Buffer3: " + strUtfToHex)
+        let dataStr="{\"bytes\":\""+strUtfToHex+"\"}"
+        console.log("Buffer4: " + dataStr)
+        let dataFromJson=encode_json_str_to_plutus_datum(dataStr, PlutusDatumSchema.DetailedSchema)
+        //console.log("Buffer5: " + dataFromJson)
+        return dataFromJson;
+    }
+
+    createStringDatum_hex_to_hex(str, desc)  {
+        console.log("Buffer" + desc)
+        //let str=this.state.datumStr
+        let strUtf=Buffer.from(str, "utf-8")
+        let strHex=Buffer.from(str, "hex")
+        let strUtfToHex=strUtf.toString("hex").toUpperCase()
+        let strHexToHex=strHex.toString("hex").toUpperCase()
+        console.log("Buffer0: " + str)
+        console.log("Buffer1: " + strUtf)
+        console.log("Buffer2: " + strHex)
+        console.log("Buffer3: " + strUtfToHex)
+        console.log("Buffer4: " + strHexToHex)
+        let dataStr="{\"bytes\":\""+strHexToHex+"\"}"
+        console.log("Buffer5: " + dataStr)
+        let dataFromJson=encode_json_str_to_plutus_datum(dataStr, PlutusDatumSchema.DetailedSchema)
+        //console.log("Buffer6: " + dataFromJson)
+        return dataFromJson;
+    }
 
 
     buildSendAdaToPlutusScript = async () => {
@@ -769,21 +780,9 @@ export default class App extends React.Component
 
         let txOutputBuilder = TransactionOutputBuilder.new();
         txOutputBuilder = txOutputBuilder.with_address(ScriptAddress);
-
-        const datumFields = PlutusList.new();
-        datumFields.add(PlutusData.new_bytes(Buffer.from(this.state.datumStr, "utf8")));
-        const datumConstr = ConstrPlutusData.new(
-            BigNum.from_str('0'),
-            datumFields
-        );
-        const datumX = PlutusData.new_constr_plutus_data(datumConstr);   
-        const datumX2 = PlutusData.new_bytes(Buffer.from(this.state.datumStr, "hex"));    
-        const dataHash =
-        //hash_plutus_data(datumX);
-        hash_plutus_data(datumX2);
-        // hash_plutus_data(PlutusData.new_integer(BigInt.from_str(this.state.datumStr)))
-
-        console.log("dataHash: " + Buffer.from(dataHash.to_bytes(), "utf8").toString("hex"))
+        //data=PlutusData.new_integer(BigInt.from_str(this.state.datumStr))
+        let datumFromJson=this.createStringDatum_hex_to_hex(this.state.datumStr, "buildSendAdaToPlutusScript")
+        const dataHash = hash_plutus_data(datumFromJson)
         txOutputBuilder = txOutputBuilder.with_data_hash(dataHash)
 
         txOutputBuilder = txOutputBuilder.next();
@@ -940,46 +939,34 @@ export default class App extends React.Component
             inputs.add(utxo.input());
         });
 
-        //let datumX = PlutusData.new_bytes(Buffer.from(this.state.datumStr, "utf8"));
-        const datumX2 = PlutusData.new_bytes(Buffer.from(this.state.datumStr, "hex"));    
-
-        const datumFields = PlutusList.new();
-        datumFields.add(datumX2);
-        const datumConstr = ConstrPlutusData.new(
-            BigNum.from_str('0'),
-            datumFields
-        );
-        const datumX = PlutusData.new_constr_plutus_data(datumConstr);
-
         let datums = PlutusList.new();
         // datums.add(PlutusData.from_bytes(Buffer.from(this.state.datumStr, "utf8")))
-        datums.add(datumX2);
         //datums.add(PlutusData.new_integer(BigInt.from_str(this.state.datumStr)))
+        let datumFromJson=this.createStringDatum_hex_to_hex(this.state.datumStr, "buildRedeemAdaFromPlutusScript datum")
+        datums.add(datumFromJson)
 
         const redeemers = Redeemers.new();
 
+        //let dataStr="{\"fields\":[],\"constructor\":0}"
+        let redeemerFromJson=this.createStringDatum_utf_to_hex(this.state.redeemStr, "buildRedeemAdaFromPlutusScript redeem")
+/**
         const data = PlutusData.new_constr_plutus_data(
             ConstrPlutusData.new(
                 BigNum.from_str("0"),
                 PlutusList.new()
             )
         );
+*/
 
-            //datumX2,
-            //datumX2,
-            //PlutusData.new_bytes(Buffer.from("48656c6c6f576f726c64", "hex")),
-            //datumX,
-            //PlutusData.new_bytes(Buffer.from(this.state.datumStr, "utf8")),
         const redeemer = Redeemer.new(
             RedeemerTag.new_spend(),
             BigNum.from_str("0"),
-            data,
+            redeemerFromJson,
             ExUnits.new(
                 BigNum.from_str("7000000"),
                 BigNum.from_str("3000000000")
             )
         );
-
         redeemers.add(redeemer)
 
         // Tx witness
@@ -1013,7 +1000,6 @@ export default class App extends React.Component
         Otherwise it will give errors when redeeming from Scripts
         Sending assets and ada to Script addresses is unaffected by this cost model
          */
-        /*
         const cost_model_vals = [
             205665, 812, 1, 1, 1000, 571, 0, 1, 1000, 24177, 4, 1, 1000, 32, 117366,
             10475, 4, 23000, 100, 23000, 100, 23000, 100, 23000, 100, 23000, 100, 23000,
@@ -1028,36 +1014,16 @@ export default class App extends React.Component
             85931, 32, 205665, 812, 1, 1, 41182, 32, 212342, 32, 31220, 32, 32696, 32,
             43357, 32, 32247, 32, 38314, 32, 9462713, 1021, 10,
         ];
-        */
-/*       
-        const cost_model_vals = [
-            197209, 0, 1, 1, 396231, 621, 0, 1, 150000, 1000, 0, 1, 150000, 32, 2477736, 29175,
-                4, 29773, 100, 29773, 100, 29773, 100, 29773, 100, 29773, 100, 29773, 100, 100,
-                100, 29773, 100, 150000, 32, 150000, 32, 150000, 32, 150000, 1000, 0, 1, 150000,
-                32, 150000, 1000, 0, 8, 148000, 425507, 118, 0, 1, 1, 150000, 1000, 0, 8, 150000,
-                112536, 247, 1, 150000, 10000, 1, 136542, 1326, 1, 1000, 150000, 1000, 1, 150000,
-                32, 150000, 32, 150000, 32, 1, 1, 150000, 1, 150000, 4, 103599, 248, 1, 103599,
-                248, 1, 145276, 1366, 1, 179690, 497, 1, 150000, 32, 150000, 32, 150000, 32,
-                150000, 32, 150000, 32, 150000, 32, 148000, 425507, 118, 0, 1, 1, 61516, 11218, 0,
-                1, 150000, 32, 148000, 425507, 118, 0, 1, 1, 148000, 425507, 118, 0, 1, 1, 2477736,
-                29175, 4, 0, 82363, 4, 150000, 5000, 0, 1, 150000, 32, 197209, 0, 1, 1, 150000, 32,
-                150000, 32, 150000, 32, 150000, 32, 150000, 32, 150000, 32, 150000, 32, 3345831, 1,
-                1,
-        ];
+
         const costModel = CostModel.new();
         cost_model_vals.forEach((x, i) => costModel.set(i, Int.new_i32(x)));
 
 
         const costModels = Costmdls.new();
         costModels.insert(Language.new_plutus_v1(), costModel);
-*/
-        let scriptDataHash = hash_script_data(redeemers, TxBuilderConstants.plutus_alonzo_cost_models(), datums);
-        txBody.set_script_data_hash(scriptDataHash);
-        console.log("scriptDataHash 1: " + Buffer.from(scriptDataHash.to_bytes(), "utf8").toString("hex"))
 
-        scriptDataHash = hash_script_data(redeemers, TxBuilderConstants.plutus_vasil_cost_models(), datums);
+        const scriptDataHash = hash_script_data(redeemers, costModels, datums);
         txBody.set_script_data_hash(scriptDataHash);
-        console.log("scriptDataHash 2: " + Buffer.from(scriptDataHash.to_bytes(), "utf8").toString("hex"))
 
         txBody.set_collateral(inputs)
 
@@ -1072,8 +1038,6 @@ export default class App extends React.Component
             txBody,
             TransactionWitnessSet.from_bytes(transactionWitnessSet.to_bytes())
         )
-
-        console.log("Valid: " + tx.is_valid());
 
         let txVkeyWitnesses = await this.API.signTx(Buffer.from(tx.to_bytes(), "utf8").toString("hex"), true);
         txVkeyWitnesses = TransactionWitnessSet.from_bytes(Buffer.from(txVkeyWitnesses, "hex"));
