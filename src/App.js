@@ -85,6 +85,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Unstable_Grid2';
+import Stack from '@mui/material/Stack';
 
 import Alert from '@mui/material/Alert';
 import clipboard from 'clipboardy';
@@ -94,6 +95,7 @@ import MinimumDistanceSlider from './component/Slider'
 import CircleButton from './component/CircleButton'
 import LottoView, {Lottery} from './component/Lottery'
 import BasicTable from './component/BasicTable'
+import NewLottery from './component/NewLottery'
 
 let Buffer = require('buffer/').Buffer
 let blake = require('blakejs')
@@ -157,6 +159,7 @@ export default class App extends React.Component
             openNFTSuccessAlert: false,
             openNFTFailureAlert: false,
             showWalletInfo: false,
+            connectWallet: false,
 
             nft_policyName: 'ADANFTCreator',
             nft_name: '',
@@ -166,6 +169,8 @@ export default class App extends React.Component
 
             lotteries: lotteriesX,
             selectedLottery: lotteriesX[0],
+
+            createNewLottery: true,
 
 /**            
             selectedTabId: "5",
@@ -213,7 +218,7 @@ export default class App extends React.Component
             coinsPerUtxoWord: "34482",
         }
 
-        this.pollWallets = this.pollWallets.bind(this);
+        //this.pollWallets = this.pollWallets.bind(this);
     }
 
     /**
@@ -1360,9 +1365,11 @@ export default class App extends React.Component
                 <div className='topDiv'>
                     {this.renderLotto()}
                 </div>
-                <div className='newWalletConnect'>
-                {this.renderNewButtonInfo()}
-                </div>
+                {(this.state.connectWallet) &&
+                    <div className='newWalletConnect'>
+                    {this.renderNewButtonInfo()}
+                    </div>
+                }
                 {(this.state.showWalletInfo) &&
                     <div className='bottomDiv'>
                         {this.renderWalletInfo()}
@@ -1380,6 +1387,49 @@ export default class App extends React.Component
         this.setState({selectedLottery})
       };
 
+      handleClickNewLottery = () => {
+        const selectedLottery = new Lottery("", 1, 1);
+        const createNewLottery = true
+        this.setState({createNewLottery});
+        this.setState({selectedLottery: selectedLottery});
+      };
+
+      handleCancelNewLottery = () => {
+        const selectedLottery = this.state.lotteries[0];
+        const createNewLottery = false
+        this.setState({createNewLottery, selectedLottery});
+      };
+
+      handleClickCreateNewLottery = () => {
+        //console.log(this.state.selectedLottery);
+        const lotteries = this.state.lotteries;
+        lotteries.push(this.state.selectedLottery);
+        const createNewLottery = false
+        this.setState({lotteries, createNewLottery});
+        //const createNewLottery = !this.state.createNewLottery
+        //this.setState({createNewLottery});
+      };
+
+      handleLotteryNameChange = (input) => {
+        const selectedLottery = this.state.selectedLottery;
+        selectedLottery.name = input;
+        this.setState({selectedLottery});
+      }
+      handleLotteryMaxNoChange = (input) => {
+        //console.log("handleLotteryMaxNoChange: " + input)
+        const selectedLottery = this.state.selectedLottery;
+        selectedLottery.setMaxNo(input);
+        this.setState({selectedLottery});
+        //console.log("handleLotteryMaxNoChange: " + JSON.stringify(this.state.selectedLottery, null, 4))
+      }
+      handleLotteryMaxChoicesChange = (input) => {
+        //console.log("handleLotteryMaxNoChange: " + input)
+        const selectedLottery = this.state.selectedLottery;
+        selectedLottery.maxChoices = input;
+        this.setState({selectedLottery});
+        //console.log("handleLotteryMaxNoChange: " + JSON.stringify(this.state.selectedLottery, null, 4))
+      }
+
       createLotteries() {
         let lotteries = [
             new Lottery("Lol", 55, 6),
@@ -1395,7 +1445,7 @@ export default class App extends React.Component
       {
         const lotteries = this.state.lotteries;
         const selectedLottery = this.state.selectedLottery;
-
+        const createNewLottery = this.state.createNewLottery
         //console.log("App.js: maxNo" + lottery1.maxNo)
         //console.log("App.js: maxChoices" + lottery1.maxChoices)
         //console.log("App.js: choices" + lottery1.choices)
@@ -1409,12 +1459,32 @@ export default class App extends React.Component
                     </Typography>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                {(!createNewLottery)
+                    &&
+                <Grid item xs={12} md={6} >
                     <BasicTable lotteries={lotteries} lotteryClick={this.handleLotterySelect}></BasicTable>
                     <br></br>
-                    <Button variant="contained">Create new Lottery</Button>
+                    <Button variant="contained" onClick={this.handleClickNewLottery}  sx={{justifyContent: 'center',}}>Create new Lottery</Button>
                 </Grid>
-                
+                }
+                {(createNewLottery)
+                    &&
+                <Grid item xs={12} md={6}>
+                    <NewLottery lotteries={lotteries} 
+                    lottery={selectedLottery} 
+                    handleLotteryNameChange={this.handleLotteryNameChange} 
+                    handleLotteryMaxNoChange={this.handleLotteryMaxNoChange} 
+                    handleLotteryMaxChoicesChange={this.handleLotteryMaxChoicesChange} 
+                    createLotteryClick={this.handleClickCreateNewLottery}>                        
+                    </NewLottery>
+                    <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
+                        <Button variant="contained" onClick={this.handleCancelNewLottery}>Cancel</Button>
+                        <Button variant="contained" onClick={this.handleClickCreateNewLottery}>Create new Lottery</Button>
+                    </Stack>
+                </Grid>
+                }
+
+
                 <Grid item xs={12} md={6}>
                     <LottoView lottery={selectedLottery}></LottoView>
                 </Grid>

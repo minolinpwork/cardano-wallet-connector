@@ -79,7 +79,12 @@ export class Lottery {
         this.name = name;
         this.maxNo = maxNo;
         this.maxChoices = maxChoices;
-        this.choices = new Array(maxNo).fill(false);
+        this.choices = new Array(maxNo+1).fill(false);
+    }
+
+    setMaxNo(maxNo) {
+        this.maxNo = maxNo;
+        this.choices = new Array(maxNo+1).fill(false);
     }
 
     selected() {
