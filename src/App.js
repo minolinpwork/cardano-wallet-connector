@@ -1437,10 +1437,10 @@ export default class App extends React.Component
 
       createLotteries() {
         let lotteries = [
-            new Lottery("Lol", 55, 6),
-            new Lottery("Nav", 30, 3),
-            new Lottery("Mino", 24, 4),
-            new Lottery("Easy", 12, 1)
+            new Lottery("Lol", 55, 6, 10),
+            new Lottery("Nav", 30, 3, 11),
+            new Lottery("Mino", 24, 4, 12),
+            new Lottery("Easy", 12, 1, 13)
         ]
         return lotteries;
       }
