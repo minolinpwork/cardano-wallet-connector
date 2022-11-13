@@ -19,7 +19,7 @@ export default class BasicTable extends React.Component {
     
     render() {
         return (
-            <TableContainer component={Paper} sx={{ maxWidth: 500 }}>
+            <TableContainer component={Paper} sx={{ maxWidth: 500, justifyContent: 'center', }}>
             <Typography variant="h4" gutterBottom>
                 Select a lottery
             </Typography>

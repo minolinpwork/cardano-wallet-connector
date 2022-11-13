@@ -1469,7 +1469,9 @@ export default class App extends React.Component
                 <Grid item xs={12} md={6} >
                     <BasicTable lotteries={lotteries} lotteryClick={this.handleLotterySelect}></BasicTable>
                     <br></br>
-                    <Button variant="contained" onClick={this.handleClickNewLottery}  sx={{justifyContent: 'center',}}>Create new Lottery</Button>
+                    <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
+                        <Button variant="contained" onClick={this.handleClickNewLottery}>Create new Lottery</Button>
+                    </Stack>
                 </Grid>
                 }
                 {(createNewLottery)
