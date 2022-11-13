@@ -36,12 +36,6 @@ function LetterAvatar(props) {
     );
 }
 
-function countTrue(arr) {
-    const count = arr.filter(obj => { return obj; }).length;
-    console.log("countTrue", count);
-    return count;
-}
-
 class LottoNumbers extends React.Component {
     constructor(props) {
       super(props);
@@ -80,11 +74,29 @@ class LottoNumbers extends React.Component {
 }
 
 export class Lottery {
-    constructor(maxNo, maxChoices) {
+    constructor(name, maxNo, maxChoices) {
+        this.name = name;
         this.maxNo = maxNo;
         this.maxChoices = maxChoices;
         this.choices = new Array(maxNo).fill(false);
     }
+
+    selected() {
+        const selected = new Array(this.maxChoices);
+        this.choices.map((chosen, ind) => {  
+            if (chosen) {
+                selected.push(ind)
+            }
+        });
+        console.log("selected", selected);
+        return selected;
+    }
+
+    countTrue() {
+        const count = this.choices.filter(obj => { return obj; }).length;
+        console.log("countTrue", count);
+        return count;
+    }    
 }
 
 export default class LottoView extends React.Component {
@@ -100,7 +112,7 @@ export default class LottoView extends React.Component {
         const choices = this.props.lottery.choices;
         console.log("handleClick maxChoices: " + maxChoices)
         console.log("handleClick choices before: " + choices)
-        if (countTrue(choices)<maxChoices || choices[i]) {
+        if (this.props.lottery.countTrue()<maxChoices || choices[i]) {
             console.log("handleClick changing: " + i)
             choices[i]=!choices[i]
             this.setState({choices: choices});
@@ -123,7 +135,7 @@ export default class LottoView extends React.Component {
                 );
             }
           });
-        const remaining = maxChoices - countTrue(choices)
+        const remaining = maxChoices - this.props.lottery.countTrue()
         console.log("remaining: " + remaining)
         console.log("chosen: " + chosen)
         let c1 = chosen;

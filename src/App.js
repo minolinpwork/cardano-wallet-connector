@@ -1361,10 +1361,11 @@ export default class App extends React.Component
       renderLotto()
       {
         //MinimumDistanceSlider onChange={this.handleSliderChange}/>
-        let lottery1 = new Lottery(55, 6)
+        let lottery1 = new Lottery("Try1", 55, 6)
         console.log("App.js: maxNo" + lottery1.maxNo)
         console.log("App.js: maxChoices" + lottery1.maxChoices)
         console.log("App.js: choices" + lottery1.choices)
+        console.log("App.js: lottery1: " + JSON.stringify(lottery1, null, 4));
         return (
 <LottoView lottery={lottery1}></LottoView>
         )
