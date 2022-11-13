@@ -77,6 +77,14 @@ import DialogContentText from '@mui/material/DialogContentText';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Collapse from '@mui/material/Collapse';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import Grid from '@mui/material/Unstable_Grid2';
 
 import Alert from '@mui/material/Alert';
 import clipboard from 'clipboardy';
@@ -85,6 +93,7 @@ import { properties } from './properties/properties.js'
 import MinimumDistanceSlider from './component/Slider'
 import CircleButton from './component/CircleButton'
 import LottoView, {Lottery} from './component/Lottery'
+import BasicTable from './component/BasicTable'
 
 let Buffer = require('buffer/').Buffer
 let blake = require('blakejs')
@@ -94,6 +103,8 @@ export default class App extends React.Component
     constructor(props)
     {
         super(props);
+
+        const lotteriesX = this.createLotteries();
 
         this.state = {
             //selectedTabId: "1",
@@ -145,13 +156,16 @@ export default class App extends React.Component
             openNFTDetailsDialog: false,
             openNFTSuccessAlert: false,
             openNFTFailureAlert: false,
-            showWalletInfo: true,
+            showWalletInfo: false,
 
             nft_policyName: 'ADANFTCreator',
             nft_name: '',
             nft_description: '',
             nft_imageType: 'PNG',
             statusUpdate: "",
+
+            lotteries: lotteriesX,
+            selectedLottery: lotteriesX[0],
 
 /**            
             selectedTabId: "5",
@@ -1358,16 +1372,53 @@ export default class App extends React.Component
         );
       }
 
+
+      handleLotterySelect = (name) => {
+        const lotteries = this.state.lotteries;
+        console.log("handleLotterySelect: " + name);
+        let selectedLottery = lotteries.find(o => o.name === name);
+        this.setState({selectedLottery})
+      };
+
+      createLotteries() {
+        let lotteries = [
+            new Lottery("Lol", 55, 6),
+            new Lottery("Nav", 30, 3),
+            new Lottery("Mino", 24, 4),
+            new Lottery("Easy", 12, 1)
+        ]
+        return lotteries;
+      }
+
+      
       renderLotto()
       {
-        //MinimumDistanceSlider onChange={this.handleSliderChange}/>
-        let lottery1 = new Lottery("Try1", 55, 6)
-        console.log("App.js: maxNo" + lottery1.maxNo)
-        console.log("App.js: maxChoices" + lottery1.maxChoices)
-        console.log("App.js: choices" + lottery1.choices)
-        console.log("App.js: lottery1: " + JSON.stringify(lottery1, null, 4));
+        const lotteries = this.state.lotteries;
+        const selectedLottery = this.state.selectedLottery;
+
+        //console.log("App.js: maxNo" + lottery1.maxNo)
+        //console.log("App.js: maxChoices" + lottery1.maxChoices)
+        //console.log("App.js: choices" + lottery1.choices)
+        //console.log("App.js: lottery1: " + JSON.stringify(lottery1, null, 4));
         return (
-<LottoView lottery={lottery1}></LottoView>
+
+            <Grid container>
+                <Grid item xs={12} md={12}>
+                    <Typography variant="h4" gutterBottom>
+                        Cardano Lottery
+                    </Typography>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                    <BasicTable lotteries={lotteries} lotteryClick={this.handleLotterySelect}></BasicTable>
+                    <br></br>
+                    <Button variant="contained">Create new Lottery</Button>
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                    <LottoView lottery={selectedLottery}></LottoView>
+                </Grid>
+            </Grid>
         )
       }
             
@@ -1419,7 +1470,6 @@ export default class App extends React.Component
                   <div>
                       <div id="walletConnectButton">
                       <ButtonGroup variant="contained" aria-label="outlined primary button group">
-                          <Button disabled={!this.state.changeAddress} onClick={this.clickOpenNFTDetailsDialog}>Create NFT</Button>
                           <Button onClick={this.clickOpenWalletDetailsDialog} size="large"
                               startIcon={<Avatar src={window.cardano[this.state.whichWalletSelected].icon} sx={{ width: 12, height: 12 }}/>}>
                               {this.state.balance && this.formatAda(this.state.balance)} ADA                        

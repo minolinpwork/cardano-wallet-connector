@@ -6,6 +6,7 @@ import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
 
 function byteToHex(num) {
     // Turns a number (0-255) into a 2-character hex number (00-ff)
@@ -20,9 +21,9 @@ function stringAvatar(name, selected) {
   return {
     sx: {
         bgcolor: selected ? '#D21B1E' : '#040303',
-        width: 30,
-        height: 30,
-        fontSize: 14,
+        width: 40,
+        height: 40,
+        fontSize: 18,
     },
     children: `${name}`,
   };
@@ -30,7 +31,7 @@ function stringAvatar(name, selected) {
 
 function LetterAvatar(props) {
     return (
-        <IconButton onClick={props.onClick}>
+        <IconButton onClick={props.onClick} sx={{ padding: "1px" }}>
             <Avatar {...stringAvatar(props.value, props.selected)}/>
         </IconButton>
     );
@@ -61,13 +62,13 @@ class LottoNumbers extends React.Component {
 
         return (
             <Grid container>
-                <Grid item xs={3}></Grid>
-                <Grid item xs={6}>
+                <Grid item xs={2} md={2}></Grid>
+                <Grid item xs={10} md={10}>
                     <Grid container>
                         {choices}
                     </Grid>
                 </Grid>
-                <Grid item xs={3}></Grid>
+                <Grid item xs={2} md={2}></Grid>
             </Grid>
         );
     }
@@ -110,17 +111,18 @@ export default class LottoView extends React.Component {
         console.log("handleClick: " + i)
         const maxChoices = this.props.lottery.maxChoices;
         const choices = this.props.lottery.choices;
-        console.log("handleClick maxChoices: " + maxChoices)
-        console.log("handleClick choices before: " + choices)
+        //console.log("handleClick maxChoices: " + maxChoices)
+        //console.log("handleClick choices before: " + choices)
         if (this.props.lottery.countTrue()<maxChoices || choices[i]) {
             console.log("handleClick changing: " + i)
             choices[i]=!choices[i]
             this.setState({choices: choices});
         }
-        console.log("handleClick choices after: " + choices)
+        //console.log("handleClick choices after: " + choices)
     }
 
     render() {
+        const name = this.props.lottery.name;
         const choices = this.props.lottery.choices;
         const maxChoices = this.props.lottery.maxChoices;
 
@@ -149,7 +151,10 @@ export default class LottoView extends React.Component {
             <div>
 
           <Typography variant="h4" gutterBottom>
-            Pick your lucky numbers:
+            {name}
+          </Typography>
+          <Typography variant="h4" gutterBottom>
+            Pick your {maxChoices} lucky numbers:
           </Typography>
           <LottoNumbers
               choices={choices}
@@ -157,11 +162,12 @@ export default class LottoView extends React.Component {
             />
             <br></br>
             <Typography variant="h4" gutterBottom>
-            Your chosen numbers:
+            Your {maxChoices} chosen numbers:
           </Typography>
-                <div>{chosen}
+                <div>{chosen}</div>
+            <br></br>
+                <Button variant="contained">Play</Button>
 
-                </div>
             </div>
         );
     }
