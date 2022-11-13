@@ -58,7 +58,7 @@ class LottoNumbers extends React.Component {
         const choices = this.props.choices.map((choice, index) => {
             if (index>0) {
                 return (
-                    <Grid key={index}>
+                    <Grid item key={index}>
                             {this.renderButton(index)}
                     </Grid>
                 );
@@ -66,15 +66,15 @@ class LottoNumbers extends React.Component {
           });
 
         return (
-            <Box sx={{ 
-                width: "50%",
-                height: "20%",
-                maxWidth: 500,
-                backgroundColor: '#9B9B9B', }}>
-            <Grid container columns={{ xs: 1 }} >
-            {choices}
+            <Grid container>
+                <Grid item xs={3}></Grid>
+                <Grid item xs={6}>
+                    <Grid container>
+                        {choices}
+                    </Grid>
+                </Grid>
+                <Grid item xs={3}></Grid>
             </Grid>
-            </Box>
         );
     }
 }

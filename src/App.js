@@ -1366,9 +1366,7 @@ export default class App extends React.Component
         console.log("App.js: maxChoices" + lottery1.maxChoices)
         console.log("App.js: choices" + lottery1.choices)
         return (
-            <div>
 <LottoView lottery={lottery1}></LottoView>
-            </div>
         )
       }
             
