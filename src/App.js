@@ -89,6 +89,7 @@ import Stack from '@mui/material/Stack';
 
 import Alert from '@mui/material/Alert';
 import clipboard from 'clipboardy';
+import axios from 'axios';
 
 import { properties } from './properties/properties.js'
 import MinimumDistanceSlider from './component/Slider'
@@ -96,6 +97,10 @@ import CircleButton from './component/CircleButton'
 import LottoView, {Lottery} from './component/Lottery'
 import BasicTable from './component/BasicTable'
 import NewLottery from './component/NewLottery'
+
+import { sha256 } from 'js-sha256';
+import { RampLeft } from '@mui/icons-material';
+//var crypto = require('crypto-browserify')
 
 let Buffer = require('buffer/').Buffer
 let blake = require('blakejs')
@@ -107,6 +112,9 @@ export default class App extends React.Component
         super(props);
 
         const lotteriesX = this.createLotteries();
+        let newLottery = new Lottery("Bingo"+Date.now(), 5, 1);
+        newLottery.choices[1]=true;
+        newLottery.amount=5;
 
         this.state = {
             //selectedTabId: "1",
@@ -159,7 +167,7 @@ export default class App extends React.Component
             openNFTSuccessAlert: false,
             openNFTFailureAlert: false,
             showWalletInfo: false,
-            connectWallet: false,
+            connectWallet: true,
 
             nft_policyName: 'ADANFTCreator',
             nft_name: '',
@@ -168,10 +176,14 @@ export default class App extends React.Component
             statusUpdate: "",
 
             lotteries: lotteriesX,
-            selectedLottery: lotteriesX[0],
+            //selectedLottery: lotteriesX[0],
 
-            //selectedLottery : new Lottery("", 1, 1),
-            createNewLottery: false,
+            selectedLottery : newLottery,
+            createNewLottery: true,
+
+            blockfrostAPIKey: "preprodHLwITFVjCypu0X5VcEUui8wusVWplOIy",
+            blockfrostURL: "https://cardano-preprod.blockfrost.io/api/v0/",
+
 
 /**            
             selectedTabId: "5",
@@ -219,7 +231,7 @@ export default class App extends React.Component
             coinsPerUtxoWord: "34482",
         }
 
-        //this.pollWallets = this.pollWallets.bind(this);
+        this.pollWallets = this.pollWallets.bind(this);
     }
 
     /**
@@ -272,7 +284,30 @@ export default class App extends React.Component
                 this.refreshData()
             })
     }
-
+    axoisTry() {
+        const blockfrostAPIKey = this.state.blockfrostAPIKey;
+        const blockfrostURL = this.state.blockfrostURL;
+        const scriptAddress = this.state.addressScriptBech32;
+        var config = {
+            method: 'get',
+            url: blockfrostURL+'addresses/'+scriptAddress+'/utxos?count=100&page=1&order=asc',
+            headers: { 
+              'Accept': 'application/json', 
+              'project_id': blockfrostAPIKey,
+            }
+          };
+          
+          axios(config)
+          .then(function (response) {
+            console.log("axoisTry: " + JSON.stringify(response.data));
+            response.data.forEach(function (utxo, index) {
+                console.log("utxo : " + utxo.amount[0].quantity); 
+            });
+          })
+          .catch(function (error) {
+            console.log("axoisTry: " + error);
+          });        
+    }
     /**
      * Generate address from the plutus contract cborhex
      */
@@ -306,6 +341,10 @@ export default class App extends React.Component
 
         this.createStringDatum_hex_to_hex(this.state.datumStr, "generateScriptAddress")
         this.createStringDatum_utf_to_hex(this.state.redeemStr, "generateScriptAddress ")
+
+        console.log("sha256: " + this.state.redeemStr + " " + sha256(this.state.redeemStr))
+
+        this.axoisTry();
     }
 
     /**
@@ -1389,7 +1428,9 @@ export default class App extends React.Component
       };
 
       handleClickNewLottery = () => {
-        const selectedLottery = new Lottery("", 1, 1);
+        const selectedLottery = new Lottery("Bingo"+Date.now(), 5, 1);
+        selectedLottery.choices[1]=true;
+        selectedLottery.amount=5;
         const createNewLottery = true
         this.setState({createNewLottery});
         this.setState({selectedLottery: selectedLottery});
@@ -1403,6 +1444,10 @@ export default class App extends React.Component
 
       handleClickCreateNewLottery = () => {
         //console.log(this.state.selectedLottery);
+        this.setState({datumStr: this.state.selectedLottery.getSha256(), lovelaceToSend: this.state.selectedLottery.amount*1000000});
+
+        this.buildSendAdaToPlutusScript();
+
         const lotteries = this.state.lotteries;
         lotteries.push(this.state.selectedLottery);
         const createNewLottery = false
@@ -1415,6 +1460,7 @@ export default class App extends React.Component
         const selectedLottery = this.state.selectedLottery;
         selectedLottery.name = input;
         this.setState({selectedLottery});
+        console.log("handleLotteryNameChange: " + this.state.selectedLottery.name);
       }
       handleLotteryMaxNoChange = (input) => {
         //console.log("handleLotteryMaxNoChange: " + input)

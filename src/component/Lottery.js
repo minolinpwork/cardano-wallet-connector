@@ -7,6 +7,7 @@ import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import { sha256 } from 'js-sha256';
 
 function byteToHex(num) {
     // Turns a number (0-255) into a 2-character hex number (00-ff)
@@ -89,7 +90,7 @@ export class Lottery {
     }
 
     selected() {
-        const selected = new Array(this.maxChoices);
+        const selected = new Array();
         this.choices.map((chosen, ind) => {  
             if (chosen) {
                 selected.push(ind)
@@ -108,6 +109,16 @@ export class Lottery {
     isValidToCreate() {
         const valid = this.name.length>0 && this.countTrue==this.maxChoices;
         return valid;
+    }
+
+    getSha256() {
+        const str = "Name: " + this.name
+        + ", MaxNo: " + this.maxNo 
+        + ", maxChoices: " + this.maxChoices 
+        + ", selected: " + this.selected();
+        const shaad = sha256(str);
+        console.log("Lottery getSha256: " + str + " sha256: " + shaad);
+        return shaad;
     }
 }
 
