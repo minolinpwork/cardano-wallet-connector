@@ -320,7 +320,6 @@ export default class App extends React.Component
 
         console.log("sha256: " + this.state.redeemStr + " " + sha256(this.state.redeemStr))
 
-        this.axoisTry();
     }
 
     /**
@@ -1418,7 +1417,10 @@ export default class App extends React.Component
         this.setState({createNewLottery, selectedLottery});
       };
 
-      axoisTry() {
+      axoisBlockfrost() {
+        const callName = "axoisBlockfrost";
+        console.log(callName + " start");
+
         const blockfrostAPIKey = this.state.blockfrostAPIKey;
         const blockfrostURL = this.state.blockfrostURL;
         const scriptAddress = this.state.addressScriptBech32;
@@ -1435,31 +1437,94 @@ export default class App extends React.Component
           
           axios(config)
           .then(function (response) {
-            console.log("axoisTry: " + JSON.stringify(response.data));
+            console.log(callName + ": " + JSON.stringify(response.data));
             response.data.forEach(function (utxo, index) {
-                console.log("utxo : " + utxo.amount[0].quantity); 
+                console.log(callName + ": utxo: " + utxo.amount[0].quantity); 
             });
           })
           .catch(function (error) {
-            console.log("axoisTry: " + error);
+            console.log(callName + " error: " + error);
           });        
+          console.log(callName + " end");
       }
       
-      axoisStoreDB() {
-        const body = this.state.selectedLottery.getObjToStore();
-        const url = 'http://localhost:8080/put';
-        const res = axios.put(url, body);///{utxo: "1", name: "HelloWorld"});
+      async axoisGetAllDB() {
+        const callName = "axoisGetAllDB";
+        console.log(callName + " start");
 
-        console.log(res.data)
-     
+        const baseUrl = 'http://localhost:8080/';
+        var config = {
+            method: 'get',
+            url: 'get/all',
+            baseURL: baseUrl,
+            headers: { 
+              'Accept': 'application/json', 
+            }
+          };
+
+        await axios(config)
+          .then(function (response) {
+            console.log(callName + ": " + JSON.stringify(response.data));
+            response.data.forEach(function (rec, index) {
+                console.log(callName + ": utxo: " + rec.utxo); 
+            });            
+            console.log(callName + ": " + response.data);
+          })
+          .catch(function (error) {
+            console.log(callName + " error: " + error);
+          });    
+          console.log(callName + " end");
       }
+      
+      async axoisStoreDB() {
+        const callName = "axoisStoreDB";
+        console.log(callName + " start");
+        const selectedLottery = this.state.selectedLottery;
+
+        selectedLottery.getSha256();
+        selectedLottery.utxo = "MyUtxo"+Date.now();
+
+        const baseUrl = 'http://localhost:8080/';
+        var config = {
+            method: 'put',
+            url: 'store',
+            baseURL: baseUrl,
+            headers: { 
+              'Content-Type': 'application/json', 
+            },
+            data: {
+                utxo: selectedLottery.utxo, 
+                sha256: selectedLottery.sha256, 
+                name: selectedLottery.name, 
+                maxNo: selectedLottery.maxNo, 
+                maxChoices: selectedLottery.maxChoices, 
+                selected: selectedLottery.selected(), 
+                amount: selectedLottery.amount,
+            }
+          };
+
+        await axios(config)
+          .then(function (response) {
+            console.log(callName + ": " + response.data);
+          })
+          .catch(function (error) {
+            console.log(callName + "error: " + error);
+          });    
+          console.log(callName + " end");
+        }
 
       handleClickCreateNewLottery = () => {
         //console.log(this.state.selectedLottery);
         this.setState({datumStr: this.state.selectedLottery.getSha256(), lovelaceToSend: this.state.selectedLottery.amount*1000000});
 
         this.axoisStoreDB();
+        console.log("handleClickCreateNewLottery axoisStoreDB done");
 
+        this.axoisGetAllDB();
+        console.log("handleClickCreateNewLottery axoisGetAllDB done");
+
+        this.axoisBlockfrost();
+        console.log("handleClickCreateNewLottery axoisBlockfrost done");
         return ;
         this.buildSendAdaToPlutusScript();
 
