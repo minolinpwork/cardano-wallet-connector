@@ -77,6 +77,8 @@ class LottoNumbers extends React.Component {
 
 export class Lottery {
     constructor(name, maxNo, maxChoices, amount) {
+        this.utxo = "";
+        this.sha256 = "";
         this.name = name;
         this.maxNo = maxNo;
         this.maxChoices = maxChoices;
@@ -112,13 +114,16 @@ export class Lottery {
     }
 
     getSha256() {
-        const str = "Name: " + this.name
-        + ", MaxNo: " + this.maxNo 
-        + ", maxChoices: " + this.maxChoices 
-        + ", selected: " + this.selected();
-        const shaad = sha256(str);
-        console.log("Lottery getSha256: " + str + " sha256: " + shaad);
-        return shaad;
+        const str = JSON.stringify({name: this.name, maxNo: this.maxNo, maxChoices: this.maxChoices, selected: this.selected(), amount: this.amount})
+        this.sha256 = sha256(str);
+        console.log("Lottery getSha256: " + str + " sha256: " + this.sha256);
+        return this.sha256;
+    }
+
+    getObjToStore() {
+        const str = JSON.stringify({utxo: this.utxo, sha256: this.sha256, name: this.name, maxNo: this.maxNo, maxChoices: this.maxChoices, selected: this.selected(), amount: this.amount})
+        console.log("Lottery getObjToStore: " + str);
+        return str;
     }
 }
 

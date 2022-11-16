@@ -100,10 +100,9 @@ import NewLottery from './component/NewLottery'
 
 import { sha256 } from 'js-sha256';
 import { RampLeft } from '@mui/icons-material';
-//var crypto = require('crypto-browserify')
 
-let Buffer = require('buffer/').Buffer
 let blake = require('blakejs')
+let Buffer = require('buffer/').Buffer
 
 export default class App extends React.Component
 {
@@ -232,6 +231,7 @@ export default class App extends React.Component
         }
 
         this.pollWallets = this.pollWallets.bind(this);
+
     }
 
     /**
@@ -283,30 +283,6 @@ export default class App extends React.Component
             () => {
                 this.refreshData()
             })
-    }
-    axoisTry() {
-        const blockfrostAPIKey = this.state.blockfrostAPIKey;
-        const blockfrostURL = this.state.blockfrostURL;
-        const scriptAddress = this.state.addressScriptBech32;
-        var config = {
-            method: 'get',
-            url: blockfrostURL+'addresses/'+scriptAddress+'/utxos?count=100&page=1&order=asc',
-            headers: { 
-              'Accept': 'application/json', 
-              'project_id': blockfrostAPIKey,
-            }
-          };
-          
-          axios(config)
-          .then(function (response) {
-            console.log("axoisTry: " + JSON.stringify(response.data));
-            response.data.forEach(function (utxo, index) {
-                console.log("utxo : " + utxo.amount[0].quantity); 
-            });
-          })
-          .catch(function (error) {
-            console.log("axoisTry: " + error);
-          });        
     }
     /**
      * Generate address from the plutus contract cborhex
@@ -928,10 +904,10 @@ export default class App extends React.Component
         );
 
         const submittedTxHash = await this.API.submitTx(Buffer.from(signedTx.to_bytes(), "utf8").toString("hex"));
-        console.log(submittedTxHash)
+        console.log("buildSendAdaToPlutusScript submittedTxHash: " + submittedTxHash)
         this.setState({submittedTxHash: submittedTxHash, transactionIdLocked: submittedTxHash, lovelaceLocked: this.state.lovelaceToSend});
 
-
+        return submittedTxHash;
     }
 
     buildSendTokenToPlutusScript = async () => {
@@ -1442,10 +1418,49 @@ export default class App extends React.Component
         this.setState({createNewLottery, selectedLottery});
       };
 
+      axoisTry() {
+        const blockfrostAPIKey = this.state.blockfrostAPIKey;
+        const blockfrostURL = this.state.blockfrostURL;
+        const scriptAddress = this.state.addressScriptBech32;
+
+        const url = blockfrostURL+'addresses/'+scriptAddress+'/utxos?count=100&page=1&order=asc';
+        var config = {
+            method: 'get',
+            url: url,
+            headers: { 
+              'Accept': 'application/json', 
+              'project_id': blockfrostAPIKey,
+            }
+          };
+          
+          axios(config)
+          .then(function (response) {
+            console.log("axoisTry: " + JSON.stringify(response.data));
+            response.data.forEach(function (utxo, index) {
+                console.log("utxo : " + utxo.amount[0].quantity); 
+            });
+          })
+          .catch(function (error) {
+            console.log("axoisTry: " + error);
+          });        
+      }
+      
+      axoisStoreDB() {
+        const body = this.state.selectedLottery.getObjToStore();
+        const url = 'http://localhost:8080/put';
+        const res = axios.put(url, body);///{utxo: "1", name: "HelloWorld"});
+
+        console.log(res.data)
+     
+      }
+
       handleClickCreateNewLottery = () => {
         //console.log(this.state.selectedLottery);
         this.setState({datumStr: this.state.selectedLottery.getSha256(), lovelaceToSend: this.state.selectedLottery.amount*1000000});
 
+        this.axoisStoreDB();
+
+        return ;
         this.buildSendAdaToPlutusScript();
 
         const lotteries = this.state.lotteries;
