@@ -98,6 +98,7 @@ import LottoView, {Lottery} from './component/Lottery'
 import BasicTable from './component/BasicTable'
 import NewLottery from './component/NewLottery'
 
+
 import { sha256 } from 'js-sha256';
 import { RampLeft } from '@mui/icons-material';
 
@@ -110,10 +111,10 @@ export default class App extends React.Component
     {
         super(props);
 
-        const lotteriesX = this.createLotteries();
-        let newLottery = new Lottery("Bingo"+Date.now(), 5, 1);
-        newLottery.choices[1]=true;
-        newLottery.amount=5;
+        //const lotteriesX = this.createLotteries();
+        //let newLottery = new Lottery("Bingo"+Date.now(), 5, 1);
+        //newLottery.choices[1]=true;
+        //newLottery.amount=5;
 
         this.state = {
             //selectedTabId: "1",
@@ -152,13 +153,13 @@ export default class App extends React.Component
             manualFee: 900000,
 
             selectedTabId: "5",
-            plutusScriptCborHex: "59072d59072a01000033232323232323232323232323232332232323232222232325335333006375c00a6eb8010cccd5cd19b8735573aa004900011991091980080180119191919191919191919191999ab9a3370e6aae754029200023333333333222222222212333333333300100b00a009008007006005004003002335014232323333573466e1cd55cea80124000466442466002006004603e6ae854008c064d5d09aba2500223263202833573805205004c26aae7940044dd50009aba1500a33501401535742a012666aa02eeb94058d5d0a804199aa80bbae501635742a00e66a02803e6ae854018cd4050cd54088081d69aba150053232323333573466e1cd55cea801240004664424660020060046464646666ae68cdc39aab9d5002480008cc8848cc00400c008cd4095d69aba150023026357426ae8940088c98c80b0cd5ce01681601509aab9e5001137540026ae854008c8c8c8cccd5cd19b8735573aa004900011991091980080180119a812bad35742a004604c6ae84d5d1280111931901619ab9c02d02c02a135573ca00226ea8004d5d09aba2500223263202833573805205004c26aae7940044dd50009aba1500433501475c6ae85400ccd4050cd54089d710009aba15002301c357426ae8940088c98c8090cd5ce01281201109aba25001135744a00226ae8940044d5d1280089aba25001135744a00226ae8940044d5d1280089aab9e5001137540026ae854008c8c8c8cccd5cd19b875001480188c848888c010014c05cd5d09aab9e500323333573466e1d400920042321222230020053019357426aae7940108cccd5cd19b875003480088c848888c004014c054d5d09aab9e500523333573466e1d40112000232122223003005375c6ae84d55cf280311931900f99ab9c02001f01d01c01b01a135573aa00226ea8004d5d09aba2500223263201833573803203002c202e264c6402e66ae7124010350543500017135573ca00226ea800448c88c008dd6000990009aa80a111999aab9f00125009233500830043574200460066ae8800804c8c8c8c8cccd5cd19b8735573aa00690001199911091998008020018011919191999ab9a3370e6aae7540092000233221233001003002301535742a00466a01c0286ae84d5d1280111931900c19ab9c019018016135573ca00226ea8004d5d0a801999aa803bae500635742a00466a014eb8d5d09aba2500223263201433573802a02802426ae8940044d55cf280089baa0011335500175ceb44488c88c008dd5800990009aa80911191999aab9f0022500823350073355015300635573aa004600a6aae794008c010d5d100180909aba100111220021221223300100400312232323333573466e1d4005200023212230020033005357426aae79400c8cccd5cd19b8750024800884880048c98c8040cd5ce00880800700689aab9d500113754002464646666ae68cdc39aab9d5002480008cc8848cc00400c008c014d5d0a8011bad357426ae8940088c98c8034cd5ce00700680589aab9e5001137540024646666ae68cdc39aab9d5001480008dd71aba135573ca004464c6401666ae7003002c0244dd500089119191999ab9a3370ea00290021091100091999ab9a3370ea00490011190911180180218031aba135573ca00846666ae68cdc3a801a400042444004464c6401c66ae7003c03803002c0284d55cea80089baa0012323333573466e1d40052002212200223333573466e1d40092000212200123263200a33573801601401000e26aae74dd5000919191919191999ab9a3370ea002900610911111100191999ab9a3370ea004900510911111100211999ab9a3370ea00690041199109111111198008048041bae35742a00a6eb4d5d09aba2500523333573466e1d40112006233221222222233002009008375c6ae85401cdd71aba135744a00e46666ae68cdc3a802a400846644244444446600c01201060186ae854024dd71aba135744a01246666ae68cdc3a8032400446424444444600e010601a6ae84d55cf280591999ab9a3370ea00e900011909111111180280418071aba135573ca018464c6402466ae7004c04804003c03803403002c0284d55cea80209aab9e5003135573ca00426aae7940044dd50009191919191999ab9a3370ea002900111999110911998008028020019bad35742a0086eb4d5d0a8019bad357426ae89400c8cccd5cd19b875002480008c8488c00800cc020d5d09aab9e500623263200b33573801801601201026aae75400c4d5d1280089aab9e500113754002464646666ae68cdc3a800a400446424460020066eb8d5d09aab9e500323333573466e1d400920002321223002003375c6ae84d55cf280211931900419ab9c009008006005135573aa00226ea800444888c8c8cccd5cd19b8735573aa0049000119aa80518031aba150023005357426ae8940088c98c8020cd5ce00480400309aab9e5001137540029309000a490350543100112212330010030021123230010012233003300200200122232333573466e3c010004488008488004dc90011",
-            addressScriptBech32: "addr_test1wq5uxrjetegdstljjc924gfmph5tknxu4u5dlusngef00cqwrn27u",
+            plutusScriptCborHex: properties.plutusScriptCborHex,
+            addressScriptBech32: properties.addressScriptBech32,
             datumStr: "872e4e50ce9990d8b041330c47c9ddd11bec6b503ae9386a99da8584e9bb12c4".toUpperCase(),
             redeemStr: "HelloWorld",
             transactionIdLocked: "85d607cba9edd396eb4a87591cb4df84f0c8a265f8fc64bb5a1a0309ee3da8bb",
-            lovelaceToSend: 4400000,
-            lovelaceLocked: 4400000,
+            lovelaceToSend: properties.lovelaceToSend,
+            lovelaceLocked: properties.lovelaceLocked,
 
             openAvailableWalletsDialog: false,
             openWalletDetailsDialog: false,
@@ -174,14 +175,16 @@ export default class App extends React.Component
             nft_imageType: 'PNG',
             statusUpdate: "",
 
-            lotteries: lotteriesX,
+            lotteries: [],
             //selectedLottery: lotteriesX[0],
 
-            selectedLottery : newLottery,
-            createNewLottery: true,
+            selectedLottery : null,
+            createNewLottery: false,
 
-            blockfrostAPIKey: "preprodHLwITFVjCypu0X5VcEUui8wusVWplOIy",
-            blockfrostURL: "https://cardano-preprod.blockfrost.io/api/v0/",
+            winningNumbersAlert: false,
+            youWonAlert: false,
+            youLostAlert: false,
+            nameRequiredAlert: false,
 
 
 /**            
@@ -231,7 +234,6 @@ export default class App extends React.Component
         }
 
         this.pollWallets = this.pollWallets.bind(this);
-
     }
 
     /**
@@ -592,6 +594,8 @@ export default class App extends React.Component
      * @returns {Promise<void>}
      */
     refreshData = async () => {
+        this.handleLoadLotteries();
+
         this.generateScriptAddress()
 
         try{
@@ -861,6 +865,7 @@ export default class App extends React.Component
         let txOutputBuilder = TransactionOutputBuilder.new();
         txOutputBuilder = txOutputBuilder.with_address(ScriptAddress);
         //data=PlutusData.new_integer(BigInt.from_str(this.state.datumStr))
+        console.log("buildSendAdaToPlutusScript: this.state.datumStr: " + this.state.datumStr);
         let datumFromJson=this.createStringDatum_hex_to_hex(this.state.datumStr, "buildSendAdaToPlutusScript")
         const dataHash = hash_plutus_data(datumFromJson)
         txOutputBuilder = txOutputBuilder.with_data_hash(dataHash)
@@ -987,6 +992,13 @@ export default class App extends React.Component
 
 
     buildRedeemAdaFromPlutusScript = async () => {
+        const callName = "buildRedeemAdaFromPlutusScript: ";
+        console.log(callName + this.state.addressScriptBech32);
+        console.log(callName + this.state.changeAddress);
+        console.log(callName + this.state.transactionIdLocked);
+        console.log(callName + this.state.transactionIndxLocked.toString());
+        console.log(callName + this.state.datumStr);
+        console.log(callName + sha256(this.state.plutusScriptCborHex));
 
         const txBuilder = await this.initTransactionBuilder();
         const ScriptAddress = Address.from_bech32(this.state.addressScriptBech32);
@@ -1019,6 +1031,7 @@ export default class App extends React.Component
             inputs.add(utxo.input());
         });
 
+        console.log("buildRedeemAdaFromPlutusScript: this.state.datumStr: " + this.state.datumStr);
         let datums = PlutusList.new();
         // datums.add(PlutusData.from_bytes(Buffer.from(this.state.datumStr, "utf8")))
         //datums.add(PlutusData.new_integer(BigInt.from_str(this.state.datumStr)))
@@ -1130,9 +1143,10 @@ export default class App extends React.Component
         );
 
         const submittedTxHash = await this.API.submitTx(Buffer.from(signedTx.to_bytes(), "utf8").toString("hex"));
-        console.log(submittedTxHash)
+        console.log(callName + " submittedTxHash: " + submittedTxHash)
         this.setState({submittedTxHash});
 
+        return submittedTxHash;    
     }
 
     buildRedeemTokenFromPlutusScript = async () => {
@@ -1417,46 +1431,57 @@ export default class App extends React.Component
         this.setState({createNewLottery, selectedLottery});
       };
 
-      axoisBlockfrost() {
+      async axoisBlockfrost() {
         const callName = "axoisBlockfrost";
         console.log(callName + " start");
 
-        const blockfrostAPIKey = this.state.blockfrostAPIKey;
-        const blockfrostURL = this.state.blockfrostURL;
-        const scriptAddress = this.state.addressScriptBech32;
+        var utxos = new Map();
 
-        const url = blockfrostURL+'addresses/'+scriptAddress+'/utxos?count=100&page=1&order=asc';
+        const url = properties.blockfrostURL+'addresses/'+properties.addressScriptBech32+'/utxos?count=100&page=1&order=asc';
         var config = {
             method: 'get',
             url: url,
             headers: { 
               'Accept': 'application/json', 
-              'project_id': blockfrostAPIKey,
+              'project_id': properties.blockfrostAPIKey,
             }
           };
           
-          axios(config)
+          await axios(config)
           .then(function (response) {
             console.log(callName + ": " + JSON.stringify(response.data));
             response.data.forEach(function (utxo, index) {
                 console.log(callName + ": utxo: " + utxo.amount[0].quantity); 
+                console.log(callName + ": utxo.tx_hash: " + utxo.tx_hash); 
+                console.log(callName + ": utxo.tx_index: " + utxo.tx_index); 
+                const lovelace = utxo.amount.filter(amt => amt.unit == 'lovelace').map(amt => amt.quantity).reduce((a, b) => a+b);
+                console.log(callName + ": utxo.amt: " + lovelace); 
+                utxos.set(utxo.tx_hash, {
+                    tx_hash: utxo.tx_hash,
+                    tx_index: utxo.tx_index,
+                    amount: lovelace,
+                });
             });
+            console.log(callName + ": " + JSON.stringify(Array.from(utxos.entries())));
+            console.log(callName + ": size: " + utxos.size);
           })
           .catch(function (error) {
             console.log(callName + " error: " + error);
           });        
           console.log(callName + " end");
+          return utxos;
       }
       
       async axoisGetAllDB() {
         const callName = "axoisGetAllDB";
         console.log(callName + " start");
 
-        const baseUrl = 'http://localhost:8080/';
+        var utxos = new Map();
+
         var config = {
             method: 'get',
             url: 'get/all',
-            baseURL: baseUrl,
+            baseURL: properties.beUrl,
             headers: { 
               'Accept': 'application/json', 
             }
@@ -1467,13 +1492,16 @@ export default class App extends React.Component
             console.log(callName + ": " + JSON.stringify(response.data));
             response.data.forEach(function (rec, index) {
                 console.log(callName + ": utxo: " + rec.utxo); 
+                utxos.set(rec.utxo, rec);
             });            
-            console.log(callName + ": " + response.data);
+            console.log(callName + ": " + JSON.stringify(Array.from(utxos.entries())));
+            console.log(callName + ": size: " + utxos.size);
           })
           .catch(function (error) {
             console.log(callName + " error: " + error);
           });    
           console.log(callName + " end");
+          return utxos;
       }
       
       async axoisStoreDB() {
@@ -1481,14 +1509,12 @@ export default class App extends React.Component
         console.log(callName + " start");
         const selectedLottery = this.state.selectedLottery;
 
-        selectedLottery.getSha256();
-        selectedLottery.utxo = "MyUtxo"+Date.now();
+        selectedLottery.sha256 = selectedLottery.calcSha256();
 
-        const baseUrl = 'http://localhost:8080/';
         var config = {
             method: 'put',
             url: 'store',
-            baseURL: baseUrl,
+            baseURL: properties.beUrl,
             headers: { 
               'Content-Type': 'application/json', 
             },
@@ -1513,27 +1539,132 @@ export default class App extends React.Component
           console.log(callName + " end");
         }
 
-      handleClickCreateNewLottery = () => {
-        //console.log(this.state.selectedLottery);
-        this.setState({datumStr: this.state.selectedLottery.getSha256(), lovelaceToSend: this.state.selectedLottery.amount*1000000});
+      handleLoadLotteries = async () => {
+        const callName = "handleLoadLotteries";
 
+        const dbUtxos = await this.axoisGetAllDB();
+        console.log(callName + ": handleClickCreateNewLottery axoisGetAllDB done");
+
+        const adaUtxos = await this.axoisBlockfrost();
+        console.log(callName + ": handleClickCreateNewLottery axoisBlockfrost done");
+
+        let lotteries = [];
+
+        adaUtxos.forEach((adaUtxo, utxo) => {
+            if (dbUtxos.has(utxo)) {
+                const dbUtxo = dbUtxos.get(utxo);
+                let lottery = Lottery.restore(
+                    utxo, dbUtxo.sha256, dbUtxo.selected, 
+                    dbUtxo.name, dbUtxo.maxNo, dbUtxo.maxChoices,
+                    adaUtxo.amount/1000000,
+                )
+                lotteries.push(lottery);
+                console.log(callName + ": lottery: " + JSON.stringify(lottery));
+            }
+        });
+
+        console.log(callName + ": " + JSON.stringify(lotteries));
+        this.setState({lotteries});
+        if (lotteries.length>0) {
+            this.setState({selectedLottery: lotteries[0]});
+        }
+      }
+
+      handleClickCreateNewLottery = async () => {
+        const selectedLottery = this.state.selectedLottery;
+
+
+        if (selectedLottery.name.length==0) {
+            this.showNameRequireAlert();     
+        }
+        if (!selectedLottery.isValidChoices()) {
+            this.showWinningNumbersAlert();     
+            return ;   
+        }
+
+        selectedLottery.sha256 = selectedLottery.calcSha256();
+        
+        this.state.datumStr = selectedLottery.sha256;
+        this.state.lovelaceToSend = selectedLottery.amount = this.state.selectedLottery.amount*1000000;
+
+        const submittedTx = await this.buildSendAdaToPlutusScript();
+
+        this.state.selectedLottery.utxo = submittedTx;
         this.axoisStoreDB();
-        console.log("handleClickCreateNewLottery axoisStoreDB done");
 
-        this.axoisGetAllDB();
-        console.log("handleClickCreateNewLottery axoisGetAllDB done");
+        const createNewLottery = false;
+        this.setState({createNewLottery});
 
-        this.axoisBlockfrost();
-        console.log("handleClickCreateNewLottery axoisBlockfrost done");
-        return ;
-        this.buildSendAdaToPlutusScript();
-
-        const lotteries = this.state.lotteries;
-        lotteries.push(this.state.selectedLottery);
-        const createNewLottery = false
-        this.setState({lotteries, createNewLottery});
+        //this.setState({lotteries, createNewLottery});
+        //const lotteries = this.state.lotteries;
+        //lotteries.push(this.state.selectedLottery);
         //const createNewLottery = !this.state.createNewLottery
         //this.setState({createNewLottery});
+
+        this.refreshData();
+
+        console.log("handleClickCreateNewLottery done");
+      };
+
+      showNameRequireAlert = () => {
+        this.setState({nameRequiredAlert: true});
+        setTimeout(() => {
+            this.setState({nameRequiredAlert: false});
+        }, 5000);      
+      };     
+
+      showWinningNumbersAlert = () => {
+        this.setState({winningNumbersAlert: true});
+        setTimeout(() => {
+            this.setState({winningNumbersAlert: false});
+        }, 5000);      
+      };      
+
+      showYouWonAlert = () => {
+        this.setState({youWonAlert: true});
+        setTimeout(() => {
+            this.setState({youWonAlert: false});
+        }, 5000);      
+      };      
+
+      showYouLostAlert = () => {
+        this.setState({youLostAlert: true});
+        setTimeout(() => {
+            this.setState({youLostAlert: false});
+        }, 5000);      
+      };      
+
+      handleClickPlay = async () => {
+        const callName = "handleClickPlay";
+
+        const selectedLottery = this.state.selectedLottery;
+        if (!selectedLottery.isValidChoices()) {
+            this.showWinningNumbersAlert();     
+            return ;   
+        }
+
+        //this.state.selectedLottery.sha256=this.state.selectedLottery.calcSha256();
+
+        console.log(callName + ": before this.state.datumStr: " + this.state.datumStr);
+        console.log(callName + ": before this.state.selectedLottery.sha256: " + this.state.selectedLottery.sha256);
+        console.log(callName + ": before selectedLottery.sha256: " + selectedLottery.sha256);
+        
+        this.state.transactionIdLocked = selectedLottery.utxo;
+        this.state.transactionIndxLocked = 0;
+        this.state.lovelaceLocked = selectedLottery.amount*1000000;
+        this.state.datumStr = selectedLottery.sha256;
+        this.state.redeemStr = selectedLottery.toString();
+        
+        console.log(callName + ": after this.state.datumStr: " + this.state.datumStr);
+        console.log(callName + ": after this.state.selectedLottery.sha256: " + this.state.selectedLottery.sha256);
+        console.log(callName + ": after selectedLottery.sha256: " + selectedLottery.sha256);
+
+        const submittedTxHash = await this.buildRedeemAdaFromPlutusScript();
+        if (selectedLottery.sha256==selectedLottery.calcSha256() && submittedTxHash.length>10) {
+            this.showYouWonAlert();
+        }
+
+        this.refreshData();        
       };
 
       handleLotteryNameChange = (input) => {
@@ -1576,7 +1707,12 @@ export default class App extends React.Component
       {
         const lotteries = this.state.lotteries;
         const selectedLottery = this.state.selectedLottery;
-        const createNewLottery = this.state.createNewLottery
+        const createNewLottery = this.state.createNewLottery;
+        const winningNumbersAlert = this.state.winningNumbersAlert;
+        const youWonAlert = this.state.youWonAlert;
+        const youLostAlert = this.state.youLostAlert;
+        const nameRequiredAlert = this.state.nameRequiredAlert;
+        const maxChoices = this.state.selectedLottery?.maxChoices;
         //console.log("App.js: maxNo" + lottery1.maxNo)
         //console.log("App.js: maxChoices" + lottery1.maxChoices)
         //console.log("App.js: choices" + lottery1.choices)
@@ -1596,6 +1732,7 @@ export default class App extends React.Component
                     <BasicTable lotteries={lotteries} lotteryClick={this.handleLotterySelect}></BasicTable>
                     <br></br>
                     <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
+                        <Button variant="contained" onClick={this.handleLoadLotteries}>Reload List</Button>
                         <Button variant="contained" onClick={this.handleClickNewLottery}>Create new Lottery</Button>
                     </Stack>
                 </Grid>
@@ -1615,6 +1752,7 @@ export default class App extends React.Component
                         <Button variant="contained" onClick={this.handleCancelNewLottery}>Cancel</Button>
                         <Button variant="contained" onClick={this.handleClickCreateNewLottery}>Create new Lottery</Button>
                     </Stack>
+                    {(nameRequiredAlert) && <Alert severity="error">Please enter a name for this lottery</Alert>}
                 </Grid>
                 }
 
@@ -1622,10 +1760,10 @@ export default class App extends React.Component
                 <Grid item xs={12} md={6}>
                     <LottoView lottery={selectedLottery}></LottoView>
                     <br></br><br></br>
-                    {(!createNewLottery)
-                    &&
-                    <Button variant="contained">Play</Button>
-                    }
+                    {(youWonAlert) && <Alert severity="success">Wow!! You Won!</Alert>}
+                    {(youLostAlert) && <Alert severity="info">Sorry!  Try again...</Alert>}
+                    {(winningNumbersAlert) && <Alert severity="error">Please choose your {maxChoices} winning numbers</Alert>}
+                    {(!createNewLottery) && <Button variant="contained" onClick={this.handleClickPlay}>Play</Button>}
                 </Grid>
             </Grid>
         )

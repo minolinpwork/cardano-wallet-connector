@@ -51,7 +51,7 @@ class LottoNumbers extends React.Component {
 
 
     render() {
-        const choices = this.props.choices.map((choice, index) => {
+        const choices = this.props.choices?.map((choice, index) => {
             if (index>0) {
                 return (
                     <Grid item key={index}>
@@ -85,6 +85,14 @@ export class Lottery {
         this.amount = amount;
         this.choices = new Array(maxNo+1).fill(false);
     }
+    static restore(utxo, sha256, selected, name, maxNo, maxChoices, amount) {
+        let lottery = new Lottery(name, maxNo, maxChoices, amount);
+        lottery.utxo = utxo;
+        lottery.sha256 = sha256;
+        lottery.choices = new Array(maxNo+1).fill(false);
+        selected.map(item => lottery.choices[item]=true);
+        return lottery;
+    }
 
     setMaxNo(maxNo) {
         this.maxNo = maxNo;
@@ -98,32 +106,29 @@ export class Lottery {
                 selected.push(ind)
             }
         });
-        console.log("selected", selected);
+        //console.log("selected", selected);
         return selected;
     }
 
     countTrue() {
         const count = this.choices.filter(obj => { return obj; }).length;
-        console.log("countTrue", count);
+        //console.log("countTrue", count);
         return count;
     }    
 
-    isValidToCreate() {
-        const valid = this.name.length>0 && this.countTrue==this.maxChoices;
-        return valid;
+    isValidChoices() {
+        return this.countTrue()==this.maxChoices;
     }
 
-    getSha256() {
-        const str = JSON.stringify({name: this.name, maxNo: this.maxNo, maxChoices: this.maxChoices, selected: this.selected(), amount: this.amount})
-        this.sha256 = sha256(str);
-        console.log("Lottery getSha256: " + str + " sha256: " + this.sha256);
-        return this.sha256;
+    toString() {
+        return JSON.stringify({name: this.name, maxNo: this.maxNo, maxChoices: this.maxChoices, selected: this.selected(), amount: this.amount})
     }
 
-    getObjToStore() {
-        const str = JSON.stringify({utxo: this.utxo, sha256: this.sha256, name: this.name, maxNo: this.maxNo, maxChoices: this.maxChoices, selected: this.selected(), amount: this.amount})
-        console.log("Lottery getObjToStore: " + str);
-        return str;
+    calcSha256() {
+        const str = this.toString();
+        const sha = sha256(str);
+        console.log("Lottery getSha256: " + str + " sha256: " + sha);
+        return sha;
     }
 }
 
@@ -135,13 +140,13 @@ export default class LottoView extends React.Component {
     }
 
     handleClick(i) {
-        console.log("handleClick: " + i)
+        //console.log("handleClick: " + i)
         const maxChoices = this.props.lottery.maxChoices;
         const choices = this.props.lottery.choices;
         //console.log("handleClick maxChoices: " + maxChoices)
         //console.log("handleClick choices before: " + choices)
         if (this.props.lottery.countTrue()<maxChoices || choices[i]) {
-            console.log("handleClick changing: " + i)
+            //console.log("handleClick changing: " + i)
             choices[i]=!choices[i]
             this.setState({choices: choices});
         }
@@ -149,15 +154,15 @@ export default class LottoView extends React.Component {
     }
 
     render() {
-        const name = this.props.lottery.name;
-        const choices = this.props.lottery.choices;
-        const maxChoices = this.props.lottery.maxChoices;
-        const amount = this.props.lottery.amount;
+        const name = this.props.lottery?.name;
+        const choices = this.props.lottery?.choices;
+        const maxChoices = this.props.lottery?.maxChoices;
+        const amount = this.props.lottery?.amount;
 
         //console.log("render choices: " + choices)
 
 
-        let chosen = choices.map((choice, index) => {
+        let chosen = choices?.map((choice, index) => {
             //console.log("render map: " + index + " " + choice)
             if (choice) {
                 return (
@@ -165,9 +170,9 @@ export default class LottoView extends React.Component {
                 );
             }
           });
-        const remaining = maxChoices - this.props.lottery.countTrue()
-        console.log("remaining: " + remaining)
-        console.log("chosen: " + chosen)
+        const remaining = maxChoices - this.props.lottery?.countTrue()
+        //console.log("remaining: " + remaining)
+        //console.log("chosen: " + chosen)
         let c1 = chosen;
         for (let i = 0; i < remaining; i++) {
             chosen.push ( 
