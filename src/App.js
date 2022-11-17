@@ -993,12 +993,12 @@ export default class App extends React.Component
 
     buildRedeemAdaFromPlutusScript = async () => {
         const callName = "buildRedeemAdaFromPlutusScript: ";
-        console.log(callName + this.state.addressScriptBech32);
-        console.log(callName + this.state.changeAddress);
-        console.log(callName + this.state.transactionIdLocked);
-        console.log(callName + this.state.transactionIndxLocked.toString());
-        console.log(callName + this.state.datumStr);
-        console.log(callName + sha256(this.state.plutusScriptCborHex));
+        console.log(callName + "this.state.addressScriptBech32: " + this.state.addressScriptBech32);
+        console.log(callName + "this.state.changeAddress: " + this.state.changeAddress);
+        console.log(callName + "this.state.transactionIdLocked: " + this.state.transactionIdLocked);
+        console.log(callName + "this.state.transactionIndxLocked: " + this.state.transactionIndxLocked);
+        console.log(callName + "this.state.datumStr: " + this.state.datumStr);
+        console.log(callName + "this.state.redeemStr: " + this.state.redeemStr);
 
         const txBuilder = await this.initTransactionBuilder();
         const ScriptAddress = Address.from_bech32(this.state.addressScriptBech32);
@@ -1031,7 +1031,6 @@ export default class App extends React.Component
             inputs.add(utxo.input());
         });
 
-        console.log("buildRedeemAdaFromPlutusScript: this.state.datumStr: " + this.state.datumStr);
         let datums = PlutusList.new();
         // datums.add(PlutusData.from_bytes(Buffer.from(this.state.datumStr, "utf8")))
         //datums.add(PlutusData.new_integer(BigInt.from_str(this.state.datumStr)))
@@ -1417,9 +1416,9 @@ export default class App extends React.Component
       };
 
       handleClickNewLottery = () => {
-        const selectedLottery = new Lottery("Bingo"+Date.now(), 5, 1);
-        selectedLottery.choices[1]=true;
-        selectedLottery.amount=5;
+        const selectedLottery = new Lottery("", 1, 1, 10);//"Bingo"+Date.now(), 5, 1);
+        //selectedLottery.choices[1]=true;
+        //selectedLottery.amount=1;
         const createNewLottery = true
         this.setState({createNewLottery});
         this.setState({selectedLottery: selectedLottery});
@@ -1449,20 +1448,20 @@ export default class App extends React.Component
           
           await axios(config)
           .then(function (response) {
-            console.log(callName + ": " + JSON.stringify(response.data));
+            //console.log(callName + ": " + JSON.stringify(response.data));
             response.data.forEach(function (utxo, index) {
-                console.log(callName + ": utxo: " + utxo.amount[0].quantity); 
-                console.log(callName + ": utxo.tx_hash: " + utxo.tx_hash); 
-                console.log(callName + ": utxo.tx_index: " + utxo.tx_index); 
+                //console.log(callName + ": utxo: " + utxo.amount[0].quantity); 
+                //console.log(callName + ": utxo.tx_hash: " + utxo.tx_hash); 
+                //console.log(callName + ": utxo.tx_index: " + utxo.tx_index); 
                 const lovelace = utxo.amount.filter(amt => amt.unit == 'lovelace').map(amt => amt.quantity).reduce((a, b) => a+b);
-                console.log(callName + ": utxo.amt: " + lovelace); 
+                //console.log(callName + ": utxo.amt: " + lovelace); 
                 utxos.set(utxo.tx_hash, {
                     tx_hash: utxo.tx_hash,
                     tx_index: utxo.tx_index,
                     amount: lovelace,
                 });
             });
-            console.log(callName + ": " + JSON.stringify(Array.from(utxos.entries())));
+            //console.log(callName + ": " + JSON.stringify(Array.from(utxos.entries())));
             console.log(callName + ": size: " + utxos.size);
           })
           .catch(function (error) {
@@ -1491,10 +1490,10 @@ export default class App extends React.Component
           .then(function (response) {
             console.log(callName + ": " + JSON.stringify(response.data));
             response.data.forEach(function (rec, index) {
-                console.log(callName + ": utxo: " + rec.utxo); 
+                //console.log(callName + ": utxo: " + rec.utxo); 
                 utxos.set(rec.utxo, rec);
             });            
-            console.log(callName + ": " + JSON.stringify(Array.from(utxos.entries())));
+            //console.log(callName + ": " + JSON.stringify(Array.from(utxos.entries())));
             console.log(callName + ": size: " + utxos.size);
           })
           .catch(function (error) {
@@ -1556,10 +1555,10 @@ export default class App extends React.Component
                 let lottery = Lottery.restore(
                     utxo, dbUtxo.sha256, dbUtxo.selected, 
                     dbUtxo.name, dbUtxo.maxNo, dbUtxo.maxChoices,
-                    adaUtxo.amount/1000000,
+                    adaUtxo.amount,
                 )
                 lotteries.push(lottery);
-                console.log(callName + ": lottery: " + JSON.stringify(lottery));
+                //console.log(callName + ": lottery: " + JSON.stringify(lottery));
             }
         });
 
@@ -1576,6 +1575,7 @@ export default class App extends React.Component
 
         if (selectedLottery.name.length==0) {
             this.showNameRequireAlert();     
+            return ;
         }
         if (!selectedLottery.isValidChoices()) {
             this.showWinningNumbersAlert();     
@@ -1645,19 +1645,19 @@ export default class App extends React.Component
 
         //this.state.selectedLottery.sha256=this.state.selectedLottery.calcSha256();
 
-        console.log(callName + ": before this.state.datumStr: " + this.state.datumStr);
-        console.log(callName + ": before this.state.selectedLottery.sha256: " + this.state.selectedLottery.sha256);
-        console.log(callName + ": before selectedLottery.sha256: " + selectedLottery.sha256);
+        //console.log(callName + ": before this.state.datumStr: " + this.state.datumStr);
+        //console.log(callName + ": before this.state.selectedLottery.sha256: " + this.state.selectedLottery.sha256);
+        //console.log(callName + ": before selectedLottery.sha256: " + selectedLottery.sha256);
         
         this.state.transactionIdLocked = selectedLottery.utxo;
         this.state.transactionIndxLocked = 0;
-        this.state.lovelaceLocked = selectedLottery.amount*1000000;
+        this.state.lovelaceLocked = selectedLottery.amount;
         this.state.datumStr = selectedLottery.sha256;
         this.state.redeemStr = selectedLottery.toString();
         
-        console.log(callName + ": after this.state.datumStr: " + this.state.datumStr);
-        console.log(callName + ": after this.state.selectedLottery.sha256: " + this.state.selectedLottery.sha256);
-        console.log(callName + ": after selectedLottery.sha256: " + selectedLottery.sha256);
+        //console.log(callName + ": after this.state.datumStr: " + this.state.datumStr);
+        //console.log(callName + ": after this.state.selectedLottery.sha256: " + this.state.selectedLottery.sha256);
+        //console.log(callName + ": after selectedLottery.sha256: " + selectedLottery.sha256);
 
         const submittedTxHash = await this.buildRedeemAdaFromPlutusScript();
         if (selectedLottery.sha256==selectedLottery.calcSha256() && submittedTxHash.length>10) {
@@ -1757,6 +1757,8 @@ export default class App extends React.Component
                 }
 
 
+                {(selectedLottery)
+                    &&
                 <Grid item xs={12} md={6}>
                     <LottoView lottery={selectedLottery}></LottoView>
                     <br></br><br></br>
@@ -1765,6 +1767,7 @@ export default class App extends React.Component
                     {(winningNumbersAlert) && <Alert severity="error">Please choose your {maxChoices} winning numbers</Alert>}
                     {(!createNewLottery) && <Button variant="contained" onClick={this.handleClickPlay}>Play</Button>}
                 </Grid>
+                }
             </Grid>
         )
       }

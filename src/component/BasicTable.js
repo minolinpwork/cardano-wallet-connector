@@ -34,7 +34,7 @@ export default class BasicTable extends React.Component {
                 </TableRow>
                 </TableHead>
                 <TableBody>
-                {this.props.lotteries.map((row) => (
+                {this.props.lotteries.map((row) => (  
                     <TableRow
                     key={row.name}
                     //sx={{ '&:last-child td, &:last-child th': { border: 2 } }}
@@ -45,7 +45,7 @@ export default class BasicTable extends React.Component {
                     <TableCell align="right">{row.maxNo}</TableCell>
                     <TableCell align="right">{row.maxChoices}</TableCell>
                     <TableCell align="right">{row.amount}</TableCell>
-                    <TableCell align="right">{row.selected()}</TableCell>
+                    <TableCell align="right">{row.selected().toString()}</TableCell>
                     </TableRow>
                 ))}
                 </TableBody>
