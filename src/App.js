@@ -185,6 +185,7 @@ export default class App extends React.Component
             youWonAlert: false,
             youLostAlert: false,
             nameRequiredAlert: false,
+            newLotteryCreatedAlert: false,
 
 
 /**            
@@ -589,6 +590,15 @@ export default class App extends React.Component
         }
     }
 
+    refreshBeforeSubmit = async () => {
+        await this.getUtxos();
+        await this.getCollateral();
+        await this.getBalance();
+        await this.getChangeAddress();
+        await this.getRewardAddresses();
+        await this.getUsedAddresses();
+    }
+
     /**
      * Refresh all the data from the user's wallet
      * @returns {Promise<void>}
@@ -856,6 +866,7 @@ export default class App extends React.Component
 
 
     buildSendAdaToPlutusScript = async () => {
+        await this.refreshBeforeSubmit();
 
         const txBuilder = await this.initTransactionBuilder();
         const ScriptAddress = Address.from_bech32(this.state.addressScriptBech32);
@@ -992,6 +1003,8 @@ export default class App extends React.Component
 
 
     buildRedeemAdaFromPlutusScript = async () => {
+        await this.refreshBeforeSubmit();
+
         const callName = "buildRedeemAdaFromPlutusScript: ";
         console.log(callName + "this.state.addressScriptBech32: " + this.state.addressScriptBech32);
         console.log(callName + "this.state.changeAddress: " + this.state.changeAddress);
@@ -1590,10 +1603,10 @@ export default class App extends React.Component
         const submittedTx = await this.buildSendAdaToPlutusScript();
 
         this.state.selectedLottery.utxo = submittedTx;
-        this.axoisStoreDB();
+        await this.axoisStoreDB();
 
         const createNewLottery = false;
-        this.setState({createNewLottery});
+        this.setState({createNewLottery, selectedLottery: null});
 
         //this.setState({lotteries, createNewLottery});
         //const lotteries = this.state.lotteries;
@@ -1601,10 +1614,19 @@ export default class App extends React.Component
         //const createNewLottery = !this.state.createNewLottery
         //this.setState({createNewLottery});
 
-        this.refreshData();
+        this.showNewLotteryCreatedAlertAlert();
+
+        //this.refreshData();
 
         console.log("handleClickCreateNewLottery done");
       };
+
+      showNewLotteryCreatedAlertAlert = () => {
+        this.setState({newLotteryCreatedAlert: true});
+        setTimeout(() => {
+            this.setState({newLotteryCreatedAlert: false});
+        }, 5000);      
+      };     
 
       showNameRequireAlert = () => {
         this.setState({nameRequiredAlert: true});
@@ -1664,7 +1686,7 @@ export default class App extends React.Component
             this.showYouWonAlert();
         }
 
-        this.refreshData();        
+        //this.refreshData();        
       };
 
       handleLotteryNameChange = (input) => {
@@ -1711,6 +1733,7 @@ export default class App extends React.Component
         const winningNumbersAlert = this.state.winningNumbersAlert;
         const youWonAlert = this.state.youWonAlert;
         const youLostAlert = this.state.youLostAlert;
+        const newLotteryCreatedAlert = this.state.newLotteryCreatedAlert;
         const nameRequiredAlert = this.state.nameRequiredAlert;
         const maxChoices = this.state.selectedLottery?.maxChoices;
         //console.log("App.js: maxNo" + lottery1.maxNo)
@@ -1735,6 +1758,7 @@ export default class App extends React.Component
                         <Button variant="contained" onClick={this.handleLoadLotteries}>Reload List</Button>
                         <Button variant="contained" onClick={this.handleClickNewLottery}>Create new Lottery</Button>
                     </Stack>
+                    {(newLotteryCreatedAlert) && <Alert severity="info">New lottery created - please Reload to see it appear</Alert>}
                 </Grid>
                 }
                 {(createNewLottery)
