@@ -76,17 +76,18 @@ class LottoNumbers extends React.Component {
 }
 
 export class Lottery {
-    constructor(name, maxNo, maxChoices, amount) {
+    constructor(name, maxNo, maxChoices, amount, cost) {
         this.utxo = "";
         this.sha256 = "";
         this.name = name;
         this.maxNo = maxNo;
         this.maxChoices = maxChoices;
         this.amount = amount;
+        this.cost = cost;
         this.choices = new Array(maxNo+1).fill(false);
     }
-    static restore(utxo, sha256, selected, name, maxNo, maxChoices, amount) {
-        let lottery = new Lottery(name, maxNo, maxChoices, amount);
+    static restore(utxo, sha256, selected, name, maxNo, maxChoices, amount, cost) {
+        let lottery = new Lottery(name, maxNo, maxChoices, amount, cost);
         lottery.utxo = utxo;
         lottery.sha256 = sha256;
         lottery.choices = new Array(maxNo+1).fill(false);
@@ -126,9 +127,13 @@ export class Lottery {
 
     calcSha256() {
         const str = this.toString();
-        const sha = sha256(str);
+        const sha = sha256(str).toUpperCase();
         console.log("Lottery getSha256: " + str + " sha256: " + sha);
         return sha;
+    }
+
+    clone() {
+        return Lottery.restore(this.utxo, this.sha256, this.selected(), this.name, this.maxNo, this.maxChoices, this.amount, this.cost)
     }
 }
 
@@ -158,6 +163,7 @@ export default class LottoView extends React.Component {
         const choices = this.props.lottery?.choices;
         const maxChoices = this.props.lottery?.maxChoices;
         const amount = this.props.lottery?.amount;
+        const cost = this.props.lottery?.cost;
 
         //console.log("render choices: " + choices)
 
@@ -184,10 +190,13 @@ export default class LottoView extends React.Component {
             <div>
 
                 <Typography variant="h4" gutterBottom>
-                    {name}
+                    Name of Lottery: {name}
                 </Typography>                
                 <Typography variant="h4" gutterBottom>
-                    {amount} ADA
+                    Prize: {amount} ADA
+                </Typography>
+                <Typography variant="h4" gutterBottom>
+                    Cost to play: {cost} ADA
                 </Typography>
                 <Typography variant="h4" gutterBottom>
                     Pick your {maxChoices} lucky numbers:

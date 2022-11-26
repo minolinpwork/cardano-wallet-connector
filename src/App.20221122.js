@@ -48,9 +48,7 @@ import {
     ScriptDataHash, Ed25519KeyHash, NativeScript, StakeCredential,
     TxBuilderConstants,
     encode_json_str_to_plutus_datum,
-    PlutusDatumSchema,
-    Bip32PrivateKey,
-    PrivateKey
+    PlutusDatumSchema
 } from "@emurgo/cardano-serialization-lib-asmjs"
 import "./App.css";
 import {blake2b} from "blakejs";
@@ -90,6 +88,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import Stack from '@mui/material/Stack';
 
 import Alert from '@mui/material/Alert';
+import clipboard from 'clipboardy';
 import axios from 'axios';
 
 import { properties } from './properties/properties.js'
@@ -102,7 +101,6 @@ import NewLottery from './component/NewLottery'
 
 import { sha256 } from 'js-sha256';
 import { RampLeft } from '@mui/icons-material';
-let cbor = require('cbor')
 
 let blake = require('blakejs')
 let Buffer = require('buffer/').Buffer
@@ -289,15 +287,6 @@ export default class App extends React.Component
                 this.refreshData()
             })
     }
-    
-    harden(num) {
-        return 0x80000000 + num;
-    }
-    toHexString(byteArray) {
-        return Array.from(byteArray, function(byte) {
-          return ('0' + (byte & 0xFF).toString(16)).slice(-2);
-        }).join('')
-      }    
     /**
      * Generate address from the plutus contract cborhex
      */
@@ -306,14 +295,12 @@ export default class App extends React.Component
         // const cborhex = "4e4d01000033222220051200120011";
         // const cbor = Buffer.from(cborhex, "hex");
         // const blake2bhash = blake.blake2b(cbor, 0, 28);
-        
 
-        const plutusCborHex = "59076259075f01000033232323232323232323232323232332232323232222232325335333006375c00a6eb8010cccd5cd19b8735573aa004900011991091980080180119191919191919191919191999ab9a3370e6aae754029200023333333333222222222212333333333300100b00a009008007006005004003002335014232323333573466e1cd55cea80124000466442466002006004603e6ae854008c064d5d09aba2500223263202833573805405004c26aae7940044dd50009aba1500a33501401535742a012666aa02eeb94058d5d0a804199aa80bbae501635742a00e66a02803e6ae854018cd4050cd54088081d69aba150053232323333573466e1cd55cea801240004664424660020060046464646666ae68cdc39aab9d5002480008cc8848cc00400c008cd4095d69aba150023026357426ae8940088c98c80b0cd5ce01701601509aab9e5001137540026ae854008c8c8c8cccd5cd19b8735573aa004900011991091980080180119a812bad35742a004604c6ae84d5d1280111931901619ab9c02e02c02a135573ca00226ea8004d5d09aba2500223263202833573805405004c26aae7940044dd50009aba1500433501475c6ae85400ccd4050cd54089d710009aba15002301c357426ae8940088c98c8090cd5ce01301201109aba25001135744a00226ae8940044d5d1280089aba25001135744a00226ae8940044d5d1280089aab9e5001137540026ae854008c8c8c8cccd5cd19b875001480188c848888c010014c05cd5d09aab9e500323333573466e1d400920042321222230020053019357426aae7940108cccd5cd19b875003480088c848888c004014c054d5d09aab9e500523333573466e1d40112000232122223003005375c6ae84d55cf280311931900f99ab9c02101f01d01c01b01a135573aa00226ea8004d5d09aba2500223263201833573803403002c202e264c6402e66ae7124010350543500017135573ca00226ea800448c88c008dd6000990009aa80a111999aab9f00125009233500830043574200460066ae8800804c8c8c8c8cccd5cd19b8735573aa00690001199911091998008020018011919191999ab9a3370e6aae7540092000233221233001003002301535742a00466a01c0286ae84d5d1280111931900c19ab9c01a018016135573ca00226ea8004d5d0a801999aa803bae500635742a00466a014eb8d5d09aba2500223263201433573802c02802426ae8940044d55cf280089baa0011335500175ceb44488c88c008dd5800990009aa80911191999aab9f0022500823350073355014300635573aa004600a6aae794008c010d5d100180909aba100111220021221223300100400312232323333573466e1d4005200023212230020033005357426aae79400c8cccd5cd19b8750024800884880048c98c8040cd5ce00900800700689aab9d500113754002464646666ae68cdc39aab9d5002480008cc8848cc00400c008c014d5d0a8011bad357426ae8940088c98c8034cd5ce00780680589aab9e5001137540024646666ae68cdc39aab9d5001480008dd71aba135573ca004464c6401666ae7003402c0244dd500089119191999ab9a3370ea00290021091100091999ab9a3370ea00490011190911180180218031aba135573ca00846666ae68cdc3a801a400042444004464c6401c66ae7004003803002c0284d55cea80089baa0012323333573466e1d40052002212200223333573466e1d40092000212200123263200a33573801801401000e26aae74dd5000919191919191999ab9a3370ea002900610911111100191999ab9a3370ea004900510911111100211999ab9a3370ea00690041199109111111198008048041bae35742a00a6eb4d5d09aba2500523333573466e1d40112006233221222222233002009008375c6ae85401cdd71aba135744a00e46666ae68cdc3a802a400846644244444446600c01201060186ae854024dd71aba135744a01246666ae68cdc3a8032400446424444444600e010601a6ae84d55cf280591999ab9a3370ea00e900011909111111180280418071aba135573ca018464c6402466ae7005004804003c03803403002c0284d55cea80209aab9e5003135573ca00426aae7940044dd50009191919191999ab9a3370ea002900111999110911998008028020019bad35742a0086eb4d5d0a8019bad357426ae89400c8cccd5cd19b875002480008c8488c00800cc020d5d09aab9e500623263200b33573801a01601201026aae75400c4d5d1280089aab9e500113754002464646666ae68cdc3a800a400446424460020066eb8d5d09aab9e500323333573466e1d400920002321223002003375c6ae84d55cf280211931900419ab9c00a008006005135573aa00226ea800444888c8c8cccd5cd19b8735573aa0049000119aa80498031aba150023005357426ae8940088c98c8020cd5ce00500400309aab9e500113754002930900088910919800801801248103505431001123230010012233003300200200132222333573466e3c00cdc900109100109100099a8911980124411ca2c20c77887ace1cd986193e4e75babd8993cfd56995cd5cfce609c200483c2032323cd708848cc00400c0088005"
-        const script = PlutusScript.from_bytes(Buffer.from(plutusCborHex, "hex"))
+        const script = PlutusScript.from_bytes(Buffer.from(this.state.plutusScriptCborHex, "hex"))
+        // const blake2bhash = blake.blake2b(script.to_bytes(), 0, 28);
+        const blake2bhash = "67f33146617a5e61936081db3b2117cbf59bd2123748f58ac9678656";
+        const scripthash = ScriptHash.from_bytes(Buffer.from(blake2bhash,"hex"));
 
-        const scripthash = script.hash()
-        console.log("hash: " + scripthash.to_hex())
-        //console.log("hash: " + scripthash.to_bech32())
         const cred = StakeCredential.from_scripthash(scripthash);
         const networkId = NetworkInfo.testnet().network_id();
         const baseAddr = EnterpriseAddress.new(networkId, cred);
@@ -324,77 +311,12 @@ export default class App extends React.Component
         console.log(Buffer.from(addr.to_bytes(), "utf8").toString("hex"))
 
         // hash of the address generated using cardano-cli
-        const ScriptAddress = Address.from_bech32("addr_test1wp4pdj3gd3pqzgpf6ljq67hukzt80hmf2jf8w32vwpfs43q8zu9v7");
+        const ScriptAddress = Address.from_bech32("addr_test1wpnlxv2xv9a9ucvnvzqakwepzl9ltx7jzgm53av2e9ncv4sysemm8");
         console.log(Buffer.from(ScriptAddress.to_bytes(), "utf8").toString("hex"))
 
 
-        console.log("Beech32 1: " + ScriptAddress.to_bech32())
-        console.log("Beech32 2: " + addrBech32)
-
-        //const pk = PrivateKey.from_normal_bytes(Buffer.from("59076259075f01000033232323232323232323232323232332232323232222232325335333006375c00a6eb8010cccd5cd19b8735573aa004900011991091980080180119191919191919191919191999ab9a3370e6aae754029200023333333333222222222212333333333300100b00a009008007006005004003002335014232323333573466e1cd55cea80124000466442466002006004603e6ae854008c064d5d09aba2500223263202833573805405004c26aae7940044dd50009aba1500a33501401535742a012666aa02eeb94058d5d0a804199aa80bbae501635742a00e66a02803e6ae854018cd4050cd54088081d69aba150053232323333573466e1cd55cea801240004664424660020060046464646666ae68cdc39aab9d5002480008cc8848cc00400c008cd4095d69aba150023026357426ae8940088c98c80b0cd5ce01701601509aab9e5001137540026ae854008c8c8c8cccd5cd19b8735573aa004900011991091980080180119a812bad35742a004604c6ae84d5d1280111931901619ab9c02e02c02a135573ca00226ea8004d5d09aba2500223263202833573805405004c26aae7940044dd50009aba1500433501475c6ae85400ccd4050cd54089d710009aba15002301c357426ae8940088c98c8090cd5ce01301201109aba25001135744a00226ae8940044d5d1280089aba25001135744a00226ae8940044d5d1280089aab9e5001137540026ae854008c8c8c8cccd5cd19b875001480188c848888c010014c05cd5d09aab9e500323333573466e1d400920042321222230020053019357426aae7940108cccd5cd19b875003480088c848888c004014c054d5d09aab9e500523333573466e1d40112000232122223003005375c6ae84d55cf280311931900f99ab9c02101f01d01c01b01a135573aa00226ea8004d5d09aba2500223263201833573803403002c202e264c6402e66ae7124010350543500017135573ca00226ea800448c88c008dd6000990009aa80a111999aab9f00125009233500830043574200460066ae8800804c8c8c8c8cccd5cd19b8735573aa00690001199911091998008020018011919191999ab9a3370e6aae7540092000233221233001003002301535742a00466a01c0286ae84d5d1280111931900c19ab9c01a018016135573ca00226ea8004d5d0a801999aa803bae500635742a00466a014eb8d5d09aba2500223263201433573802c02802426ae8940044d55cf280089baa0011335500175ceb44488c88c008dd5800990009aa80911191999aab9f0022500823350073355014300635573aa004600a6aae794008c010d5d100180909aba100111220021221223300100400312232323333573466e1d4005200023212230020033005357426aae79400c8cccd5cd19b8750024800884880048c98c8040cd5ce00900800700689aab9d500113754002464646666ae68cdc39aab9d5002480008cc8848cc00400c008c014d5d0a8011bad357426ae8940088c98c8034cd5ce00780680589aab9e5001137540024646666ae68cdc39aab9d5001480008dd71aba135573ca004464c6401666ae7003402c0244dd500089119191999ab9a3370ea00290021091100091999ab9a3370ea00490011190911180180218031aba135573ca00846666ae68cdc3a801a400042444004464c6401c66ae7004003803002c0284d55cea80089baa0012323333573466e1d40052002212200223333573466e1d40092000212200123263200a33573801801401000e26aae74dd5000919191919191999ab9a3370ea002900610911111100191999ab9a3370ea004900510911111100211999ab9a3370ea00690041199109111111198008048041bae35742a00a6eb4d5d09aba2500523333573466e1d40112006233221222222233002009008375c6ae85401cdd71aba135744a00e46666ae68cdc3a802a400846644244444446600c01201060186ae854024dd71aba135744a01246666ae68cdc3a8032400446424444444600e010601a6ae84d55cf280591999ab9a3370ea00e900011909111111180280418071aba135573ca018464c6402466ae7005004804003c03803403002c0284d55cea80209aab9e5003135573ca00426aae7940044dd50009191919191999ab9a3370ea002900111999110911998008028020019bad35742a0086eb4d5d0a8019bad357426ae89400c8cccd5cd19b875002480008c8488c00800cc020d5d09aab9e500623263200b33573801a01601201026aae75400c4d5d1280089aab9e500113754002464646666ae68cdc3a800a400446424460020066eb8d5d09aab9e500323333573466e1d400920002321223002003375c6ae84d55cf280211931900419ab9c00a008006005135573aa00226ea800444888c8c8cccd5cd19b8735573aa0049000119aa80498031aba150023005357426ae8940088c98c8020cd5ce00500400309aab9e500113754002930900088910919800801801248103505431001123230010012233003300200200132222333573466e3c00cdc900109100109100099a8911980124411ca2c20c77887ace1cd986193e4e75babd8993cfd56995cd5cfce609c200483c2032323cd708848cc00400c0088005", "hex"))
-        //const rootKey = Bip32PrivateKey.from_bech32("xprv17qx9vxm6060qjn5fgazfue9nwyf448w7upk60c3epln82vumg9r9kxzsud9uv5rfscxp382j2aku254zj3qfx9fx39t6hjwtmwq85uunsd8x0st3j66lzf5yn30hwq5n75zeuplepx8vxc502txx09ygjgx06n0p");
-        //const someCbor = "5880a83391da55604678e05489ccb29cee99c238b224b29ef21f98dfd2b121155d5c9dfe7157214cd61c6522aaabb3a5707ae176b220516a51c2cc4f651a3c0dc21c0596b0c11795a9a42cf7ba0014fa402195900813942d66ba3c9b8c175e58fd5ac9e1dfa7008b77af7616ab23a9250374d7c4d39041874cfad9116c204e9b372a"
-        const someCbor = "5880a83391da55604678e05489ccb29cee99c238b224b29ef21f98dfd2b121155d5c9dfe7157214cd61c6522aaabb3a5707ae176b220516a51c2cc4f651a3c0dc21c0596b0c11795a9a42cf7ba0014fa402195900813942d66ba3c9b8c175e58fd5ac9e1dfa7008b77af7616ab23a9250374d7c4d39041874cfad9116c204e9b372a"
-        const cbor_hex_ext_key = someCbor//Buffer.from(addr.to_bytes(), "utf8").toString("hex")//scripthash.to_hex();//"5880a83391da55604678e05489ccb29cee99c238b224b29ef21f98dfd2b121155d5c9dfe7157214cd61c6522aaabb3a5707ae176b220516a51c2cc4f651a3c0dc21c0596b0c11795a9a42cf7ba0014fa402195900813942d66ba3c9b8c175e58fd5ac9e1dfa7008b77af7616ab23a9250374d7c4d39041874cfad9116c204e9b372a"
-        
-        let plutusCborDec = "";
-
-        try {
-            const cborEnc = cbor.encode("Hello World!")
-            console.log("CBOR encode 1");
-            console.log(cborEnc);
-            console.log("CBOR encode 1.2");
-            console.log(Buffer.from(cborEnc));
-            console.log("CBOR encode 1.2.1");
-            console.log(Buffer.from(cborEnc).toString('hex'));
-            console.log("CBOR encode 1.3");
-            console.log(Buffer.from(Buffer.from(cborEnc).toString('hex'), 'hex'));
-            console.log("CBOR encode 1.4");
-            console.log(cbor.decode(Buffer.from(Buffer.from(cborEnc).toString('hex'), 'hex')));
-            console.log("CBOR encode 2");
-            console.log(cbor.decode(Buffer.from(plutusCborHex, 'hex')));
-            plutusCborDec = cbor.decode(Buffer.from(plutusCborHex, 'hex'));
-            console.log("CBOR encode 2.9");
-            console.log(this.toHexString(cborEnc));
-            console.log("CBOR encode 3");
-            console.log(Buffer.from(this.toHexString(cborEnc, "hex")));
-            console.log("CBOR decodes");
-            //console.log(cbor.decode(plutusCborHex))
-            //console.log(cbor.decode(scripthash))
-            //console.log(cbor.decode(scripthash.to_hex()))
-            console.log(cbor.decode(cbor_hex_ext_key)) // 2
-            //console.log(cbor.decodeFirstSync(cbor_hex_ext_key)) // 2
-            console.log(cbor.decodeAllSync('0202')) // [2, 2]
-          } catch (e) {
-            console.log(e);
-          }
-
-        //const ext_unhex = Buffer.from(cbor_hex_ext_key, "hex");
-        //const ext_uncbor = cbor.decode(ext_unhex);
-        const ext_key = Bip32PrivateKey.from_128_xprv(plutusCborDec)
-        console.log(ext_key.to_bech32()) 
-        
-        const pkBeech = ext_key.to_bech32();
-        console.log("pkBeech: " + pkBeech)
-        const rootKey = Bip32PrivateKey.from_bech32(pkBeech);
-        const accountKey = rootKey
-        .derive(this.harden(1852)) // purpose
-        .derive(this.harden(1815)) // coin type
-        .derive(this.harden(0)); // account #0
-
-        const utxoPubKey = accountKey
-        .derive(0) // external
-        .derive(0)
-        .to_public().to_bech32();
-
-        const stakeKey = accountKey
-        .derive(2) // chimeric
-        .derive(0)
-        .to_public().to_bech32();
-
-        console.log("utxoPubKey: " + utxoPubKey);
-        console.log("stakeKey: " + stakeKey);
-
+        console.log(ScriptAddress.to_bech32())
+        console.log(addrBech32)
 
         this.createStringDatum_hex_to_hex(this.state.datumStr, "generateScriptAddress")
         this.createStringDatum_utf_to_hex(this.state.redeemStr, "generateScriptAddress ")
@@ -961,8 +883,7 @@ export default class App extends React.Component
 
         txOutputBuilder = txOutputBuilder.next();
 
-        //txOutputBuilder = txOutputBuilder.with_value(Value.new(BigNum.from_str(this.state.lovelaceToSend.toString())))
-        txOutputBuilder = txOutputBuilder.with_value(Value.new(BigNum.from_str((this.state.lovelaceToSend*1000000).toString())))
+        txOutputBuilder = txOutputBuilder.with_value(Value.new(BigNum.from_str(this.state.lovelaceToSend.toString())))
         const txOutput = txOutputBuilder.build();
 
         txBuilder.add_output(txOutput)
@@ -1161,6 +1082,52 @@ export default class App extends React.Component
         transactionWitnessSet.set_plutus_scripts(scripts)
         transactionWitnessSet.set_plutus_data(datums)
         transactionWitnessSet.set_redeemers(redeemers)
+
+        // Pre Vasil hard fork cost model
+        // const cost_model_vals = [
+        //     197209, 0, 1, 1, 396231, 621, 0, 1, 150000, 1000,
+        //     0, 1, 150000, 32, 2477736, 29175, 4, 29773, 100, 29773, 100, 29773, 100,
+        //     29773, 100, 29773, 100, 29773, 100, 100, 100, 29773, 100, 150000, 32, 150000,
+        //     32, 150000, 32, 150000, 1000, 0, 1, 150000, 32, 150000, 1000, 0, 8, 148000,
+        //     425507, 118, 0, 1, 1, 150000, 1000, 0, 8, 150000, 112536, 247, 1, 150000,
+        //     10000, 1, 136542, 1326, 1, 1000, 150000, 1000, 1, 150000, 32, 150000, 32,
+        //     150000, 32, 1, 1, 150000, 1, 150000, 4, 103599, 248, 1, 103599, 248, 1,
+        //     145276, 1366, 1, 179690, 497, 1, 150000, 32, 150000, 32, 150000, 32, 150000,
+        //     32, 150000, 32, 150000, 32, 148000, 425507, 118, 0, 1, 1, 61516, 11218, 0,
+        //     1, 150000, 32, 148000, 425507, 118, 0, 1, 1, 148000, 425507, 118, 0, 1, 1,
+        //     2477736, 29175, 4, 0, 82363, 4, 150000, 5000, 0, 1, 150000, 32, 197209, 0,
+        //     1, 1, 150000, 32, 150000, 32, 150000, 32, 150000, 32, 150000, 32, 150000, 32,
+        //     150000, 32, 3345831, 1, 1
+        // ];
+
+        /*
+        Post Vasil hard fork cost model
+        If you need to make this code work on the Mainnet, before Vasil hard-fork
+        Then you need to comment this section below and uncomment the cost model above
+        Otherwise it will give errors when redeeming from Scripts
+        Sending assets and ada to Script addresses is unaffected by this cost model
+         */
+        const cost_model_vals = [
+            205665, 812, 1, 1, 1000, 571, 0, 1, 1000, 24177, 4, 1, 1000, 32, 117366,
+            10475, 4, 23000, 100, 23000, 100, 23000, 100, 23000, 100, 23000, 100, 23000,
+            100, 100, 100, 23000, 100, 19537, 32, 175354, 32, 46417, 4, 221973, 511, 0, 1,
+            89141, 32, 497525, 14068, 4, 2, 196500, 453240, 220, 0, 1, 1, 1000, 28662, 4,
+            2, 245000, 216773, 62, 1, 1060367, 12586, 1, 208512, 421, 1, 187000, 1000,
+            52998, 1, 80436, 32, 43249, 32, 1000, 32, 80556, 1, 57667, 4, 1000, 10,
+            197145, 156, 1, 197145, 156, 1, 204924, 473, 1, 208896, 511, 1, 52467, 32,
+            64832, 32, 65493, 32, 22558, 32, 16563, 32, 76511, 32, 196500, 453240, 220, 0,
+            1, 1, 69522, 11687, 0, 1, 60091, 32, 196500, 453240, 220, 0, 1, 1, 196500,
+            453240, 220, 0, 1, 1, 806990, 30482, 4, 1927926, 82523, 4, 265318, 0, 4, 0,
+            85931, 32, 205665, 812, 1, 1, 41182, 32, 212342, 32, 31220, 32, 32696, 32,
+            43357, 32, 32247, 32, 38314, 32, 9462713, 1021, 10,
+        ];
+
+        const costModel = CostModel.new();
+        cost_model_vals.forEach((x, i) => costModel.set(i, Int.new_i32(x)));
+
+
+        const costModels = Costmdls.new();
+        costModels.insert(Language.new_plutus_v1(), costModel);
 
         //const scriptDataHash = hash_script_data(redeemers, costModels, datums);
         const scriptDataHash = hash_script_data(redeemers, TxBuilderConstants.plutus_default_cost_models(), datums);
@@ -1384,7 +1351,11 @@ export default class App extends React.Component
     };
   
     copyToClipboard = (value) => {
-
+        (clipboard.write(value)).then((message)=>{  
+            console.log("copyToClipboard success. The message is:" + message)
+        }).catch((message)=>{  
+            console.log("copyToClipboard failed. The message is:" + message)  
+        })  
 
     };
 
@@ -1456,7 +1427,7 @@ export default class App extends React.Component
       handleLotterySelect = (name) => {
         const lotteries = this.state.lotteries;
         console.log("handleLotterySelect: " + name);
-        let selectedLottery = lotteries.find(o => o.name === name).clone();
+        let selectedLottery = lotteries.find(o => o.name === name);
         this.setState({selectedLottery})
       };
 
@@ -1570,7 +1541,6 @@ export default class App extends React.Component
                 maxChoices: selectedLottery.maxChoices, 
                 selected: selectedLottery.selected(), 
                 amount: selectedLottery.amount,
-                cost: selectedLottery.cost,
             }
           };
 
@@ -1601,7 +1571,7 @@ export default class App extends React.Component
                 let lottery = Lottery.restore(
                     utxo, dbUtxo.sha256, dbUtxo.selected, 
                     dbUtxo.name, dbUtxo.maxNo, dbUtxo.maxChoices,
-                    adaUtxo.amount, dbUtxo.cost,
+                    adaUtxo.amount,
                 )
                 lotteries.push(lottery);
                 //console.log(callName + ": lottery: " + JSON.stringify(lottery));
@@ -1631,7 +1601,7 @@ export default class App extends React.Component
         selectedLottery.sha256 = selectedLottery.calcSha256();
         
         this.state.datumStr = selectedLottery.sha256;
-        this.state.lovelaceToSend = selectedLottery.amount;
+        this.state.lovelaceToSend = selectedLottery.amount = this.state.selectedLottery.amount*1000000;
 
         const submittedTx = await this.buildSendAdaToPlutusScript();
 
@@ -1709,22 +1679,14 @@ export default class App extends React.Component
         this.state.lovelaceLocked = selectedLottery.amount;
         this.state.datumStr = selectedLottery.sha256;
         this.state.redeemStr = selectedLottery.toString();
-        this.state.lovelaceToSend = selectedLottery.cost;
-
+        
         //console.log(callName + ": after this.state.datumStr: " + this.state.datumStr);
         //console.log(callName + ": after this.state.selectedLottery.sha256: " + this.state.selectedLottery.sha256);
         //console.log(callName + ": after selectedLottery.sha256: " + selectedLottery.sha256);
 
-        if (selectedLottery.sha256==selectedLottery.calcSha256()) {
-            const submittedTxHash = await this.buildRedeemAdaFromPlutusScript();
-            if (submittedTxHash.length>10) {
-                this.showYouWonAlert();
-            }
-        } else {
-            const submittedTxHash = await this.buildSendAdaToPlutusScript();
-            if (submittedTxHash.length>10) {
-                this.showYouLostAlert();
-            }
+        const submittedTxHash = await this.buildRedeemAdaFromPlutusScript();
+        if (selectedLottery.sha256==selectedLottery.calcSha256() && submittedTxHash.length>10) {
+            this.showYouWonAlert();
         }
 
         //this.refreshData();        
@@ -1752,11 +1714,6 @@ export default class App extends React.Component
       handleLotteryAmountChange = (input) => {
         const selectedLottery = this.state.selectedLottery;
         selectedLottery.amount = input;
-        this.setState({selectedLottery});
-      }
-      handleLotteryCostChange = (input) => {
-        const selectedLottery = this.state.selectedLottery;
-        selectedLottery.cost = input;
         this.setState({selectedLottery});
       }
 
@@ -1816,7 +1773,6 @@ export default class App extends React.Component
                     handleLotteryMaxNoChange={this.handleLotteryMaxNoChange} 
                     handleLotteryMaxChoicesChange={this.handleLotteryMaxChoicesChange} 
                     handleLotteryAmountChange={this.handleLotteryAmountChange} 
-                    handleLotteryCostChange={this.handleLotteryCostChange} 
                     createLotteryClick={this.handleClickCreateNewLottery}>                        
                     </NewLottery>
                     <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
@@ -1836,7 +1792,7 @@ export default class App extends React.Component
                     {(youWonAlert) && <Alert severity="success">Wow!! You Won!</Alert>}
                     {(youLostAlert) && <Alert severity="info">Sorry!  Try again...</Alert>}
                     {(winningNumbersAlert) && <Alert severity="error">Please choose your {maxChoices} winning numbers</Alert>}
-                    {(!createNewLottery) && <Button variant="contained" onClick={this.handleClickPlay}>Play {selectedLottery.cost}ADA</Button>}
+                    {(!createNewLottery) && <Button variant="contained" onClick={this.handleClickPlay}>Play</Button>}
                 </Grid>
                 }
             </Grid>
