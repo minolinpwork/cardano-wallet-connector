@@ -45,7 +45,7 @@ export default class BasicTable extends React.Component {
                     </TableCell>
                     <TableCell align="right">{row.maxNo}</TableCell>
                     <TableCell align="right">{row.maxChoices}</TableCell>
-                    <TableCell align="right">{row.amount}</TableCell>
+                    <TableCell align="right">{row.amount/1000000}</TableCell>
                     <TableCell align="right">{row.cost}</TableCell>
                     <TableCell align="right">{row.selected().toString()}</TableCell>
                     </TableRow>
