@@ -41,16 +41,12 @@ import {
     Int,
     NetworkInfo,
     EnterpriseAddress,
-    TransactionOutputs,
-    hash_transaction,
     hash_script_data,
     hash_plutus_data,
-    ScriptDataHash, Ed25519KeyHash, NativeScript, StakeCredential,
     TxBuilderConstants,
+    StakeCredential,
     encode_json_str_to_plutus_datum,
-    PlutusDatumSchema,
-    Bip32PrivateKey,
-    PrivateKey
+    PlutusDatumSchema
 } from "@emurgo/cardano-serialization-lib-asmjs"
 import "./App.css";
 import {blake2b} from "blakejs";
@@ -102,7 +98,7 @@ import NewLottery from './component/NewLottery'
 
 import { sha256 } from 'js-sha256';
 import { RampLeft } from '@mui/icons-material';
-let cbor = require('cbor')
+//let cbor = require('cbor')
 
 let blake = require('blakejs')
 let Buffer = require('buffer/').Buffer
@@ -331,14 +327,14 @@ export default class App extends React.Component
         console.log("Beech32 1: " + ScriptAddress.to_bech32())
         console.log("Beech32 2: " + addrBech32)
 
-        //const pk = PrivateKey.from_normal_bytes(Buffer.from("59076259075f01000033232323232323232323232323232332232323232222232325335333006375c00a6eb8010cccd5cd19b8735573aa004900011991091980080180119191919191919191919191999ab9a3370e6aae754029200023333333333222222222212333333333300100b00a009008007006005004003002335014232323333573466e1cd55cea80124000466442466002006004603e6ae854008c064d5d09aba2500223263202833573805405004c26aae7940044dd50009aba1500a33501401535742a012666aa02eeb94058d5d0a804199aa80bbae501635742a00e66a02803e6ae854018cd4050cd54088081d69aba150053232323333573466e1cd55cea801240004664424660020060046464646666ae68cdc39aab9d5002480008cc8848cc00400c008cd4095d69aba150023026357426ae8940088c98c80b0cd5ce01701601509aab9e5001137540026ae854008c8c8c8cccd5cd19b8735573aa004900011991091980080180119a812bad35742a004604c6ae84d5d1280111931901619ab9c02e02c02a135573ca00226ea8004d5d09aba2500223263202833573805405004c26aae7940044dd50009aba1500433501475c6ae85400ccd4050cd54089d710009aba15002301c357426ae8940088c98c8090cd5ce01301201109aba25001135744a00226ae8940044d5d1280089aba25001135744a00226ae8940044d5d1280089aab9e5001137540026ae854008c8c8c8cccd5cd19b875001480188c848888c010014c05cd5d09aab9e500323333573466e1d400920042321222230020053019357426aae7940108cccd5cd19b875003480088c848888c004014c054d5d09aab9e500523333573466e1d40112000232122223003005375c6ae84d55cf280311931900f99ab9c02101f01d01c01b01a135573aa00226ea8004d5d09aba2500223263201833573803403002c202e264c6402e66ae7124010350543500017135573ca00226ea800448c88c008dd6000990009aa80a111999aab9f00125009233500830043574200460066ae8800804c8c8c8c8cccd5cd19b8735573aa00690001199911091998008020018011919191999ab9a3370e6aae7540092000233221233001003002301535742a00466a01c0286ae84d5d1280111931900c19ab9c01a018016135573ca00226ea8004d5d0a801999aa803bae500635742a00466a014eb8d5d09aba2500223263201433573802c02802426ae8940044d55cf280089baa0011335500175ceb44488c88c008dd5800990009aa80911191999aab9f0022500823350073355014300635573aa004600a6aae794008c010d5d100180909aba100111220021221223300100400312232323333573466e1d4005200023212230020033005357426aae79400c8cccd5cd19b8750024800884880048c98c8040cd5ce00900800700689aab9d500113754002464646666ae68cdc39aab9d5002480008cc8848cc00400c008c014d5d0a8011bad357426ae8940088c98c8034cd5ce00780680589aab9e5001137540024646666ae68cdc39aab9d5001480008dd71aba135573ca004464c6401666ae7003402c0244dd500089119191999ab9a3370ea00290021091100091999ab9a3370ea00490011190911180180218031aba135573ca00846666ae68cdc3a801a400042444004464c6401c66ae7004003803002c0284d55cea80089baa0012323333573466e1d40052002212200223333573466e1d40092000212200123263200a33573801801401000e26aae74dd5000919191919191999ab9a3370ea002900610911111100191999ab9a3370ea004900510911111100211999ab9a3370ea00690041199109111111198008048041bae35742a00a6eb4d5d09aba2500523333573466e1d40112006233221222222233002009008375c6ae85401cdd71aba135744a00e46666ae68cdc3a802a400846644244444446600c01201060186ae854024dd71aba135744a01246666ae68cdc3a8032400446424444444600e010601a6ae84d55cf280591999ab9a3370ea00e900011909111111180280418071aba135573ca018464c6402466ae7005004804003c03803403002c0284d55cea80209aab9e5003135573ca00426aae7940044dd50009191919191999ab9a3370ea002900111999110911998008028020019bad35742a0086eb4d5d0a8019bad357426ae89400c8cccd5cd19b875002480008c8488c00800cc020d5d09aab9e500623263200b33573801a01601201026aae75400c4d5d1280089aab9e500113754002464646666ae68cdc3a800a400446424460020066eb8d5d09aab9e500323333573466e1d400920002321223002003375c6ae84d55cf280211931900419ab9c00a008006005135573aa00226ea800444888c8c8cccd5cd19b8735573aa0049000119aa80498031aba150023005357426ae8940088c98c8020cd5ce00500400309aab9e500113754002930900088910919800801801248103505431001123230010012233003300200200132222333573466e3c00cdc900109100109100099a8911980124411ca2c20c77887ace1cd986193e4e75babd8993cfd56995cd5cfce609c200483c2032323cd708848cc00400c0088005", "hex"))
+/*
+//const pk = PrivateKey.from_normal_bytes(Buffer.from("59076259075f01000033232323232323232323232323232332232323232222232325335333006375c00a6eb8010cccd5cd19b8735573aa004900011991091980080180119191919191919191919191999ab9a3370e6aae754029200023333333333222222222212333333333300100b00a009008007006005004003002335014232323333573466e1cd55cea80124000466442466002006004603e6ae854008c064d5d09aba2500223263202833573805405004c26aae7940044dd50009aba1500a33501401535742a012666aa02eeb94058d5d0a804199aa80bbae501635742a00e66a02803e6ae854018cd4050cd54088081d69aba150053232323333573466e1cd55cea801240004664424660020060046464646666ae68cdc39aab9d5002480008cc8848cc00400c008cd4095d69aba150023026357426ae8940088c98c80b0cd5ce01701601509aab9e5001137540026ae854008c8c8c8cccd5cd19b8735573aa004900011991091980080180119a812bad35742a004604c6ae84d5d1280111931901619ab9c02e02c02a135573ca00226ea8004d5d09aba2500223263202833573805405004c26aae7940044dd50009aba1500433501475c6ae85400ccd4050cd54089d710009aba15002301c357426ae8940088c98c8090cd5ce01301201109aba25001135744a00226ae8940044d5d1280089aba25001135744a00226ae8940044d5d1280089aab9e5001137540026ae854008c8c8c8cccd5cd19b875001480188c848888c010014c05cd5d09aab9e500323333573466e1d400920042321222230020053019357426aae7940108cccd5cd19b875003480088c848888c004014c054d5d09aab9e500523333573466e1d40112000232122223003005375c6ae84d55cf280311931900f99ab9c02101f01d01c01b01a135573aa00226ea8004d5d09aba2500223263201833573803403002c202e264c6402e66ae7124010350543500017135573ca00226ea800448c88c008dd6000990009aa80a111999aab9f00125009233500830043574200460066ae8800804c8c8c8c8cccd5cd19b8735573aa00690001199911091998008020018011919191999ab9a3370e6aae7540092000233221233001003002301535742a00466a01c0286ae84d5d1280111931900c19ab9c01a018016135573ca00226ea8004d5d0a801999aa803bae500635742a00466a014eb8d5d09aba2500223263201433573802c02802426ae8940044d55cf280089baa0011335500175ceb44488c88c008dd5800990009aa80911191999aab9f0022500823350073355014300635573aa004600a6aae794008c010d5d100180909aba100111220021221223300100400312232323333573466e1d4005200023212230020033005357426aae79400c8cccd5cd19b8750024800884880048c98c8040cd5ce00900800700689aab9d500113754002464646666ae68cdc39aab9d5002480008cc8848cc00400c008c014d5d0a8011bad357426ae8940088c98c8034cd5ce00780680589aab9e5001137540024646666ae68cdc39aab9d5001480008dd71aba135573ca004464c6401666ae7003402c0244dd500089119191999ab9a3370ea00290021091100091999ab9a3370ea00490011190911180180218031aba135573ca00846666ae68cdc3a801a400042444004464c6401c66ae7004003803002c0284d55cea80089baa0012323333573466e1d40052002212200223333573466e1d40092000212200123263200a33573801801401000e26aae74dd5000919191919191999ab9a3370ea002900610911111100191999ab9a3370ea004900510911111100211999ab9a3370ea00690041199109111111198008048041bae35742a00a6eb4d5d09aba2500523333573466e1d40112006233221222222233002009008375c6ae85401cdd71aba135744a00e46666ae68cdc3a802a400846644244444446600c01201060186ae854024dd71aba135744a01246666ae68cdc3a8032400446424444444600e010601a6ae84d55cf280591999ab9a3370ea00e900011909111111180280418071aba135573ca018464c6402466ae7005004804003c03803403002c0284d55cea80209aab9e5003135573ca00426aae7940044dd50009191919191999ab9a3370ea002900111999110911998008028020019bad35742a0086eb4d5d0a8019bad357426ae89400c8cccd5cd19b875002480008c8488c00800cc020d5d09aab9e500623263200b33573801a01601201026aae75400c4d5d1280089aab9e500113754002464646666ae68cdc3a800a400446424460020066eb8d5d09aab9e500323333573466e1d400920002321223002003375c6ae84d55cf280211931900419ab9c00a008006005135573aa00226ea800444888c8c8cccd5cd19b8735573aa0049000119aa80498031aba150023005357426ae8940088c98c8020cd5ce00500400309aab9e500113754002930900088910919800801801248103505431001123230010012233003300200200132222333573466e3c00cdc900109100109100099a8911980124411ca2c20c77887ace1cd986193e4e75babd8993cfd56995cd5cfce609c200483c2032323cd708848cc00400c0088005", "hex"))
         //const rootKey = Bip32PrivateKey.from_bech32("xprv17qx9vxm6060qjn5fgazfue9nwyf448w7upk60c3epln82vumg9r9kxzsud9uv5rfscxp382j2aku254zj3qfx9fx39t6hjwtmwq85uunsd8x0st3j66lzf5yn30hwq5n75zeuplepx8vxc502txx09ygjgx06n0p");
         //const someCbor = "5880a83391da55604678e05489ccb29cee99c238b224b29ef21f98dfd2b121155d5c9dfe7157214cd61c6522aaabb3a5707ae176b220516a51c2cc4f651a3c0dc21c0596b0c11795a9a42cf7ba0014fa402195900813942d66ba3c9b8c175e58fd5ac9e1dfa7008b77af7616ab23a9250374d7c4d39041874cfad9116c204e9b372a"
         const someCbor = "5880a83391da55604678e05489ccb29cee99c238b224b29ef21f98dfd2b121155d5c9dfe7157214cd61c6522aaabb3a5707ae176b220516a51c2cc4f651a3c0dc21c0596b0c11795a9a42cf7ba0014fa402195900813942d66ba3c9b8c175e58fd5ac9e1dfa7008b77af7616ab23a9250374d7c4d39041874cfad9116c204e9b372a"
         const cbor_hex_ext_key = someCbor//Buffer.from(addr.to_bytes(), "utf8").toString("hex")//scripthash.to_hex();//"5880a83391da55604678e05489ccb29cee99c238b224b29ef21f98dfd2b121155d5c9dfe7157214cd61c6522aaabb3a5707ae176b220516a51c2cc4f651a3c0dc21c0596b0c11795a9a42cf7ba0014fa402195900813942d66ba3c9b8c175e58fd5ac9e1dfa7008b77af7616ab23a9250374d7c4d39041874cfad9116c204e9b372a"
         
         let plutusCborDec = "";
-
         try {
             const cborEnc = cbor.encode("Hello World!")
             console.log("CBOR encode 1");
@@ -394,7 +390,7 @@ export default class App extends React.Component
 
         console.log("utxoPubKey: " + utxoPubKey);
         console.log("stakeKey: " + stakeKey);
-
+*/
 
         this.createStringDatum_hex_to_hex(this.state.datumStr, "generateScriptAddress")
         this.createStringDatum_utf_to_hex(this.state.redeemStr, "generateScriptAddress ")
@@ -669,12 +665,30 @@ export default class App extends React.Component
     }
 
     refreshBeforeSubmit = async () => {
-        await this.getUtxos();
-        await this.getCollateral();
-        await this.getBalance();
-        await this.getChangeAddress();
-        await this.getRewardAddresses();
-        await this.getUsedAddresses();
+        this.generateScriptAddress()
+
+        try{
+            const walletFound = this.checkIfWalletFound();
+            if (walletFound) {
+                await this.getAPIVersion();
+                await this.getWalletName();
+                const walletEnabled = await this.enableWallet();
+                if (walletEnabled) {
+                    await this.getNetworkId();
+                    await this.getUtxos();
+                    await this.getCollateral();
+                    await this.getBalance();
+                    await this.getChangeAddress();
+                    await this.getRewardAddresses();
+                    await this.getUsedAddresses();
+                    console.log("refreshBeforeSubmit: Success")
+                    return ;
+                }
+            }
+        } catch (err) {
+            console.log("refreshBeforeSubmit: " + err)
+        }
+        console.log("refreshBeforeSubmit: Failed")
     }
 
     /**
@@ -684,7 +698,7 @@ export default class App extends React.Component
     refreshData = async () => {
         this.handleLoadLotteries();
 
-        //this.generateScriptAddress()
+        this.generateScriptAddress()
 
         try{
             const walletFound = this.checkIfWalletFound();
@@ -910,11 +924,11 @@ export default class App extends React.Component
         console.log("Buffer" + desc)
         //let str=this.state.datumStr
         let strUtf=Buffer.from(str, "utf-8")
-        let strHex=Buffer.from(str, "hex")
+        //let strHex=Buffer.from(str, "hex")
         let strUtfToHex=strUtf.toString("hex").toUpperCase()
         console.log("Buffer0: " + str)
         console.log("Buffer1: " + strUtf)
-        console.log("Buffer2: " + strHex)
+        //console.log("Buffer2: " + strHex)
         console.log("Buffer3: " + strUtfToHex)
         let dataStr="{\"bytes\":\""+strUtfToHex+"\"}"
         console.log("Buffer4: " + dataStr)
@@ -926,14 +940,14 @@ export default class App extends React.Component
     createStringDatum_hex_to_hex(str, desc)  {
         console.log("Buffer" + desc)
         //let str=this.state.datumStr
-        let strUtf=Buffer.from(str, "utf-8")
+        //let strUtf=Buffer.from(str, "utf-8")
         let strHex=Buffer.from(str, "hex")
-        let strUtfToHex=strUtf.toString("hex").toUpperCase()
+        //let strUtfToHex=strUtf.toString("hex").toUpperCase()
         let strHexToHex=strHex.toString("hex").toUpperCase()
         console.log("Buffer0: " + str)
-        console.log("Buffer1: " + strUtf)
+        //console.log("Buffer1: " + strUtf)
         console.log("Buffer2: " + strHex)
-        console.log("Buffer3: " + strUtfToHex)
+        //console.log("Buffer3: " + strUtfToHex)
         console.log("Buffer4: " + strHexToHex)
         let dataStr="{\"bytes\":\""+strHexToHex+"\"}"
         console.log("Buffer5: " + dataStr)
@@ -1093,17 +1107,19 @@ export default class App extends React.Component
         console.log(callName + "this.state.transactionIndxLocked: " + this.state.transactionIndxLocked);
         console.log(callName + "this.state.datumStr: " + this.state.datumStr);
         console.log(callName + "this.state.redeemStr: " + this.state.redeemStr);
+        console.log(callName + "this.state.lovelaceLocked: " + this.state.lovelaceLocked);
 
         const txBuilder = await this.initTransactionBuilder();
         const ScriptAddress = Address.from_bech32(this.state.addressScriptBech32);
         const shelleyChangeAddress = Address.from_bech32(this.state.changeAddress)
+        const amountToRedeem = this.state.lovelaceLocked*1000000
 
         txBuilder.add_input(
             ScriptAddress,
             TransactionInput.new(
                 TransactionHash.from_bytes(Buffer.from(this.state.transactionIdLocked, "hex")),
                 this.state.transactionIndxLocked.toString()),
-            Value.new(BigNum.from_str(this.state.lovelaceLocked.toString()))) // how much lovelace is at that UTXO
+            Value.new(BigNum.from_str(amountToRedeem.toString()))) // how much lovelace is at that UTXO
 
         txBuilder.set_fee(BigNum.from_str(Number(this.state.manualFee).toString()))
 
@@ -1111,8 +1127,9 @@ export default class App extends React.Component
         scripts.add(PlutusScript.from_bytes(Buffer.from(this.state.plutusScriptCborHex, "hex"))); //from cbor of plutus script
 
         // Add outputs
-        const outputVal = this.state.lovelaceLocked.toString() - Number(this.state.manualFee)
+        const outputVal = amountToRedeem - Number(this.state.manualFee)
         const outputValStr = outputVal.toString();
+        console.log(callName + "outputValStr: " + outputValStr);
         txBuilder.add_output(TransactionOutput.new(shelleyChangeAddress, Value.new(BigNum.from_str(outputValStr))))
 
 
@@ -1163,7 +1180,7 @@ export default class App extends React.Component
         transactionWitnessSet.set_redeemers(redeemers)
 
         //const scriptDataHash = hash_script_data(redeemers, costModels, datums);
-        const scriptDataHash = hash_script_data(redeemers, TxBuilderConstants.plutus_default_cost_models(), datums);
+        const scriptDataHash = hash_script_data(redeemers, TxBuilderConstants.plutus_vasil_cost_models(), datums);
         txBody.set_script_data_hash(scriptDataHash);
 
         txBody.set_collateral(inputs)
@@ -1601,7 +1618,7 @@ export default class App extends React.Component
                 let lottery = Lottery.restore(
                     utxo, dbUtxo.sha256, dbUtxo.selected, 
                     dbUtxo.name, dbUtxo.maxNo, dbUtxo.maxChoices,
-                    adaUtxo.amount, dbUtxo.cost,
+                    adaUtxo.amount/1000000, dbUtxo.cost,
                 )
                 lotteries.push(lottery);
                 //console.log(callName + ": lottery: " + JSON.stringify(lottery));
