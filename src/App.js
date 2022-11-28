@@ -158,8 +158,8 @@ export default class App extends React.Component
             datumStr: "872e4e50ce9990d8b041330c47c9ddd11bec6b503ae9386a99da8584e9bb12c4".toUpperCase(),
             redeemStr: "HelloWorld",
             transactionIdLocked: "85d607cba9edd396eb4a87591cb4df84f0c8a265f8fc64bb5a1a0309ee3da8bb",
-            lovelaceToSend: properties.lovelaceToSend,
-            lovelaceLocked: properties.lovelaceLocked,
+            lovelaceToSend: 4321000,
+            lovelaceLocked: 4321000,
 
             openAvailableWalletsDialog: false,
             openWalletDetailsDialog: false,

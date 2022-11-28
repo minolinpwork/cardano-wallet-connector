@@ -1,6 +1,4 @@
 export const properties = {
-    lovelaceToSend: 4400000,
-    lovelaceLocked: 4400000,
     blockfrostAPIKey: "preprodHLwITFVjCypu0X5VcEUui8wusVWplOIy",
     blockfrostURL: "https://cardano-preprod.blockfrost.io/api/v0/",
     addressScriptBech32: "addr_test1wp970gz3tq7m05ra6s5pwa6hlv3eqyl8t5gpvtul4gmhwkckpnldy",

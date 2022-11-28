@@ -131,6 +131,10 @@ export class Lottery {
         console.log("Lottery getSha256: " + str + " sha256: " + sha);
         return sha;
     }
+
+    clone() {
+        return Lottery.restore(this.utxo, this.sha256, this.selected(), this.name, this.maxNo, this.maxChoices, this.amount, this.cost)
+    }
 }
 
 export default class LottoView extends React.Component {
