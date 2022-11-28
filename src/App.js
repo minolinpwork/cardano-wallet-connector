@@ -1583,7 +1583,7 @@ export default class App extends React.Component
         console.log(callName + ": " + JSON.stringify(lotteries));
         this.setState({lotteries});
         if (lotteries.length>0) {
-            this.setState({selectedLottery: lotteries[0]});
+            this.setState({selectedLottery: lotteries[0].clone()});
         }
       }
 
