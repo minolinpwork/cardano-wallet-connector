@@ -598,30 +598,14 @@ export default class App extends React.Component
     }
 
     refreshBeforeSubmit = async () => {
-        this.generateScriptAddress()
+        const callName = "refreshBeforeSubmit: ";
 
-        try{
-            const walletFound = this.checkIfWalletFound();
-            if (walletFound) {
-                await this.getAPIVersion();
-                await this.getWalletName();
-                const walletEnabled = await this.enableWallet();
-                if (walletEnabled) {
-                    await this.getNetworkId();
-                    await this.getUtxos();
-                    await this.getCollateral();
-                    await this.getBalance();
-                    await this.getChangeAddress();
-                    await this.getRewardAddresses();
-                    await this.getUsedAddresses();
-                    console.log("refreshBeforeSubmit: Success")
-                    return ;
-                }
-            }
-        } catch (err) {
-            console.log("refreshBeforeSubmit: " + err)
-        }
-        console.log("refreshBeforeSubmit: Failed")
+        console.log(callName + "start");
+
+        await this.getUtxos();
+        await this.getCollateral();
+
+        console.log(callName + "end");
     }
 
     /**
@@ -629,9 +613,13 @@ export default class App extends React.Component
      * @returns {Promise<void>}
      */
     refreshData = async () => {
+        const callName = "refreshData: ";
+
+        console.log(callName + "start");
+
         this.handleLoadLotteries();
 
-        this.generateScriptAddress()
+        //this.generateScriptAddress()
 
         try{
             const walletFound = this.checkIfWalletFound();
@@ -682,6 +670,7 @@ export default class App extends React.Component
         } catch (err) {
             console.log(err)
         }
+        console.log(callName + "end");
     }
 
     /**
@@ -854,7 +843,7 @@ export default class App extends React.Component
     }
 
     createStringDatum_utf_to_hex(str, desc)  {
-        console.log("Buffer" + desc)
+        console.log("createStringDatum_utf_to_hex " + desc)
         //let str=this.state.datumStr
         let strUtf=Buffer.from(str, "utf-8")
         //let strHex=Buffer.from(str, "hex")
@@ -871,7 +860,7 @@ export default class App extends React.Component
     }
 
     createStringDatum_hex_to_hex(str, desc)  {
-        console.log("Buffer" + desc)
+        console.log("createStringDatum_hex_to_hex " + desc)
         //let str=this.state.datumStr
         //let strUtf=Buffer.from(str, "utf-8")
         let strHex=Buffer.from(str, "hex")
