@@ -849,11 +849,11 @@ export default class App extends React.Component
         //let strHex=Buffer.from(str, "hex")
         let strUtfToHex=strUtf.toString("hex").toUpperCase()
         console.log("Buffer0: " + str)
-        console.log("Buffer1: " + strUtf)
+        //console.log("Buffer1: " + strUtf)
         //console.log("Buffer2: " + strHex)
-        console.log("Buffer3: " + strUtfToHex)
+        //console.log("Buffer3: " + strUtfToHex)
         let dataStr="{\"bytes\":\""+strUtfToHex+"\"}"
-        console.log("Buffer4: " + dataStr)
+        console.log("createStringDatum_utf_to_hex final: " + dataStr)
         let dataFromJson=encode_json_str_to_plutus_datum(dataStr, PlutusDatumSchema.DetailedSchema)
         //console.log("Buffer5: " + dataFromJson)
         return dataFromJson;
@@ -866,13 +866,13 @@ export default class App extends React.Component
         let strHex=Buffer.from(str, "hex")
         //let strUtfToHex=strUtf.toString("hex").toUpperCase()
         let strHexToHex=strHex.toString("hex").toUpperCase()
-        console.log("Buffer0: " + str)
+        //console.log("Buffer0: " + str)
         //console.log("Buffer1: " + strUtf)
-        console.log("Buffer2: " + strHex)
+        //console.log("Buffer2: " + strHex)
         //console.log("Buffer3: " + strUtfToHex)
-        console.log("Buffer4: " + strHexToHex)
+        //console.log("Buffer4: " + strHexToHex)
         let dataStr="{\"bytes\":\""+strHexToHex+"\"}"
-        console.log("Buffer5: " + dataStr)
+        console.log("createStringDatum_hex_to_hex final: " + dataStr)
         let dataFromJson=encode_json_str_to_plutus_datum(dataStr, PlutusDatumSchema.DetailedSchema)
         //console.log("Buffer6: " + dataFromJson)
         return dataFromJson;
@@ -902,6 +902,76 @@ export default class App extends React.Component
         const txOutput = txOutputBuilder.build();
 
         txBuilder.add_output(txOutput)
+
+        // Find the available UTXOs in the wallet and
+        // us them as Inputs
+        const txUnspentOutputs = await this.getTxUnspentOutputs();
+        txBuilder.add_inputs_from(txUnspentOutputs, 2)
+
+
+        // calculate the min fee required and send any change to an address
+        txBuilder.add_change_if_needed(shelleyChangeAddress)
+
+        // once the transaction is ready, we build it to get the tx body without witnesses
+        const txBody = txBuilder.build();
+
+        // Tx witness
+        const transactionWitnessSet = TransactionWitnessSet.new();
+
+        const tx = Transaction.new(
+            txBody,
+            TransactionWitnessSet.from_bytes(transactionWitnessSet.to_bytes())
+        )
+
+        let txVkeyWitnesses = await this.API.signTx(Buffer.from(tx.to_bytes(), "utf8").toString("hex"), true);
+        txVkeyWitnesses = TransactionWitnessSet.from_bytes(Buffer.from(txVkeyWitnesses, "hex"));
+
+        transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
+
+        const signedTx = Transaction.new(
+            tx.body(),
+            transactionWitnessSet
+        );
+
+        const submittedTxHash = await this.API.submitTx(Buffer.from(signedTx.to_bytes(), "utf8").toString("hex"));
+        console.log("buildSendAdaToPlutusScript submittedTxHash: " + submittedTxHash)
+        this.setState({submittedTxHash: submittedTxHash, transactionIdLocked: submittedTxHash, lovelaceLocked: this.state.lovelaceToSend});
+
+        return submittedTxHash;
+    }
+
+
+    buildSendAdaFailed = async () => {
+        await this.refreshBeforeSubmit();
+
+        const txBuilder = await this.initTransactionBuilder();
+        const ScriptAddress = Address.from_bech32(this.state.addressScriptBech32);
+        const shelleyChangeAddress = Address.from_bech32(this.state.changeAddress)
+        const shelleyOutputAddress = Address.from_bech32(properties.profitAddress);
+
+        const totalAmount = this.state.lovelaceToSend*1000000
+        const profit = properties.profitAmount
+        const scriptAmount = totalAmount-profit;
+
+        let txOutputBuilder = TransactionOutputBuilder.new();
+        txOutputBuilder = txOutputBuilder.with_address(ScriptAddress);
+        let datumFromJson=this.createStringDatum_hex_to_hex(this.state.datumStr, "buildSendAdaToPlutusScript")
+        const dataHash = hash_plutus_data(datumFromJson)
+        txOutputBuilder = txOutputBuilder.with_data_hash(dataHash)
+
+        txOutputBuilder = txOutputBuilder.next();
+
+        txOutputBuilder = txOutputBuilder.with_value(Value.new(BigNum.from_str(scriptAmount.toString())))
+        const txOutput = txOutputBuilder.build();
+
+        txBuilder.add_output(txOutput)
+
+        txBuilder.add_output(
+            TransactionOutput.new(
+                shelleyOutputAddress,
+                Value.new(BigNum.from_str(profit.toString()))
+            ),
+        );
 
         // Find the available UTXOs in the wallet and
         // us them as Inputs
@@ -1685,7 +1755,7 @@ export default class App extends React.Component
                     this.showYouWonAlert();
                 }
             } else {
-                const submittedTxHash = await this.buildSendAdaToPlutusScript();
+                const submittedTxHash = await this.buildSendAdaFailed();
                 if (submittedTxHash.length>10) {
                     this.showYouLostAlert();
                 }
