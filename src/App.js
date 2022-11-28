@@ -1584,7 +1584,7 @@ export default class App extends React.Component
         console.log(callName + ": " + JSON.stringify(lotteries));
         this.setState({lotteries});
         if (lotteries.length>0) {
-            this.setState({selectedLottery: lotteries[0]});
+            this.setState({selectedLottery: lotteries[0].clone()});
         }
       }
 
@@ -1760,6 +1760,7 @@ export default class App extends React.Component
         const newLotteryCreatedAlert = this.state.newLotteryCreatedAlert;
         const nameRequiredAlert = this.state.nameRequiredAlert;
         const maxChoices = this.state.selectedLottery?.maxChoices;
+        const cost = this.state.selectedLottery?.cost;
         //console.log("App.js: maxNo" + lottery1.maxNo)
         //console.log("App.js: maxChoices" + lottery1.maxChoices)
         //console.log("App.js: choices" + lottery1.choices)
@@ -1814,7 +1815,7 @@ export default class App extends React.Component
                     {(youWonAlert) && <Alert severity="success">Wow!! You Won!</Alert>}
                     {(youLostAlert) && <Alert severity="info">Sorry!  Try again...</Alert>}
                     {(winningNumbersAlert) && <Alert severity="error">Please choose your {maxChoices} winning numbers</Alert>}
-                    {(!createNewLottery) && <Button variant="contained" onClick={this.handleClickPlay}>Play {selectedLottery.cost}ADA</Button>}
+                    {(!createNewLottery) && <Button variant="contained" onClick={this.handleClickPlay}>Play {cost}ADA</Button>}
                 </Grid>
                 }
             </Grid>
