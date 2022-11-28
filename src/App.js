@@ -883,7 +883,8 @@ export default class App extends React.Component
 
         txOutputBuilder = txOutputBuilder.next();
 
-        txOutputBuilder = txOutputBuilder.with_value(Value.new(BigNum.from_str(this.state.lovelaceToSend.toString())))
+        //txOutputBuilder = txOutputBuilder.with_value(Value.new(BigNum.from_str(this.state.lovelaceToSend.toString())))
+        txOutputBuilder = txOutputBuilder.with_value(Value.new(BigNum.from_str((this.state.lovelaceToSend*1000000).toString())))
         const txOutput = txOutputBuilder.build();
 
         txBuilder.add_output(txOutput)
@@ -1012,17 +1013,19 @@ export default class App extends React.Component
         console.log(callName + "this.state.transactionIndxLocked: " + this.state.transactionIndxLocked);
         console.log(callName + "this.state.datumStr: " + this.state.datumStr);
         console.log(callName + "this.state.redeemStr: " + this.state.redeemStr);
+        console.log(callName + "this.state.lovelaceLocked: " + this.state.lovelaceLocked);
 
         const txBuilder = await this.initTransactionBuilder();
         const ScriptAddress = Address.from_bech32(this.state.addressScriptBech32);
         const shelleyChangeAddress = Address.from_bech32(this.state.changeAddress)
+        const amountToRedeem = this.state.lovelaceLocked*1000000
 
         txBuilder.add_input(
             ScriptAddress,
             TransactionInput.new(
                 TransactionHash.from_bytes(Buffer.from(this.state.transactionIdLocked, "hex")),
                 this.state.transactionIndxLocked.toString()),
-            Value.new(BigNum.from_str(this.state.lovelaceLocked.toString()))) // how much lovelace is at that UTXO
+            Value.new(BigNum.from_str(amountToRedeem.toString()))) // how much lovelace is at that UTXO
 
         txBuilder.set_fee(BigNum.from_str(Number(this.state.manualFee).toString()))
 
@@ -1030,8 +1033,9 @@ export default class App extends React.Component
         scripts.add(PlutusScript.from_bytes(Buffer.from(this.state.plutusScriptCborHex, "hex"))); //from cbor of plutus script
 
         // Add outputs
-        const outputVal = this.state.lovelaceLocked.toString() - Number(this.state.manualFee)
+        const outputVal = amountToRedeem.toString() - Number(this.state.manualFee)
         const outputValStr = outputVal.toString();
+        console.log(callName + "outputValStr: " + outputValStr);
         txBuilder.add_output(TransactionOutput.new(shelleyChangeAddress, Value.new(BigNum.from_str(outputValStr))))
 
 
@@ -1538,6 +1542,7 @@ export default class App extends React.Component
                 maxChoices: selectedLottery.maxChoices, 
                 selected: selectedLottery.selected(), 
                 amount: selectedLottery.amount,
+                cost: selectedLottery.cost,
             }
           };
 
@@ -1568,7 +1573,7 @@ export default class App extends React.Component
                 let lottery = Lottery.restore(
                     utxo, dbUtxo.sha256, dbUtxo.selected, 
                     dbUtxo.name, dbUtxo.maxNo, dbUtxo.maxChoices,
-                    adaUtxo.amount,
+                    adaUtxo.amount/1000000, dbUtxo.cost,
                 )
                 lotteries.push(lottery);
                 //console.log(callName + ": lottery: " + JSON.stringify(lottery));
@@ -1598,7 +1603,7 @@ export default class App extends React.Component
         selectedLottery.sha256 = selectedLottery.calcSha256();
         
         this.state.datumStr = selectedLottery.sha256;
-        this.state.lovelaceToSend = selectedLottery.amount = this.state.selectedLottery.amount*1000000;
+        this.state.lovelaceToSend = selectedLottery.amount;
 
         const submittedTx = await this.buildSendAdaToPlutusScript();
 
@@ -1676,16 +1681,29 @@ export default class App extends React.Component
         this.state.lovelaceLocked = selectedLottery.amount;
         this.state.datumStr = selectedLottery.sha256;
         this.state.redeemStr = selectedLottery.toString();
-        
+        this.state.lovelaceToSend = selectedLottery.cost;
+
         //console.log(callName + ": after this.state.datumStr: " + this.state.datumStr);
         //console.log(callName + ": after this.state.selectedLottery.sha256: " + this.state.selectedLottery.sha256);
         //console.log(callName + ": after selectedLottery.sha256: " + selectedLottery.sha256);
 
-        const submittedTxHash = await this.buildRedeemAdaFromPlutusScript();
-        if (selectedLottery.sha256==selectedLottery.calcSha256() && submittedTxHash.length>10) {
-            this.showYouWonAlert();
-        }
 
+        try {
+            if (selectedLottery.sha256==selectedLottery.calcSha256()) {
+                const submittedTxHash = await this.buildRedeemAdaFromPlutusScript();
+                if (submittedTxHash.length>10) {
+                    this.showYouWonAlert();
+                }
+            } else {
+                const submittedTxHash = await this.buildSendAdaToPlutusScript();
+                if (submittedTxHash.length>10) {
+                    this.showYouLostAlert();
+                }
+            }
+        } catch (err) {
+            console.log(err.stack)
+            console.log(callName + ": error: " + err)
+        }
         //this.refreshData();        
       };
 
@@ -1713,6 +1731,11 @@ export default class App extends React.Component
         selectedLottery.amount = input;
         this.setState({selectedLottery});
       }
+      handleLotteryCostChange = (input) => {
+        const selectedLottery = this.state.selectedLottery;
+        selectedLottery.cost = input;
+        this.setState({selectedLottery});
+      }
 
       createLotteries() {
         let lotteries = [
@@ -1736,6 +1759,7 @@ export default class App extends React.Component
         const newLotteryCreatedAlert = this.state.newLotteryCreatedAlert;
         const nameRequiredAlert = this.state.nameRequiredAlert;
         const maxChoices = this.state.selectedLottery?.maxChoices;
+        const cost = this.state.selectedLottery?.cost;
         //console.log("App.js: maxNo" + lottery1.maxNo)
         //console.log("App.js: maxChoices" + lottery1.maxChoices)
         //console.log("App.js: choices" + lottery1.choices)
@@ -1770,6 +1794,7 @@ export default class App extends React.Component
                     handleLotteryMaxNoChange={this.handleLotteryMaxNoChange} 
                     handleLotteryMaxChoicesChange={this.handleLotteryMaxChoicesChange} 
                     handleLotteryAmountChange={this.handleLotteryAmountChange} 
+                    handleLotteryCostChange={this.handleLotteryCostChange} 
                     createLotteryClick={this.handleClickCreateNewLottery}>                        
                     </NewLottery>
                     <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
@@ -1789,7 +1814,7 @@ export default class App extends React.Component
                     {(youWonAlert) && <Alert severity="success">Wow!! You Won!</Alert>}
                     {(youLostAlert) && <Alert severity="info">Sorry!  Try again...</Alert>}
                     {(winningNumbersAlert) && <Alert severity="error">Please choose your {maxChoices} winning numbers</Alert>}
-                    {(!createNewLottery) && <Button variant="contained" onClick={this.handleClickPlay}>Play</Button>}
+                    {(!createNewLottery) && <Button variant="contained" onClick={this.handleClickPlay}>Play {cost}ADA</Button>}
                 </Grid>
                 }
             </Grid>
