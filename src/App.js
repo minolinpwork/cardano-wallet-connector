@@ -937,7 +937,7 @@ export default class App extends React.Component
         console.log("buildSendAdaToPlutusScript submittedTxHash: " + submittedTxHash)
         this.setState({submittedTxHash: submittedTxHash, transactionIdLocked: submittedTxHash, lovelaceLocked: this.state.lovelaceToSend});
 
-        return submittedTxHash;
+        return { submittedTxHash: submittedTxHash, dataHash: dataHash.to_hex() };
     }
 
 
@@ -1512,6 +1512,7 @@ export default class App extends React.Component
         console.log(callName + " start");
 
         var utxos = new Map();
+        var utxosByDataHash = new Map();
 
         const url = properties.blockfrostURL+'addresses/'+properties.addressScriptBech32+'/utxos?count=100&page=1&order=asc';
         var config = {
@@ -1532,11 +1533,19 @@ export default class App extends React.Component
                 //console.log(callName + ": utxo.tx_index: " + utxo.tx_index); 
                 const lovelace = utxo.amount.filter(amt => amt.unit == 'lovelace').map(amt => amt.quantity).reduce((a, b) => a+b);
                 //console.log(callName + ": utxo.amt: " + lovelace); 
-                utxos.set(utxo.tx_hash, {
+                const myUtxo = {
                     tx_hash: utxo.tx_hash,
                     tx_index: utxo.tx_index,
+                    data_hash: utxo.data_hash,
                     amount: lovelace,
-                });
+                }
+                utxos.set(utxo.tx_hash, myUtxo);
+
+                if (utxosByDataHash.has(myUtxo.data_hash)) {
+                    utxosByDataHash.get(myUtxo.data_hash).push(myUtxo);
+                } else {
+                    utxosByDataHash.set(myUtxo.data_hash, [myUtxo])
+                }
             });
             //console.log(callName + ": " + JSON.stringify(Array.from(utxos.entries())));
             console.log(callName + ": size: " + utxos.size);
@@ -1544,6 +1553,13 @@ export default class App extends React.Component
           .catch(function (error) {
             console.log(callName + " error: " + error);
           });        
+
+          utxos.forEach(function (utxo, tx_hash) {
+            utxo.utxos = utxosByDataHash.get(utxo.data_hash);
+            utxo.amount = utxo.utxos.map(v => Number(v.amount)).reduce((a, b) => a+b);
+            console.log(callName + ": " + utxo.amount);
+        });
+
           console.log(callName + " end");
           return utxos;
       }
@@ -1603,6 +1619,7 @@ export default class App extends React.Component
                 selected: selectedLottery.selected(), 
                 amount: selectedLottery.amount,
                 cost: selectedLottery.cost,
+                dataHash: selectedLottery.dataHash,
             }
           };
 
@@ -1665,9 +1682,10 @@ export default class App extends React.Component
         this.state.datumStr = selectedLottery.sha256;
         this.state.lovelaceToSend = selectedLottery.amount;
 
-        const submittedTx = await this.buildSendAdaToPlutusScript();
+        const result = await this.buildSendAdaToPlutusScript();
 
-        this.state.selectedLottery.utxo = submittedTx;
+        selectedLottery.utxo = result.submittedTxHash;
+        selectedLottery.dataHash = result.dataHash;
         await this.axoisStoreDB();
 
         const createNewLottery = false;

@@ -79,6 +79,7 @@ export class Lottery {
     constructor(name, maxNo, maxChoices, amount, cost) {
         this.utxo = "";
         this.sha256 = "";
+        this.dataHash = "";
         this.name = name;
         this.maxNo = maxNo;
         this.maxChoices = maxChoices;
@@ -86,10 +87,11 @@ export class Lottery {
         this.cost = cost;
         this.choices = new Array(maxNo+1).fill(false);
     }
-    static restore(utxo, sha256, selected, name, maxNo, maxChoices, amount, cost) {
+    static restore(utxo, sha256, selected, name, maxNo, maxChoices, amount, cost, dataHash) {
         let lottery = new Lottery(name, maxNo, maxChoices, amount, cost);
         lottery.utxo = utxo;
         lottery.sha256 = sha256;
+        lottery.dataHash = dataHash;
         lottery.choices = new Array(maxNo+1).fill(false);
         selected.map(item => lottery.choices[item]=true);
         return lottery;
@@ -133,7 +135,7 @@ export class Lottery {
     }
 
     clone() {
-        return Lottery.restore(this.utxo, this.sha256, this.selected(), this.name, this.maxNo, this.maxChoices, this.amount, this.cost)
+        return Lottery.restore(this.utxo, this.sha256, this.selected(), this.name, this.maxNo, this.maxChoices, this.amount, this.cost, this.dataHash)
     }
 }
 
