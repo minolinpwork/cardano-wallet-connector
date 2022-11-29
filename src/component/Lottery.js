@@ -80,6 +80,7 @@ export class Lottery {
         this.utxo = "";
         this.sha256 = "";
         this.dataHash = "";
+        this.utxos = [];
         this.name = name;
         this.maxNo = maxNo;
         this.maxChoices = maxChoices;
@@ -87,11 +88,12 @@ export class Lottery {
         this.cost = cost;
         this.choices = new Array(maxNo+1).fill(false);
     }
-    static restore(utxo, sha256, selected, name, maxNo, maxChoices, amount, cost, dataHash) {
+    static restore(utxo, sha256, selected, name, maxNo, maxChoices, amount, cost, dataHash, utxos) {
         let lottery = new Lottery(name, maxNo, maxChoices, amount, cost);
         lottery.utxo = utxo;
         lottery.sha256 = sha256;
         lottery.dataHash = dataHash;
+        lottery.utxos = [...utxos];
         lottery.choices = new Array(maxNo+1).fill(false);
         selected.map(item => lottery.choices[item]=true);
         return lottery;
@@ -135,7 +137,7 @@ export class Lottery {
     }
 
     clone() {
-        return Lottery.restore(this.utxo, this.sha256, this.selected(), this.name, this.maxNo, this.maxChoices, this.amount, this.cost, this.dataHash)
+        return Lottery.restore(this.utxo, this.sha256, this.selected(), this.name, this.maxNo, this.maxChoices, this.amount, this.cost, this.dataHash, this.utxos)
     }
 }
 

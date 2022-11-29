@@ -1092,6 +1092,8 @@ export default class App extends React.Component
 
         //this.state.datumStr = this.state.datumStr.toUpperCase();
 
+        const selectedLottery = this.state.selectedLottery;
+
         const callName = "buildRedeemAdaFromPlutusScript: ";
         console.log(callName + "this.state.addressScriptBech32: " + this.state.addressScriptBech32);
         console.log(callName + "this.state.changeAddress: " + this.state.changeAddress);
@@ -1104,22 +1106,33 @@ export default class App extends React.Component
         const txBuilder = await this.initTransactionBuilder();
         const ScriptAddress = Address.from_bech32(this.state.addressScriptBech32);
         const shelleyChangeAddress = Address.from_bech32(this.state.changeAddress)
-        const amountToRedeem = this.state.lovelaceLocked*1000000
+        //const amountToRedeem = this.state.lovelaceLocked*1000000
 
-        txBuilder.add_input(
-            ScriptAddress,
-            TransactionInput.new(
-                TransactionHash.from_bytes(Buffer.from(this.state.transactionIdLocked, "hex")),
-                this.state.transactionIndxLocked.toString()),
-            Value.new(BigNum.from_str(amountToRedeem.toString()))) // how much lovelace is at that UTXO
+        const noOfUtxos = selectedLottery.utxos.length;
+        console.log(callName + "noOfUtxos: " + noOfUtxos);
 
-        txBuilder.set_fee(BigNum.from_str(Number(this.state.manualFee).toString()))
+        selectedLottery.utxos.forEach(function (utxo, ind) {
+            const hash = utxo.tx_hash
+            const hashInd = utxo.tx_index
+            const amount = utxo.amount
+            console.log(callName + " " + hash + " " + hashInd + " " + amount);
+            txBuilder.add_input(
+                ScriptAddress,
+                TransactionInput.new(
+                    TransactionHash.from_bytes(Buffer.from(hash, "hex")),
+                    hashInd.toString()),
+                Value.new(BigNum.from_str(amount.toString()))) // how much lovelace is at that UTXO
+        });
+
+
+        txBuilder.set_fee(BigNum.from_str(Number(this.state.manualFee*noOfUtxos).toString()))
 
         const scripts = PlutusScripts.new();
         scripts.add(PlutusScript.from_bytes(Buffer.from(this.state.plutusScriptCborHex, "hex"))); //from cbor of plutus script
 
         // Add outputs
-        const outputVal = amountToRedeem.toString() - Number(this.state.manualFee)
+        const outputVal = (Number(selectedLottery.amount)*1000000) - Number(this.state.manualFee*noOfUtxos)
+        console.log(callName + " outputVal: " + outputVal);
         const outputValStr = outputVal.toString();
         console.log(callName + "outputValStr: " + outputValStr);
         txBuilder.add_output(TransactionOutput.new(shelleyChangeAddress, Value.new(BigNum.from_str(outputValStr))))
@@ -1138,7 +1151,9 @@ export default class App extends React.Component
         // datums.add(PlutusData.from_bytes(Buffer.from(this.state.datumStr, "utf8")))
         //datums.add(PlutusData.new_integer(BigInt.from_str(this.state.datumStr)))
         let datumFromJson=this.createStringDatum_hex_to_hex(this.state.datumStr, "buildRedeemAdaFromPlutusScript datum")
-        datums.add(datumFromJson)
+        for (let i = 0; i <noOfUtxos; i++) {
+            datums.add(datumFromJson)
+        }
 
         const redeemers = Redeemers.new();
 
@@ -1153,16 +1168,21 @@ export default class App extends React.Component
         );
 */
 
-        const redeemer = Redeemer.new(
-            RedeemerTag.new_spend(),
-            BigNum.from_str("0"),
-            redeemerFromJson,
-            ExUnits.new(
-                BigNum.from_str("7000000"),
-                BigNum.from_str("3000000000")
-            )
-        );
-        redeemers.add(redeemer)
+        for (let i = 0; i <noOfUtxos; i++) {
+            redeemers.add(
+                Redeemer.new(
+                    RedeemerTag.new_spend(),
+                    BigNum.from_str(i.toString()),
+                    redeemerFromJson,
+                    ExUnits.new(
+                        BigNum.from_str((1000000).toString()),
+                        BigNum.from_str((1000000000).toString())
+                        //BigNum.from_str((7000000).toString()),
+                        //BigNum.from_str((3000000000).toString())
+                    )
+                )
+            );
+        }     
 
         // Tx witness
         const transactionWitnessSet = TransactionWitnessSet.new();
@@ -1539,7 +1559,14 @@ export default class App extends React.Component
                     data_hash: utxo.data_hash,
                     amount: lovelace,
                 }
-                utxos.set(utxo.tx_hash, myUtxo);
+                const myUtxoArr = {
+                    tx_hash: utxo.tx_hash,
+                    tx_index: utxo.tx_index,
+                    data_hash: utxo.data_hash,
+                    amount: lovelace,
+                    utxos: [],
+                }
+                utxos.set(utxo.tx_hash, myUtxoArr);
 
                 if (utxosByDataHash.has(myUtxo.data_hash)) {
                     utxosByDataHash.get(myUtxo.data_hash).push(myUtxo);
@@ -1650,7 +1677,7 @@ export default class App extends React.Component
                 let lottery = Lottery.restore(
                     utxo, dbUtxo.sha256, dbUtxo.selected, 
                     dbUtxo.name, dbUtxo.maxNo, dbUtxo.maxChoices,
-                    adaUtxo.amount/1000000, dbUtxo.cost,
+                    adaUtxo.amount/1000000, dbUtxo.cost, dbUtxo.dataHash, adaUtxo.utxos,
                 )
                 lotteries.push(lottery);
                 //console.log(callName + ": lottery: " + JSON.stringify(lottery));
