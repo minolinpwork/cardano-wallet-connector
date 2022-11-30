@@ -33,12 +33,14 @@ export default class BasicTable extends React.Component {
                     <TableCell align="right">Prize</TableCell>
                     <TableCell align="right">Cost</TableCell>
                     <TableCell align="right">Winning Nos</TableCell>
+                    <TableCell align="right">Players</TableCell>
                 </TableRow>
                 </TableHead>
                 <TableBody>
                 {this.props.lotteries.map((row) => (  
                     <TableRow onClick={() => this.props.lotteryClick(row.utxo)}
                     key={row.utxo} selected={row.utxo==utxoSelected}
+                    hover={true}
                     //sx={{ '&:last-child td, &:last-child th': { border: 2 } }}
                     >
                     <TableCell align="right">{row.name}</TableCell>
@@ -47,6 +49,7 @@ export default class BasicTable extends React.Component {
                     <TableCell align="right">{row.amount}</TableCell>
                     <TableCell align="right">{row.cost}</TableCell>
                     <TableCell align="right">{row.selected().toString()}</TableCell>
+                    <TableCell align="right">{row.utxos.length-1}</TableCell>
                     </TableRow>
                 ))}
                 </TableBody>

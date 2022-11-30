@@ -602,8 +602,28 @@ export default class App extends React.Component
 
         console.log(callName + "start");
 
-        await this.getUtxos();
-        await this.getCollateral();
+        //await this.getUtxos();
+        //await this.getCollateral();
+
+        try{
+            const walletFound = this.checkIfWalletFound();
+            if (walletFound) {
+                await this.getAPIVersion();
+                await this.getWalletName();
+                const walletEnabled = await this.enableWallet();
+                if (walletEnabled) {
+                    await this.getNetworkId();
+                    await this.getUtxos();
+                    await this.getCollateral();
+                    await this.getBalance();
+                    await this.getChangeAddress();
+                    await this.getRewardAddresses();
+                    await this.getUsedAddresses();
+                }
+            }
+        }  catch (err) {
+            console.log(callName + " error: " + err)
+        }
 
         console.log(callName + "end");
     }
@@ -881,22 +901,25 @@ export default class App extends React.Component
 
     buildSendAdaToPlutusScript = async () => {
         await this.refreshBeforeSubmit();
+        const name = "buildSendAdaToPlutusScript: "
 
         const txBuilder = await this.initTransactionBuilder();
         const ScriptAddress = Address.from_bech32(this.state.addressScriptBech32);
         const shelleyChangeAddress = Address.from_bech32(this.state.changeAddress)
+        console.log(name + "this.state.changeAddress: " + this.state.changeAddress);
 
 
         let txOutputBuilder = TransactionOutputBuilder.new();
         txOutputBuilder = txOutputBuilder.with_address(ScriptAddress);
         //data=PlutusData.new_integer(BigInt.from_str(this.state.datumStr))
-        console.log("buildSendAdaToPlutusScript: this.state.datumStr: " + this.state.datumStr);
+        console.log(name + "this.state.datumStr: " + this.state.datumStr);
         let datumFromJson=this.createStringDatum_hex_to_hex(this.state.datumStr, "buildSendAdaToPlutusScript")
         const dataHash = hash_plutus_data(datumFromJson)
         txOutputBuilder = txOutputBuilder.with_data_hash(dataHash)
 
         txOutputBuilder = txOutputBuilder.next();
 
+        console.log(name + "this.state.lovelaceToSend: " + this.state.lovelaceToSend);
         //txOutputBuilder = txOutputBuilder.with_value(Value.new(BigNum.from_str(this.state.lovelaceToSend.toString())))
         txOutputBuilder = txOutputBuilder.with_value(Value.new(BigNum.from_str((this.state.lovelaceToSend*1000000).toString())))
         const txOutput = txOutputBuilder.build();
@@ -955,7 +978,7 @@ export default class App extends React.Component
 
         let txOutputBuilder = TransactionOutputBuilder.new();
         txOutputBuilder = txOutputBuilder.with_address(ScriptAddress);
-        let datumFromJson=this.createStringDatum_hex_to_hex(this.state.datumStr, "buildSendAdaToPlutusScript")
+        let datumFromJson=this.createStringDatum_hex_to_hex(this.state.datumStr, "buildSendAdaFailed")
         const dataHash = hash_plutus_data(datumFromJson)
         txOutputBuilder = txOutputBuilder.with_data_hash(dataHash)
 
@@ -1694,6 +1717,7 @@ export default class App extends React.Component
       }
 
       handleClickCreateNewLottery = async () => {
+
         const selectedLottery = this.state.selectedLottery;
 
 
