@@ -1825,6 +1825,11 @@ export default class App extends React.Component
                 const submittedTxHash = await this.buildRedeemAdaFromPlutusScript();
                 if (submittedTxHash.length>10) {
                     this.showYouWonAlert();
+                    const newLotteries = this.state.lotteries.filter(function(value, index, arr){ 
+                        return value.utxo!=selectedLottery.utxo;
+                    });
+                    const newSelectedLottery = newLotteries[0];
+                    this.setState({selectedLottery: newSelectedLottery, lotteries: newLotteries})
                 }
             } else {
                 const submittedTxHash = await this.buildSendAdaFailed();
