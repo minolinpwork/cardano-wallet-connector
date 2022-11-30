@@ -47,6 +47,7 @@ export default class NewLottery extends React.Component {
         label="Name of Lottery"
         onChange={(e) => this.props.handleLotteryNameChange(e.target.value)}
         sx={{ mt: 2, mb: 6 }}
+        inputProps={{ maxLength: 10 }}
         //onChange={(e) => this.props.lottery.name=e.target.value}
         //onChange={(e) => console.log(e.target.value)}
         //onChange={this.handleChange}//ref={myinput => (this.input = myinput)}
@@ -54,11 +55,11 @@ export default class NewLottery extends React.Component {
 
 
       <Typography id="maxNo-slider" gutterBottom mt={5} mb={4}>
-        Numbers Available - From 1 to ...
+        Numbers Available - From 1 to 99
       </Typography>
       <Slider 
         min={1}
-        max={100}
+        max={99}
         step={1}
         //defaultValue={this.props.lottery.maxNo}
         defaultValue={1}
@@ -69,11 +70,11 @@ export default class NewLottery extends React.Component {
 
 
       <Typography id="maxChoices-slider" gutterBottom mt={5} mb={4}>
-        Choices - From 1 to ...
+        Choices - From 1 to 7
       </Typography>
       <Slider
         min={1}
-        max={10}
+        max={7}
         step={1}
         defaultValue={1}
         valueLabelDisplay="on"

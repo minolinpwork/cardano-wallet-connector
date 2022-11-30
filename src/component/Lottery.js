@@ -126,7 +126,8 @@ export class Lottery {
     }
 
     toString() {
-        return JSON.stringify({name: this.name, maxNo: this.maxNo, maxChoices: this.maxChoices, selected: this.selected()})
+        return this.name+" "+this.selected();
+        //return JSON.stringify({name: this.name, maxNo: this.maxNo, maxChoices: this.maxChoices, selected: this.selected()})
     }
 
     calcSha256() {
