@@ -1885,7 +1885,7 @@ export default class App extends React.Component
                     <br></br>
                     <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
                         <Button variant="contained" onClick={this.handleLoadLotteries}>Reload List</Button>
-                        <Button variant="contained" onClick={this.handleClickNewLottery}>Create new Lottery</Button>
+                        <Button variant="contained" onClick={this.handleClickNewLottery} disabled={!this.state.balance}>Create new Lottery</Button>
                     </Stack>
                     {(newLotteryCreatedAlert) && <Alert severity="info">New lottery created - please Reload to see it appear</Alert>}
                 </Grid>
@@ -1919,7 +1919,7 @@ export default class App extends React.Component
                     {(youWonAlert) && <Alert severity="success">Wow!! You Won!</Alert>}
                     {(youLostAlert) && <Alert severity="info">Sorry!  Try again...</Alert>}
                     {(winningNumbersAlert) && <Alert severity="error">Please choose your {maxChoices} winning numbers</Alert>}
-                    {(!createNewLottery) && <Button variant="contained" onClick={this.handleClickPlay}>Play {cost}ADA</Button>}
+                    {(!createNewLottery) && <Button variant="contained" onClick={this.handleClickPlay} disabled={!this.state.balance}>Play {cost}ADA</Button>}
                 </Grid>
                 }
             </Grid>
