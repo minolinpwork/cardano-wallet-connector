@@ -1124,14 +1124,17 @@ export default class App extends React.Component
                 Value.new(BigNum.from_str(amount.toString()))) // how much lovelace is at that UTXO
         });
 
+        //const scriptFee = Number(properties.scriptBaseFee+properties.scriptFeeExtra*noOfUtxos);
+        const scriptFee = Number(properties.scriptFee);
+        console.log(callName + " scriptFee: " + scriptFee);
 
-        txBuilder.set_fee(BigNum.from_str(Number(this.state.manualFee*noOfUtxos).toString()))
+        txBuilder.set_fee(BigNum.from_str(scriptFee.toString()))
 
         const scripts = PlutusScripts.new();
         scripts.add(PlutusScript.from_bytes(Buffer.from(this.state.plutusScriptCborHex, "hex"))); //from cbor of plutus script
 
         // Add outputs
-        const outputVal = (Number(selectedLottery.amount)*1000000) - Number(this.state.manualFee*noOfUtxos)
+        const outputVal = (Number(selectedLottery.amount)*1000000) - scriptFee
         console.log(callName + " outputVal: " + outputVal);
         const outputValStr = outputVal.toString();
         console.log(callName + "outputValStr: " + outputValStr);
@@ -1169,17 +1172,16 @@ export default class App extends React.Component
 */
 
         for (let i = 0; i <noOfUtxos; i++) {
+            let ex = ExUnits.new(
+                BigNum.from_str(properties.scriptMem.toString()),
+                BigNum.from_str(properties.scriptStep.toString())
+            )
             redeemers.add(
                 Redeemer.new(
                     RedeemerTag.new_spend(),
                     BigNum.from_str(i.toString()),
                     redeemerFromJson,
-                    ExUnits.new(
-                        BigNum.from_str((1000000).toString()),
-                        BigNum.from_str((1000000000).toString())
-                        //BigNum.from_str((7000000).toString()),
-                        //BigNum.from_str((3000000000).toString())
-                    )
+                    ex
                 )
             );
         }     

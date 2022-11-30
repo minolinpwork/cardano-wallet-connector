@@ -8,6 +8,11 @@ export const properties = {
     profitAmount: 1000000,
     scriptBaseFee: 300000,
     scriptFeeExtra: 31000,
-    scriptMem: 380552,
-    scriptStep: 117940941,
+
+    scriptFee: 900000,
+    scriptMem: 7000000,
+    scriptStep: 3000000000,
+
+//    scriptMem: 380552,
+//    scriptStep: 117940941,
 };
