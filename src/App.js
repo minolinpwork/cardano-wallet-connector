@@ -1507,15 +1507,15 @@ export default class App extends React.Component
       }
 
 
-      handleLotterySelect = (name) => {
+      handleLotterySelect = (utxo) => {
         const lotteries = this.state.lotteries;
-        console.log("handleLotterySelect: " + name);
-        let selectedLottery = lotteries.find(o => o.name === name).clone();
+        console.log("handleLotterySelect: " + utxo);
+        let selectedLottery = lotteries.find(o => o.utxo === utxo).clone();
         this.setState({selectedLottery})
       };
 
       handleClickNewLottery = () => {
-        const selectedLottery = new Lottery("", 1, 1, 10);//"Bingo"+Date.now(), 5, 1);
+        const selectedLottery = new Lottery("", 1, 1, 10, 3);//"Bingo"+Date.now(), 5, 1);
         //selectedLottery.choices[1]=true;
         //selectedLottery.amount=1;
         const createNewLottery = true
@@ -1883,7 +1883,7 @@ export default class App extends React.Component
                 {(!createNewLottery)
                     &&
                 <Grid item xs={12} md={6} >
-                    <BasicTable lotteries={lotteries} lotteryClick={this.handleLotterySelect}></BasicTable>
+                    <BasicTable selectedLottery={selectedLottery} lotteries={lotteries} lotteryClick={this.handleLotterySelect}></BasicTable>
                     <br></br>
                     <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
                         <Button variant="contained" onClick={this.handleLoadLotteries}>Reload List</Button>
@@ -1904,11 +1904,6 @@ export default class App extends React.Component
                     handleLotteryCostChange={this.handleLotteryCostChange} 
                     createLotteryClick={this.handleClickCreateNewLottery}>                        
                     </NewLottery>
-                    <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
-                        <Button variant="contained" onClick={this.handleCancelNewLottery}>Cancel</Button>
-                        <Button variant="contained" onClick={this.handleClickCreateNewLottery}>Create new Lottery</Button>
-                    </Stack>
-                    {(nameRequiredAlert) && <Alert severity="error">Please enter a name for this lottery</Alert>}
                 </Grid>
                 }
 
@@ -1921,7 +1916,16 @@ export default class App extends React.Component
                     {(youWonAlert) && <Alert severity="success">Wow!! You Won!</Alert>}
                     {(youLostAlert) && <Alert severity="info">Sorry!  Try again...</Alert>}
                     {(winningNumbersAlert) && <Alert severity="error">Please choose your {maxChoices} winning numbers</Alert>}
+                    {(createNewLottery && nameRequiredAlert) && <Alert severity="error">Please enter a name for this lottery</Alert>}
                     {(!createNewLottery) && <Button variant="contained" onClick={this.handleClickPlay} disabled={!this.state.balance}>Play {cost}ADA</Button>}
+
+                    {(createNewLottery)
+                    &&
+                    <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
+                        <Button variant="contained" onClick={this.handleCancelNewLottery}>Cancel</Button>
+                        <Button variant="contained" onClick={this.handleClickCreateNewLottery}>Create new Lottery</Button>
+                    </Stack>
+                    } 
                 </Grid>
                 }
             </Grid>

@@ -18,6 +18,7 @@ export default class BasicTable extends React.Component {
     }
     
     render() {
+        const utxoSelected=this.props.selectedLottery?.utxo;
         return (
             <TableContainer component={Paper} sx={{ maxWidth: 500, justifyContent: 'center', }}>
             <Typography variant="h4" gutterBottom>
@@ -36,13 +37,11 @@ export default class BasicTable extends React.Component {
                 </TableHead>
                 <TableBody>
                 {this.props.lotteries.map((row) => (  
-                    <TableRow
-                    key={row.name}
+                    <TableRow onClick={() => this.props.lotteryClick(row.utxo)}
+                    key={row.utxo} selected={row.utxo==utxoSelected}
                     //sx={{ '&:last-child td, &:last-child th': { border: 2 } }}
                     >
-                    <TableCell component="th" scope="row">
-                        <Button onClick={() => this.props.lotteryClick(row.name)}>{row.name}</Button>
-                    </TableCell>
+                    <TableCell align="right">{row.name}</TableCell>
                     <TableCell align="right">{row.maxNo}</TableCell>
                     <TableCell align="right">{row.maxChoices}</TableCell>
                     <TableCell align="right">{row.amount}</TableCell>

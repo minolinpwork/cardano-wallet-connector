@@ -181,11 +181,11 @@ export default class LottoView extends React.Component {
                 );
             }
           });
-        const remaining = maxChoices - this.props.lottery?.countTrue()
+        const remaining = this.props.lottery?.countTrue() - maxChoices
         //console.log("remaining: " + remaining)
         //console.log("chosen: " + chosen)
         let c1 = chosen;
-        for (let i = 0; i < remaining; i++) {
+        for (let i = 0; i > remaining; i--) { // need this for unique keys
             chosen.push ( 
                 <LetterAvatar key={i} value={" "} selected={true}/>            )
           }

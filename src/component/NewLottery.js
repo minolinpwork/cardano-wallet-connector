@@ -96,13 +96,13 @@ export default class NewLottery extends React.Component {
       />
 
       <Typography id="feeToPlay-slider" gutterBottom mt={5} mb={4}>
-        Cost to Play ADA - From 5 to ...
+        Cost to Play ADA - From 3 to ...
       </Typography>
       <Slider
         min={5}
         max={100}
         step={1}
-        defaultValue={5}
+        defaultValue={3}
         valueLabelDisplay="on"
         onChange={(e) => this.props.handleLotteryCostChange(e.target.value)}
         aria-labelledby="input-slider"
