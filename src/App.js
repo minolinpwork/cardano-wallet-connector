@@ -945,6 +945,7 @@ export default class App extends React.Component
             txBody,
             TransactionWitnessSet.from_bytes(transactionWitnessSet.to_bytes())
         )
+        console.log(name + "transactionWitnessSet: " + transactionWitnessSet.to_json());
 
         let txVkeyWitnesses = await this.API.signTx(Buffer.from(tx.to_bytes(), "utf8").toString("hex"), true);
         txVkeyWitnesses = TransactionWitnessSet.from_bytes(Buffer.from(txVkeyWitnesses, "hex"));
