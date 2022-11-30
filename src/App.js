@@ -1124,8 +1124,8 @@ export default class App extends React.Component
                 Value.new(BigNum.from_str(amount.toString()))) // how much lovelace is at that UTXO
         });
 
-        //const scriptFee = Number(properties.scriptBaseFee+properties.scriptFeeExtra*noOfUtxos);
-        const scriptFee = Number(properties.scriptFee);
+        const scriptFee = Number(properties.scriptBaseFee+properties.scriptFeeExtra*noOfUtxos);
+        //const scriptFee = Number(properties.scriptFee);
         console.log(callName + " scriptFee: " + scriptFee);
 
         txBuilder.set_fee(BigNum.from_str(scriptFee.toString()))

@@ -9,10 +9,15 @@ export const properties = {
     scriptBaseFee: 300000,
     scriptFeeExtra: 31000,
 
-    scriptFee: 900000,
-    scriptMem: 7000000,
-    scriptStep: 3000000000,
+    scriptMem: 500000,
+//    scriptStep: 117940941,
+    scriptStep: 140000000,
 
+    //works
+    //scriptFee: 900000,
+    //scriptMem: 7000000,
+    //scriptStep: 3000000000,
+    //does not work
 //    scriptMem: 380552,
 //    scriptStep: 117940941,
 };
