@@ -7,11 +7,28 @@ export const properties = {
     profitAddress: "addr_test1qz5qjyzxyxlpqc03rdg2a95ze09fdncu8r9nxuqvc3zw8gpadrwrpxtjru2289kpzx6h4cxyp46aaz78qvwtcgw5angqm8xlap",
     profitAmount: 1000000,
     scriptBaseFee: 300000,
-    scriptFeeExtra: 31000,
+    scriptFeeExtra: 100000,
 
-    scriptMem: 500000,
+    scriptMem: 800000,
 //    scriptStep: 117940941,
-    scriptStep: 140000000,
+    scriptStep: 340000000,
+
+
+    
+    //works with 4
+    //scriptFeeExtra: 100000,
+    //scriptMem: 800000,
+    //scriptStep: 340000000,
+    
+    //works with 3
+    //scriptFeeExtra: 50000,
+    //scriptMem: 500000,
+    //scriptStep: 140000000,
+
+    //works with 1
+    //scriptFeeExtra: 50000,
+    //scriptMem: 500000,
+    //scriptStep: 140000000,
 
     //works
     //scriptFee: 900000,
