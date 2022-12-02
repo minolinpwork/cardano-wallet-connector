@@ -20,14 +20,17 @@ import {
     TransactionBuilder,
     TransactionBuilderConfigBuilder,
     TransactionOutputBuilder,
+    TxInputsBuilder,
     LinearFee,
     BigNum,
     BigInt,
     TransactionHash,
     TransactionInputs,
     TransactionInput,
+    TransactionWitness,
     TransactionWitnessSet,
     Transaction,
+    PlutusWitness,
     PlutusData,
     PlutusScripts,
     PlutusScript,
@@ -37,6 +40,8 @@ import {
     RedeemerTag,
     Ed25519KeyHashes,
     ConstrPlutusData,
+    ExUnitPrices,
+    UnitInterval,
     ExUnits,
     Int,
     NetworkInfo,
@@ -223,14 +228,16 @@ export default class App extends React.Component
                 minFeeA: "44",
                 minFeeB: "155381",
             },
-            minUtxo: "34482",
+            //minUtxo: "34482",
+            //minUtxo: "4310",
+            minUtxo: "4310",
             poolDeposit: "500000000",
             keyDeposit: "2000000",
             maxValSize: 5000,
             maxTxSize: 16384,
             priceMem: 0.0577,
             priceStep: 0.0000721,
-            coinsPerUtxoWord: "34482",
+            coinsPerUtxoWord: "4310",
         }
 
         this.pollWallets = this.pollWallets.bind(this);
@@ -1108,7 +1115,23 @@ export default class App extends React.Component
 
     }
 
+    initTransactionBuilderExUnits = async (exs) => {
 
+        const txBuilder = TransactionBuilder.new(
+            TransactionBuilderConfigBuilder.new()
+                .fee_algo(LinearFee.new(BigNum.from_str(this.protocolParams.linearFee.minFeeA), BigNum.from_str(this.protocolParams.linearFee.minFeeB)))
+                .pool_deposit(BigNum.from_str(this.protocolParams.poolDeposit))
+                .key_deposit(BigNum.from_str(this.protocolParams.keyDeposit))
+                .coins_per_utxo_word(BigNum.from_str(this.protocolParams.coinsPerUtxoWord))
+                .max_value_size(this.protocolParams.maxValSize)
+                .max_tx_size(this.protocolParams.maxTxSize)
+                .ex_unit_prices(exs)
+                .prefer_pure_change(true)
+                .build()
+        );
+
+        return txBuilder
+    }
 
 
     buildRedeemAdaFromPlutusScript = async () => {
@@ -1127,7 +1150,18 @@ export default class App extends React.Component
         console.log(callName + "this.state.redeemStr: " + this.state.redeemStr);
         console.log(callName + "this.state.lovelaceLocked: " + this.state.lovelaceLocked);
 
-        const txBuilder = await this.initTransactionBuilder();
+        const exUnitPrices = ExUnitPrices.new(
+            UnitInterval.new(
+                BigNum.from_str(properties.exScriptMemStart.toString()), 
+                BigNum.from_str(properties.exScriptMemInc.toString())
+            ),
+            UnitInterval.new(
+                BigNum.from_str(properties.exScriptStepStart.toString()), 
+                BigNum.from_str(properties.exScriptStepInc.toString())
+            ),
+        )
+        const txBuilder = await this.initTransactionBuilderExUnits(exUnitPrices);
+
         const ScriptAddress = Address.from_bech32(this.state.addressScriptBech32);
         const shelleyChangeAddress = Address.from_bech32(this.state.changeAddress)
         //const amountToRedeem = this.state.lovelaceLocked*1000000
@@ -1135,139 +1169,85 @@ export default class App extends React.Component
         const noOfUtxos = selectedLottery.utxos.length;
         console.log(callName + "noOfUtxos: " + noOfUtxos);
 
+        const datumFromJson=this.createStringDatum_hex_to_hex(this.state.datumStr, "buildRedeemAdaFromPlutusScript datum")
+        const redeemerFromJson=this.createStringDatum_utf_to_hex(this.state.redeemStr, "buildRedeemAdaFromPlutusScript redeem")
+        const script = PlutusScript.from_bytes(Buffer.from(this.state.plutusScriptCborHex, "hex"))
+
+        const ex = ExUnits.new(
+            BigNum.from_str(properties.scriptMem.toString()),
+            BigNum.from_str(properties.scriptStep.toString())
+        )
+        console.log(callName + "ex: " + ex.to_json());
+
         selectedLottery.utxos.forEach(function (utxo, ind) {
             const hash = utxo.tx_hash
             const hashInd = utxo.tx_index
             const amount = utxo.amount
-            console.log(callName + " " + hash + " " + hashInd + " " + amount);
-            txBuilder.add_input(
-                ScriptAddress,
+
+            const redeemer = Redeemer.new(
+                RedeemerTag.new_spend(),
+                BigNum.from_str(ind.toString()),
+                redeemerFromJson,
+                ex
+            )
+
+
+            txBuilder.add_plutus_script_input(
+                PlutusWitness.new(script, datumFromJson, redeemer),
                 TransactionInput.new(
                     TransactionHash.from_bytes(Buffer.from(hash, "hex")),
                     hashInd.toString()),
-                Value.new(BigNum.from_str(amount.toString()))) // how much lovelace is at that UTXO
+                Value.new(BigNum.from_str(amount.toString()))
+            )
+                    
         });
 
-        const scriptFee = Number(properties.scriptBaseFee+properties.scriptFeeExtra*noOfUtxos);
-        //const scriptFee = Number(properties.scriptFee);
-        console.log(callName + " scriptFee: " + scriptFee);
-
-        txBuilder.set_fee(BigNum.from_str(scriptFee.toString()))
-
-        const scripts = PlutusScripts.new();
-        scripts.add(PlutusScript.from_bytes(Buffer.from(this.state.plutusScriptCborHex, "hex"))); //from cbor of plutus script
-
-        // Add outputs
-        const outputVal = (Number(selectedLottery.amount)*1000000) - scriptFee
-        console.log(callName + " outputVal: " + outputVal);
-        const outputValStr = outputVal.toString();
-        console.log(callName + "outputValStr: " + outputValStr);
-        txBuilder.add_output(TransactionOutput.new(shelleyChangeAddress, Value.new(BigNum.from_str(outputValStr))))
-
-
-        // once the transaction is ready, we build it to get the tx body without witnesses
-        const txBody = txBuilder.build();
 
         const collateral = this.state.CollatUtxos;
-        const inputs = TransactionInputs.new();
+        const collateralI = TxInputsBuilder.new();
         collateral.forEach((utxo) => {
-            inputs.add(utxo.input());
-        });
-
-        let datums = PlutusList.new();
-        // datums.add(PlutusData.from_bytes(Buffer.from(this.state.datumStr, "utf8")))
-        //datums.add(PlutusData.new_integer(BigInt.from_str(this.state.datumStr)))
-        let datumFromJson=this.createStringDatum_hex_to_hex(this.state.datumStr, "buildRedeemAdaFromPlutusScript datum")
-        for (let i = 0; i <noOfUtxos; i++) {
-            datums.add(datumFromJson)
-        }
-
-        const redeemers = Redeemers.new();
-
-        //let dataStr="{\"fields\":[],\"constructor\":0}"
-        let redeemerFromJson=this.createStringDatum_utf_to_hex(this.state.redeemStr, "buildRedeemAdaFromPlutusScript redeem")
-/**
-        const data = PlutusData.new_constr_plutus_data(
-            ConstrPlutusData.new(
-                BigNum.from_str("0"),
-                PlutusList.new()
-            )
-        );
-*/
-
-        for (let i = 0; i <noOfUtxos; i++) {
-            let ex = ExUnits.new(
-                BigNum.from_str(properties.scriptMem.toString()),
-                BigNum.from_str(properties.scriptStep.toString())
-            )
-            redeemers.add(
-                Redeemer.new(
-                    RedeemerTag.new_spend(),
-                    BigNum.from_str(i.toString()),
-                    redeemerFromJson,
-                    ex
-                )
+            const ti = utxo.input();
+            //console.log(callName + "collateral: " + utxo.to_json() + " " + ti.transaction_id().to_hex() + " " + ti.index());
+            collateralI.add_input(
+                utxo.output().address(),
+                utxo.input(),
+                utxo.output().amount(),
             );
-        }     
+        });
+        txBuilder.set_collateral(collateralI);
 
-        // Tx witness
-        const transactionWitnessSet = TransactionWitnessSet.new();
-
-        transactionWitnessSet.set_plutus_scripts(scripts)
-        transactionWitnessSet.set_plutus_data(datums)
-        transactionWitnessSet.set_redeemers(redeemers)
-
-        ///////////////////
-        const cost_model_vals = [
-            205665, 812, 1, 1, 1000, 571, 0, 1, 1000, 24177, 4, 1, 1000, 32, 117366,
-            10475, 4, 23000, 100, 23000, 100, 23000, 100, 23000, 100, 23000, 100, 23000,
-            100, 100, 100, 23000, 100, 19537, 32, 175354, 32, 46417, 4, 221973, 511, 0, 1,
-            89141, 32, 497525, 14068, 4, 2, 196500, 453240, 220, 0, 1, 1, 1000, 28662, 4,
-            2, 245000, 216773, 62, 1, 1060367, 12586, 1, 208512, 421, 1, 187000, 1000,
-            52998, 1, 80436, 32, 43249, 32, 1000, 32, 80556, 1, 57667, 4, 1000, 10,
-            197145, 156, 1, 197145, 156, 1, 204924, 473, 1, 208896, 511, 1, 52467, 32,
-            64832, 32, 65493, 32, 22558, 32, 16563, 32, 76511, 32, 196500, 453240, 220, 0,
-            1, 1, 69522, 11687, 0, 1, 60091, 32, 196500, 453240, 220, 0, 1, 1, 196500,
-            453240, 220, 0, 1, 1, 806990, 30482, 4, 1927926, 82523, 4, 265318, 0, 4, 0,
-            85931, 32, 205665, 812, 1, 1, 41182, 32, 212342, 32, 31220, 32, 32696, 32,
-            43357, 32, 32247, 32, 38314, 32, 9462713, 1021, 10,
-        ];
-
-        const costModel = CostModel.new();
-        cost_model_vals.forEach((x, i) => costModel.set(i, Int.new_i32(x)));
-
-
-        const costModels = Costmdls.new();
-        costModels.insert(Language.new_plutus_v1(), costModel);
-        /////////////////////
-        const scriptDataHash = hash_script_data(redeemers, costModels, datums);
-        //const scriptDataHash = hash_script_data(redeemers, TxBuilderConstants.plutus_alonzo_cost_models(), datums);
-        txBody.set_script_data_hash(scriptDataHash);
-
-        txBody.set_collateral(inputs)
+        //const costModel = TxBuilderConstants.plutus_vasil_cost_models().get(Language.new_plutus_v1());
+        //const costModels = Costmdls.new();
+        //costModels.insert(Language.new_plutus_v1(), costModel);
+        txBuilder.calc_script_data_hash(TxBuilderConstants.plutus_vasil_cost_models());
 
 
         const baseAddress = BaseAddress.from_address(shelleyChangeAddress)
         const requiredSigners = Ed25519KeyHashes.new();
-        requiredSigners.add(baseAddress.payment_cred().to_keyhash())
+        txBuilder.add_required_signer(baseAddress.payment_cred().to_keyhash())
 
-        txBody.set_required_signers(requiredSigners);
 
-        const tx = Transaction.new(
-            txBody,
-            TransactionWitnessSet.from_bytes(transactionWitnessSet.to_bytes())
-        )
+        txBuilder.add_change_if_needed(shelleyChangeAddress)
 
+        console.log(callName + "get_fee_if_set: " + txBuilder.get_fee_if_set().to_str());
+
+        //const txBody = txBuilder.build();
+
+        const tx = txBuilder.build_tx();
+        console.log(callName + "tx: " + tx.to_json());
+        
         let txVkeyWitnesses = await this.API.signTx(Buffer.from(tx.to_bytes(), "utf8").toString("hex"), true);
         txVkeyWitnesses = TransactionWitnessSet.from_bytes(Buffer.from(txVkeyWitnesses, "hex"));
+        console.log(callName + "txVkeyWitnesses 1: " + txVkeyWitnesses.to_json());
 
+        const transactionWitnessSet = TransactionWitnessSet.new();
         transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
+        console.log(callName + "transactionWitnessSet 2: " + transactionWitnessSet.to_json());
 
         const signedTx = Transaction.new(
             tx.body(),
             transactionWitnessSet
         );
-
         const submittedTxHash = await this.API.submitTx(Buffer.from(signedTx.to_bytes(), "utf8").toString("hex"));
         console.log(callName + " submittedTxHash: " + submittedTxHash)
         this.setState({submittedTxHash});
@@ -1713,7 +1693,7 @@ export default class App extends React.Component
         console.log(callName + ": " + JSON.stringify(lotteries));
         this.setState({lotteries});
         if (lotteries.length>0) {
-            this.setState({selectedLottery: lotteries[0].clone()});
+            this.setState({selectedLottery: lotteries[2].clone()});
         }
       }
 
