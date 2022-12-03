@@ -27,7 +27,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "PORT=3002 react-scripts --max-old-space-size=8192 start",
+    "start": "PORT=3003 react-scripts --max-old-space-size=8192 start",
     "build": "react-scripts --max-old-space-size=8192 build",
     "buildprod": "GENERATE_SOURCEMAP=false react-scripts --max-old-space-size=8192 build",
     "test": "react-scripts test",

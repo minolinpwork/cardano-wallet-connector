@@ -1169,28 +1169,44 @@ export default class App extends React.Component
         const noOfUtxos = selectedLottery.utxos.length;
         console.log(callName + "noOfUtxos: " + noOfUtxos);
 
-        const datumFromJson=this.createStringDatum_hex_to_hex(this.state.datumStr, "buildRedeemAdaFromPlutusScript datum")
-        const redeemerFromJson=this.createStringDatum_utf_to_hex(this.state.redeemStr, "buildRedeemAdaFromPlutusScript redeem")
-        const script = PlutusScript.from_bytes(Buffer.from(this.state.plutusScriptCborHex, "hex"))
+        const collateral = this.state.CollatUtxos;
+        const collateralI = TxInputsBuilder.new();
+        collateral.forEach((utxo) => {
+            const ti = utxo.input();
+            //console.log(callName + "collateral: " + utxo.to_json() + " " + ti.transaction_id().to_hex() + " " + ti.index());
+            collateralI.add_input(
+                ScriptAddress, //utxo.output().address(),
+                utxo.input(),
+                utxo.output().amount(),
+            );
+        });
+        txBuilder.set_collateral(collateralI);
 
-        const ex = ExUnits.new(
-            BigNum.from_str(properties.scriptMem.toString()),
-            BigNum.from_str(properties.scriptStep.toString())
-        )
-        console.log(callName + "ex: " + ex.to_json());
+        const inputs = TxInputsBuilder.new();
+
 
         selectedLottery.utxos.forEach(function (utxo, ind) {
             const hash = utxo.tx_hash
             const hashInd = utxo.tx_index
             const amount = utxo.amount
 
+            const datumFromJson=this.createStringDatum_hex_to_hex(this.state.datumStr, "buildRedeemAdaFromPlutusScript datum")
+            const redeemerFromJson=this.createStringDatum_utf_to_hex(this.state.redeemStr, "buildRedeemAdaFromPlutusScript redeem")
+            const script = PlutusScript.from_bytes(Buffer.from(this.state.plutusScriptCborHex, "hex"))
+    
+            const ex = ExUnits.new(
+                BigNum.from_str(properties.scriptMem.toString()),
+                BigNum.from_str(properties.scriptStep.toString())
+            )
+            console.log(callName + "ex: " + ex.to_json());
+
             const redeemer = Redeemer.new(
                 RedeemerTag.new_spend(),
-                BigNum.from_str(ind.toString()),
+                BigNum.from_str("0"),//(ind.toString()),
                 redeemerFromJson,
                 ex
             )
-
+            console.log(callName + "redeemer: " + redeemer.to_json());
 
             txBuilder.add_plutus_script_input(
                 PlutusWitness.new(script, datumFromJson, redeemer),
@@ -1200,21 +1216,18 @@ export default class App extends React.Component
                 Value.new(BigNum.from_str(amount.toString()))
             )
                     
-        });
+            txBuilder.calc_script_data_hash(TxBuilderConstants.plutus_vasil_cost_models());
+            const baseAddress = BaseAddress.from_address(shelleyChangeAddress)
+            txBuilder.add_required_signer(baseAddress.payment_cred().to_keyhash())
+    
+    
+            txBuilder.add_change_if_needed(shelleyChangeAddress)
+            console.log(callName + "txBuilder after utxo no. " + ind + ": " + txBuilder.build_tx().to_json());
+        }, this);
+
+        //txBuilder.set_inputs(inputs);
 
 
-        const collateral = this.state.CollatUtxos;
-        const collateralI = TxInputsBuilder.new();
-        collateral.forEach((utxo) => {
-            const ti = utxo.input();
-            //console.log(callName + "collateral: " + utxo.to_json() + " " + ti.transaction_id().to_hex() + " " + ti.index());
-            collateralI.add_input(
-                utxo.output().address(),
-                utxo.input(),
-                utxo.output().amount(),
-            );
-        });
-        txBuilder.set_collateral(collateralI);
 
         //const costModel = TxBuilderConstants.plutus_vasil_cost_models().get(Language.new_plutus_v1());
         //const costModels = Costmdls.new();
@@ -1223,31 +1236,36 @@ export default class App extends React.Component
 
 
         const baseAddress = BaseAddress.from_address(shelleyChangeAddress)
-        const requiredSigners = Ed25519KeyHashes.new();
         txBuilder.add_required_signer(baseAddress.payment_cred().to_keyhash())
 
 
         txBuilder.add_change_if_needed(shelleyChangeAddress)
 
+        console.log(callName + "count_missing_input_scripts: " + txBuilder.count_missing_input_scripts());
         console.log(callName + "get_fee_if_set: " + txBuilder.get_fee_if_set().to_str());
 
-        //const txBody = txBuilder.build();
 
         const tx = txBuilder.build_tx();
-        console.log(callName + "tx: " + tx.to_json());
+        console.log(callName + "build tx: " + tx.to_json());
         
         let txVkeyWitnesses = await this.API.signTx(Buffer.from(tx.to_bytes(), "utf8").toString("hex"), true);
         txVkeyWitnesses = TransactionWitnessSet.from_bytes(Buffer.from(txVkeyWitnesses, "hex"));
         console.log(callName + "txVkeyWitnesses 1: " + txVkeyWitnesses.to_json());
 
-        const transactionWitnessSet = TransactionWitnessSet.new();
-        transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
-        console.log(callName + "transactionWitnessSet 2: " + transactionWitnessSet.to_json());
+        const witnessSet = tx.witness_set();
+        witnessSet.set_vkeys(txVkeyWitnesses.vkeys());
+        console.log(callName + "witnessSet 1: " + witnessSet.to_json());
+        console.log(callName + "witnessSet 2: " + witnessSet.to_bytes().length);
+
+        //const newFee = tx.get_fee_if_set()+witnessSet.to_bytes().length*this.protocolParams.linearFee.minFeeA;
+
 
         const signedTx = Transaction.new(
             tx.body(),
-            transactionWitnessSet
+            witnessSet
         );
+
+        console.log(callName + "submit tx: " + signedTx.to_json());
         const submittedTxHash = await this.API.submitTx(Buffer.from(signedTx.to_bytes(), "utf8").toString("hex"));
         console.log(callName + " submittedTxHash: " + submittedTxHash)
         this.setState({submittedTxHash});
