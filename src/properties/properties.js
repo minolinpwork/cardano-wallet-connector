@@ -1,5 +1,5 @@
 export const properties = {
-    beUrl: 'https://be-dot-cardano-gamble.uc.r.appspot.com/',
+    beUrl: 'http://localhost:8080/',
     
     blockfrostAPIKey: "preprodHLwITFVjCypu0X5VcEUui8wusVWplOIy",
     blockfrostURL: "https://cardano-preprod.blockfrost.io/api/v0/",
@@ -13,6 +13,10 @@ export const properties = {
     scriptMem: 800000,
 //    scriptStep: 117940941,
     scriptStep: 340000000,
+
+
+    blockfrostPageSize: 100,
+    blockfrostMaxPage: 10,
 
 
     

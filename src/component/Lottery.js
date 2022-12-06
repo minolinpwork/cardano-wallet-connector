@@ -76,10 +76,12 @@ class LottoNumbers extends React.Component {
 }
 
 export class Lottery {
-    constructor(name, maxNo, maxChoices, amount, cost) {
+    constructor(name, maxNo, maxChoices, amount, cost, creatorAddr, roiAddr) {
         this.utxo = "";
         this.sha256 = "";
         this.dataHash = "";
+        this.creatorAddr = creatorAddr;
+        this.roiAddr = roiAddr;
         this.utxos = [];
         this.name = name;
         this.maxNo = maxNo;
@@ -88,8 +90,8 @@ export class Lottery {
         this.cost = cost;
         this.choices = new Array(maxNo+1).fill(false);
     }
-    static restore(utxo, sha256, selected, name, maxNo, maxChoices, amount, cost, dataHash, utxos) {
-        let lottery = new Lottery(name, maxNo, maxChoices, amount, cost);
+    static restore(utxo, sha256, selected, name, maxNo, maxChoices, amount, cost, dataHash, utxos, creatorAddr, roiAddr) {
+        let lottery = new Lottery(name, maxNo, maxChoices, amount, cost, creatorAddr, roiAddr);
         lottery.utxo = utxo;
         lottery.sha256 = sha256;
         lottery.dataHash = dataHash;
@@ -138,7 +140,7 @@ export class Lottery {
     }
 
     clone() {
-        return Lottery.restore(this.utxo, this.sha256, this.selected(), this.name, this.maxNo, this.maxChoices, this.amount, this.cost, this.dataHash, this.utxos)
+        return Lottery.restore(this.utxo, this.sha256, this.selected(), this.name, this.maxNo, this.maxChoices, this.amount, this.cost, this.dataHash, this.utxos, this.creatorAddr, this.roiAddr)
     }
 }
 

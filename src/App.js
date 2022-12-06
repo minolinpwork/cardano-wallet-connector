@@ -969,14 +969,18 @@ export default class App extends React.Component
         await this.refreshBeforeSubmit();
 
         const txBuilder = await this.initTransactionBuilder();
-        const ScriptAddress = Address.from_bech32(this.state.addressScriptBech32);
         const shelleyChangeAddress = Address.from_bech32(this.state.changeAddress)
-        const shelleyOutputAddress = Address.from_bech32(properties.profitAddress);
+        const profitAddr = Address.from_bech32(properties.profitAddress);
+        const roiAddr = Address.from_bech32(this.state.selectedLottery.roiAddr);
 
         const totalAmount = this.state.lovelaceToSend*1000000
         const profit = properties.profitAmount
-        const scriptAmount = totalAmount-profit;
+        const roiAmount = totalAmount-profit;
+        console.log("buildSendAdaFailed profitAmount: " + profit + ", profitAddr: " + profitAddr.to_bech32())
+        console.log("buildSendAdaFailed roiAmount: " + roiAmount + ", roiAddr: " + roiAddr.to_bech32())
 
+        /*
+        const ScriptAddress = Address.from_bech32(this.state.addressScriptBech32);
         let txOutputBuilder = TransactionOutputBuilder.new();
         txOutputBuilder = txOutputBuilder.with_address(ScriptAddress);
         let datumFromJson=this.createStringDatum_hex_to_hex(this.state.datumStr, "buildSendAdaFailed")
@@ -989,14 +993,20 @@ export default class App extends React.Component
         const txOutput = txOutputBuilder.build();
 
         txBuilder.add_output(txOutput)
+        */
 
         txBuilder.add_output(
             TransactionOutput.new(
-                shelleyOutputAddress,
+                profitAddr,
                 Value.new(BigNum.from_str(profit.toString()))
             ),
         );
-
+        txBuilder.add_output(
+            TransactionOutput.new(
+                roiAddr,
+                Value.new(BigNum.from_str(roiAmount.toString()))
+            ),
+        );
         // Find the available UTXOs in the wallet and
         // us them as Inputs
         const txUnspentOutputs = await this.getTxUnspentOutputs();
@@ -1028,7 +1038,7 @@ export default class App extends React.Component
         );
 
         const submittedTxHash = await this.API.submitTx(Buffer.from(signedTx.to_bytes(), "utf8").toString("hex"));
-        console.log("buildSendAdaToPlutusScript submittedTxHash: " + submittedTxHash)
+        console.log("buildSendAdaFailed submittedTxHash: " + submittedTxHash)
         this.setState({submittedTxHash: submittedTxHash, transactionIdLocked: submittedTxHash, lovelaceLocked: this.state.lovelaceToSend});
 
         return submittedTxHash;
@@ -1257,6 +1267,8 @@ export default class App extends React.Component
             txBody,
             TransactionWitnessSet.from_bytes(transactionWitnessSet.to_bytes())
         )
+
+        console.log(callName + "tx: " + tx.to_json());
 
         let txVkeyWitnesses = await this.API.signTx(Buffer.from(tx.to_bytes(), "utf8").toString("hex"), true);
         txVkeyWitnesses = TransactionWitnessSet.from_bytes(Buffer.from(txVkeyWitnesses, "hex"));
@@ -1560,59 +1572,74 @@ export default class App extends React.Component
         var utxos = new Map();
         var utxosByDataHash = new Map();
 
-        const url = properties.blockfrostURL+'addresses/'+properties.addressScriptBech32+'/utxos?count=100&page=1&order=asc';
-        var config = {
-            method: 'get',
-            url: url,
-            headers: { 
-              'Accept': 'application/json', 
-              'project_id': properties.blockfrostAPIKey,
-            }
-          };
-          
-          await axios(config)
-          .then(function (response) {
-            //console.log(callName + ": " + JSON.stringify(response.data));
-            response.data.forEach(function (utxo, index) {
-                //console.log(callName + ": utxo: " + utxo.amount[0].quantity); 
-                //console.log(callName + ": utxo.tx_hash: " + utxo.tx_hash); 
-                //console.log(callName + ": utxo.tx_index: " + utxo.tx_index); 
-                const lovelace = utxo.amount.filter(amt => amt.unit == 'lovelace').map(amt => amt.quantity).reduce((a, b) => a+b);
-                //console.log(callName + ": utxo.amt: " + lovelace); 
-                const myUtxo = {
-                    tx_hash: utxo.tx_hash,
-                    tx_index: utxo.tx_index,
-                    data_hash: utxo.data_hash,
-                    amount: lovelace,
-                }
-                const myUtxoArr = {
-                    tx_hash: utxo.tx_hash,
-                    tx_index: utxo.tx_index,
-                    data_hash: utxo.data_hash,
-                    amount: lovelace,
-                    utxos: [],
-                }
-                utxos.set(utxo.tx_hash, myUtxoArr);
+        var page = 0;
+        var doNext = true;
 
-                if (utxosByDataHash.has(myUtxo.data_hash)) {
-                    utxosByDataHash.get(myUtxo.data_hash).push(myUtxo);
-                } else {
-                    utxosByDataHash.set(myUtxo.data_hash, [myUtxo])
-                }
+        while (doNext && page < properties.blockfrostMaxPage) {
+            page++;
+            doNext=false;
+
+            const url = properties.blockfrostURL+'addresses/'+properties.addressScriptBech32+'/utxos';
+            var config = {
+                method: 'get',
+                url: url,
+                headers: { 
+                'Accept': 'application/json', 
+                'project_id': properties.blockfrostAPIKey,
+                },
+                params: {
+                    count: properties.blockfrostPageSize,
+                    page: page,
+                    order: "asc",
+                },
+            };
+
+            await axios(config)
+            .then(function (response) {
+                doNext = response.status===200 && response.data.length===properties.blockfrostPageSize;
+                console.log(callName + ": page: " + page + ", response.data.length: " + response.data.length);
+                //console.log(callName + ": " + JSON.stringify(response.data));
+                response.data.forEach(function (utxo, index) {
+                    //console.log(callName + ": utxo: " + utxo.amount[0].quantity); 
+                    //console.log(callName + ": utxo.tx_hash: " + utxo.tx_hash); 
+                    //console.log(callName + ": utxo.tx_index: " + utxo.tx_index); 
+                    const lovelace = utxo.amount.filter(amt => amt.unit == 'lovelace').map(amt => amt.quantity).reduce((a, b) => a+b);
+                    //console.log(callName + ": utxo.amt: " + lovelace); 
+                    const myUtxo = {
+                        tx_hash: utxo.tx_hash,
+                        tx_index: utxo.tx_index,
+                        data_hash: utxo.data_hash,
+                        amount: lovelace,
+                    }
+                    const myUtxoArr = {
+                        tx_hash: utxo.tx_hash,
+                        tx_index: utxo.tx_index,
+                        data_hash: utxo.data_hash,
+                        amount: lovelace,
+                        utxos: [],
+                    }
+                    utxos.set(utxo.tx_hash, myUtxoArr);
+
+                    if (utxosByDataHash.has(myUtxo.data_hash)) {
+                        utxosByDataHash.get(myUtxo.data_hash).push(myUtxo);
+                    } else {
+                        utxosByDataHash.set(myUtxo.data_hash, [myUtxo])
+                    }
+                });
+                //console.log(callName + ": " + JSON.stringify(Array.from(utxos.entries())));
+                console.log(callName + ": utxo size: " + utxos.size);
+            })
+            .catch(function (error) {
+                console.log(callName + " error: " + error);
+            });        
+
+            utxos.forEach(function (utxo, tx_hash) {
+                utxo.utxos = utxosByDataHash.get(utxo.data_hash);
+                utxo.amount = utxo.utxos.map(v => Number(v.amount)).reduce((a, b) => a+b);
+                console.log(callName + ": " + utxo.amount);
             });
-            //console.log(callName + ": " + JSON.stringify(Array.from(utxos.entries())));
-            console.log(callName + ": size: " + utxos.size);
-          })
-          .catch(function (error) {
-            console.log(callName + " error: " + error);
-          });        
 
-          utxos.forEach(function (utxo, tx_hash) {
-            utxo.utxos = utxosByDataHash.get(utxo.data_hash);
-            utxo.amount = utxo.utxos.map(v => Number(v.amount)).reduce((a, b) => a+b);
-            console.log(callName + ": " + utxo.amount);
-        });
-
+        }
           console.log(callName + " end");
           return utxos;
       }
@@ -1673,6 +1700,8 @@ export default class App extends React.Component
                 amount: selectedLottery.amount,
                 cost: selectedLottery.cost,
                 dataHash: selectedLottery.dataHash,
+                creatorAddr: selectedLottery.creatorAddr,
+                roiAddr: selectedLottery.roiAddr,
             }
           };
 
@@ -1703,7 +1732,8 @@ export default class App extends React.Component
                 let lottery = Lottery.restore(
                     utxo, dbUtxo.sha256, dbUtxo.selected, 
                     dbUtxo.name, dbUtxo.maxNo, dbUtxo.maxChoices,
-                    adaUtxo.amount/1000000, dbUtxo.cost, dbUtxo.dataHash, adaUtxo.utxos,
+                    adaUtxo.amount/1000000, dbUtxo.cost, dbUtxo.dataHash, adaUtxo.utxos, 
+                    dbUtxo.creatorAddr, dbUtxo.roiAddr,
                 )
                 lotteries.push(lottery);
                 //console.log(callName + ": lottery: " + JSON.stringify(lottery));
@@ -1740,6 +1770,8 @@ export default class App extends React.Component
 
         selectedLottery.utxo = result.submittedTxHash;
         selectedLottery.dataHash = result.dataHash;
+        selectedLottery.creatorAddr = this.state.rewardAddress;
+        selectedLottery.roiAddr = this.state.changeAddress;
         await this.axoisStoreDB();
 
         const createNewLottery = false;
