@@ -70,6 +70,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import Stack from '@mui/material/Stack';
 
 import Alert from '@mui/material/Alert';
+import Divider from '@mui/material/Divider';
 import axios from 'axios';
 
 import { properties } from './properties/properties.js'
@@ -79,7 +80,6 @@ import NewLottery from './component/NewLottery'
 
 
 import { sha256 } from 'js-sha256';
-import { RampLeft } from '@mui/icons-material';
 
 let blake = require('blakejs')
 let Buffer = require('buffer/').Buffer
@@ -1556,7 +1556,6 @@ export default class App extends React.Component
                     &&
                 <Grid item xs={12} md={6}>
                     <LottoView lottery={selectedLottery}></LottoView>
-                    <br></br><br></br>
                     {(youWonAlert) && <Alert severity="success">Wow!! You Won!</Alert>}
                     {(youLostAlert) && <Alert severity="info">Sorry!  Try again...</Alert>}
                     {(winningNumbersAlert) && <Alert severity="error">Please choose your {maxChoices} winning numbers</Alert>}

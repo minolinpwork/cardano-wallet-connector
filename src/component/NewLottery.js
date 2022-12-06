@@ -55,7 +55,7 @@ export default class NewLottery extends React.Component {
 
 
       <Typography id="maxNo-slider" gutterBottom mt={5} mb={4}>
-        Numbers Available - From 1 to 99
+        Range of numbers available - from 1 to 99
       </Typography>
       <Slider 
         min={1}
@@ -70,7 +70,7 @@ export default class NewLottery extends React.Component {
 
 
       <Typography id="maxChoices-slider" gutterBottom mt={5} mb={4}>
-        Choices - From 1 to 7
+        How many numbers to choose - From 1 to 7
       </Typography>
       <Slider
         min={1}
@@ -99,7 +99,7 @@ export default class NewLottery extends React.Component {
         Cost to Play ADA - From 3 to ...
       </Typography>
       <Slider
-        min={5}
+        min={3}
         max={100}
         step={1}
         defaultValue={3}

@@ -33,7 +33,6 @@ export default class BasicTable extends React.Component {
                     <TableCell align="right">Prize</TableCell>
                     <TableCell align="right">Cost</TableCell>
                     <TableCell align="right">Winning Nos</TableCell>
-                    <TableCell align="right">Players</TableCell>
                 </TableRow>
                 </TableHead>
                 <TableBody>
@@ -49,7 +48,6 @@ export default class BasicTable extends React.Component {
                     <TableCell align="right">{row.amount}</TableCell>
                     <TableCell align="right">{row.cost}</TableCell>
                     <TableCell align="right">{row.selected().toString()}</TableCell>
-                    <TableCell align="right">{row.utxos.length-1}</TableCell>
                     </TableRow>
                 ))}
                 </TableBody>

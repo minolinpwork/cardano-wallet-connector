@@ -194,8 +194,7 @@ export default class LottoView extends React.Component {
 
         return (
 
-            <div>
-
+            <Grid item xs={12} md={12} sx={{mt:2, mb: 4}}>
                 <Typography variant="h4" gutterBottom>
                     Name of Lottery: {name}
                 </Typography>                
@@ -218,7 +217,7 @@ export default class LottoView extends React.Component {
                 </Typography>
                 <div>{chosen}</div>
 
-            </div>
+            </Grid>
         );
     }
 }
