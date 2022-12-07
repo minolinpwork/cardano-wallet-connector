@@ -70,6 +70,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import Collapse from '@mui/material/Collapse';
 import Grid from '@mui/material/Unstable_Grid2';
 import Stack from '@mui/material/Stack';
+import LinearProgress from '@mui/material/LinearProgress';
 
 import Alert from '@mui/material/Alert';
 import Divider from '@mui/material/Divider';
@@ -169,6 +170,8 @@ export default class App extends React.Component
             nameRequiredAlert: false,
             newLotteryCreatedAlert: false,
 
+            showWorking: true,
+
 
 /**            
             selectedTabId: "5",
@@ -247,7 +250,9 @@ export default class App extends React.Component
             wallets,
             whichWalletSelected: wallets[0]
         }, () => {
-            this.refreshData()
+            this.refreshData().then(() => {
+                this.setState({showWorking: false})
+            })
         });
     }
 
@@ -897,6 +902,7 @@ export default class App extends React.Component
 
 
     buildRedeemAdaFromPlutusScript = async () => {
+        this.setState({showWorking: true})
         await this.refreshBeforeSubmit();
 
         //this.state.datumStr = this.state.datumStr.toUpperCase();
@@ -1085,175 +1091,9 @@ export default class App extends React.Component
         console.log(callName + " submittedTxHash: " + submittedTxHash)
         this.setState({submittedTxHash});
 
+        this.setState({showWorking: false})
         return submittedTxHash;    
     }
-
-
-    buildRedeemAdaFromPlutusScript2 = async () => {
-        await this.refreshBeforeSubmit();
-
-        //this.state.datumStr = this.state.datumStr.toUpperCase();
-
-        const selectedLottery = this.state.selectedLottery;
-
-        const callName = "buildRedeemAdaFromPlutusScript: ";
-        console.log(callName + "this.state.addressScriptBech32: " + this.state.addressScriptBech32);
-        console.log(callName + "this.state.changeAddress: " + this.state.changeAddress);
-        console.log(callName + "this.state.transactionIdLocked: " + this.state.transactionIdLocked);
-        console.log(callName + "this.state.transactionIndxLocked: " + this.state.transactionIndxLocked);
-        console.log(callName + "this.state.datumStr: " + this.state.datumStr);
-        console.log(callName + "this.state.redeemStr: " + this.state.redeemStr);
-        console.log(callName + "this.state.lovelaceLocked: " + this.state.lovelaceLocked);
-
-        const txBuilder = await this.initTransactionBuilder();
-        const ScriptAddress = Address.from_bech32(this.state.addressScriptBech32);
-        const shelleyChangeAddress = Address.from_bech32(this.state.changeAddress)
-        //const amountToRedeem = this.state.lovelaceLocked*1000000
-
-        const noOfUtxos = selectedLottery.utxos.length;
-        console.log(callName + "noOfUtxos: " + noOfUtxos);
-
-        selectedLottery.utxos.forEach(function (utxo, ind) {
-            const hash = utxo.tx_hash
-            const hashInd = utxo.tx_index
-            const amount = utxo.amount
-            console.log(callName + " " + hash + " " + hashInd + " " + amount);
-            txBuilder.add_input(
-                ScriptAddress,
-                TransactionInput.new(
-                    TransactionHash.from_bytes(Buffer.from(hash, "hex")),
-                    hashInd.toString()),
-                Value.new(BigNum.from_str(amount.toString()))) // how much lovelace is at that UTXO
-        });
-
-        const scriptFee = Number(properties.scriptBaseFee+properties.scriptFeeExtra*noOfUtxos);
-        //const scriptFee = Number(properties.scriptFee);
-        console.log(callName + " scriptFee: " + scriptFee);
-
-        txBuilder.set_fee(BigNum.from_str(scriptFee.toString()))
-
-        const scripts = PlutusScripts.new();
-        scripts.add(PlutusScript.from_bytes(Buffer.from(this.state.plutusScriptCborHex, "hex"))); //from cbor of plutus script
-
-        // Add outputs
-        const outputVal = (Number(selectedLottery.amount)*1000000) - scriptFee
-        console.log(callName + " outputVal: " + outputVal);
-        const outputValStr = outputVal.toString();
-        console.log(callName + "outputValStr: " + outputValStr);
-        txBuilder.add_output(TransactionOutput.new(shelleyChangeAddress, Value.new(BigNum.from_str(outputValStr))))
-
-
-        // once the transaction is ready, we build it to get the tx body without witnesses
-        const txBody = txBuilder.build();
-
-        const collateral = this.state.CollatUtxos;
-        const inputs = TransactionInputs.new();
-        collateral.forEach((utxo) => {
-            inputs.add(utxo.input());
-        });
-
-        let datums = PlutusList.new();
-        // datums.add(PlutusData.from_bytes(Buffer.from(this.state.datumStr, "utf8")))
-        //datums.add(PlutusData.new_integer(BigInt.from_str(this.state.datumStr)))
-        let datumFromJson=this.createStringDatum_hex_to_hex(this.state.datumStr, "buildRedeemAdaFromPlutusScript datum")
-        for (let i = 0; i <noOfUtxos; i++) {
-            datums.add(datumFromJson)
-        }
-
-        const redeemers = Redeemers.new();
-
-        //let dataStr="{\"fields\":[],\"constructor\":0}"
-        let redeemerFromJson=this.createStringDatum_utf_to_hex(this.state.redeemStr, "buildRedeemAdaFromPlutusScript redeem")
-/**
-        const data = PlutusData.new_constr_plutus_data(
-            ConstrPlutusData.new(
-                BigNum.from_str("0"),
-                PlutusList.new()
-            )
-        );
-*/
-
-        for (let i = 0; i <noOfUtxos; i++) {
-            let ex = ExUnits.new(
-                BigNum.from_str(properties.scriptMem.toString()),
-                BigNum.from_str(properties.scriptStep.toString())
-            )
-            redeemers.add(
-                Redeemer.new(
-                    RedeemerTag.new_spend(),
-                    BigNum.from_str(i.toString()),
-                    redeemerFromJson,
-                    ex
-                )
-            );
-        }     
-
-        // Tx witness
-        const transactionWitnessSet = TransactionWitnessSet.new();
-
-        transactionWitnessSet.set_plutus_scripts(scripts)
-        transactionWitnessSet.set_plutus_data(datums)
-        transactionWitnessSet.set_redeemers(redeemers)
-
-        ///////////////////
-        const cost_model_vals = [
-            205665, 812, 1, 1, 1000, 571, 0, 1, 1000, 24177, 4, 1, 1000, 32, 117366,
-            10475, 4, 23000, 100, 23000, 100, 23000, 100, 23000, 100, 23000, 100, 23000,
-            100, 100, 100, 23000, 100, 19537, 32, 175354, 32, 46417, 4, 221973, 511, 0, 1,
-            89141, 32, 497525, 14068, 4, 2, 196500, 453240, 220, 0, 1, 1, 1000, 28662, 4,
-            2, 245000, 216773, 62, 1, 1060367, 12586, 1, 208512, 421, 1, 187000, 1000,
-            52998, 1, 80436, 32, 43249, 32, 1000, 32, 80556, 1, 57667, 4, 1000, 10,
-            197145, 156, 1, 197145, 156, 1, 204924, 473, 1, 208896, 511, 1, 52467, 32,
-            64832, 32, 65493, 32, 22558, 32, 16563, 32, 76511, 32, 196500, 453240, 220, 0,
-            1, 1, 69522, 11687, 0, 1, 60091, 32, 196500, 453240, 220, 0, 1, 1, 196500,
-            453240, 220, 0, 1, 1, 806990, 30482, 4, 1927926, 82523, 4, 265318, 0, 4, 0,
-            85931, 32, 205665, 812, 1, 1, 41182, 32, 212342, 32, 31220, 32, 32696, 32,
-            43357, 32, 32247, 32, 38314, 32, 9462713, 1021, 10,
-        ];
-
-        const costModel = CostModel.new();
-        cost_model_vals.forEach((x, i) => costModel.set(i, Int.new_i32(x)));
-
-
-        const costModels = Costmdls.new();
-        costModels.insert(Language.new_plutus_v1(), costModel);
-        /////////////////////
-        //const scriptDataHash = hash_script_data(redeemers, costModels, datums);
-        const scriptDataHash = hash_script_data(redeemers, TxBuilderConstants.plutus_vasil_cost_models(), datums);
-        txBody.set_script_data_hash(scriptDataHash);
-
-        txBody.set_collateral(inputs)
-
-
-        const baseAddress = BaseAddress.from_address(shelleyChangeAddress)
-        const requiredSigners = Ed25519KeyHashes.new();
-        requiredSigners.add(baseAddress.payment_cred().to_keyhash())
-
-        txBody.set_required_signers(requiredSigners);
-
-        const tx = Transaction.new(
-            txBody,
-            TransactionWitnessSet.from_bytes(transactionWitnessSet.to_bytes())
-        )
-        console.log(callName + "tx: " + tx.to_json());
-
-        let txVkeyWitnesses = await this.API.signTx(Buffer.from(tx.to_bytes(), "utf8").toString("hex"), true);
-        txVkeyWitnesses = TransactionWitnessSet.from_bytes(Buffer.from(txVkeyWitnesses, "hex"));
-
-        transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
-
-        const signedTx = Transaction.new(
-            tx.body(),
-            transactionWitnessSet
-        );
-
-        const submittedTxHash = await this.API.submitTx(Buffer.from(signedTx.to_bytes(), "utf8").toString("hex"));
-        console.log(callName + " submittedTxHash: " + submittedTxHash)
-        this.setState({submittedTxHash});
-
-        return submittedTxHash;    
-    }
-
 
     async componentDidMount() {
         this.pollWallets();
@@ -1558,16 +1398,18 @@ export default class App extends React.Component
       }
 
       handleClickCreateNewLottery = async () => {
-
+        this.setState({showWorking: true})
         const selectedLottery = this.state.selectedLottery;
 
 
         if (selectedLottery.name.length==0) {
             this.showNameRequireAlert();     
+            this.setState({showWorking: false})
             return ;
         }
         if (!selectedLottery.isValidChoices()) {
             this.showWinningNumbersAlert();     
+            this.setState({showWorking: false})
             return ;   
         }
 
@@ -1597,6 +1439,7 @@ export default class App extends React.Component
 
         //this.refreshData();
 
+        this.setState({showWorking: false})
         console.log("handleClickCreateNewLottery done");
       };
 
@@ -1636,6 +1479,7 @@ export default class App extends React.Component
       };      
 
       handleClickPlay = async () => {
+        this.setState({showWorking: true})
         const callName = "handleClickPlay";
 
         const selectedLottery = this.state.selectedLottery;
@@ -1683,6 +1527,7 @@ export default class App extends React.Component
             console.log(err.stack)
             console.log(callName + ": error: " + err)
         }
+        this.setState({showWorking: false})
         //this.refreshData();        
       };
 
@@ -1739,6 +1584,7 @@ export default class App extends React.Component
         const nameRequiredAlert = this.state.nameRequiredAlert;
         const maxChoices = this.state.selectedLottery?.maxChoices;
         const cost = this.state.selectedLottery?.cost;
+        const working = !this.state.balance || this.state.showWorking;
         //console.log("App.js: maxNo" + lottery1.maxNo)
         //console.log("App.js: maxChoices" + lottery1.maxChoices)
         //console.log("App.js: choices" + lottery1.choices)
@@ -1759,7 +1605,7 @@ export default class App extends React.Component
                     <br></br>
                     <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
                         <Button variant="contained" onClick={this.handleLoadLotteries}>Reload List</Button>
-                        <Button variant="contained" onClick={this.handleClickNewLottery} disabled={!this.state.balance}>Create new Lottery</Button>
+                        <Button variant="contained" onClick={this.handleClickNewLottery} disabled={working}>Create new Lottery</Button>
                     </Stack>
                     {(newLotteryCreatedAlert) && <Alert severity="info">New lottery created - please Reload to see it appear</Alert>}
                 </Grid>
@@ -1788,13 +1634,16 @@ export default class App extends React.Component
                     {(youLostAlert) && <Alert severity="info">Sorry!  Try again...</Alert>}
                     {(winningNumbersAlert) && <Alert severity="error">Please choose your {maxChoices} winning numbers</Alert>}
                     {(createNewLottery && nameRequiredAlert) && <Alert severity="error">Please enter a name for this lottery</Alert>}
-                    {(!createNewLottery) && <Button variant="contained" onClick={this.handleClickPlay} disabled={!this.state.balance}>Play {cost}ADA</Button>}
+
+                    {(working) &&  <LinearProgress  sx={{mb: 2}} />}
+
+                    {(!createNewLottery) && <Button variant="contained" onClick={this.handleClickPlay} disabled={working}>Play</Button>}
 
                     {(createNewLottery)
                     &&
                     <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
                         <Button variant="contained" onClick={this.handleCancelNewLottery}>Cancel</Button>
-                        <Button variant="contained" onClick={this.handleClickCreateNewLottery}>Create new Lottery</Button>
+                        <Button variant="contained" onClick={this.handleClickCreateNewLottery} disabled={working}>Create new Lottery</Button>
                     </Stack>
                     } 
                 </Grid>
