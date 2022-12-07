@@ -775,7 +775,7 @@ export default class App extends React.Component
         )
         console.log(name + "transactionWitnessSet: " + transactionWitnessSet.to_json());
 
-        await this.API.signTx(Buffer.from(tx.to_bytes(), "utf8").toString("hex"), true)
+        const result = await this.API.signTx(Buffer.from(tx.to_bytes(), "utf8").toString("hex"), true)
         .then((txVkeyWitnessesRes) => {
             const txVkeyWitnesses = TransactionWitnessSet.from_bytes(Buffer.from(txVkeyWitnessesRes, "hex"));
 
@@ -785,16 +785,16 @@ export default class App extends React.Component
                 tx.body(),
                 transactionWitnessSet
             );
-    
-            this.API.submitTx(Buffer.from(signedTx.to_bytes(), "utf8").toString("hex"))
-            .then((submittedTxHash) => {
-                console.log(name + " submittedTxHash: " + submittedTxHash)
-                this.setState({submittedTxHash: submittedTxHash, transactionIdLocked: submittedTxHash, lovelaceLocked: this.state.lovelaceToSend});
-                return { submittedTxHash: submittedTxHash, dataHash: dataHash.to_hex() };
-            });
+
+            return this.API.submitTx(Buffer.from(signedTx.to_bytes(), "utf8").toString("hex"));
         })
-
-
+        .then((submittedTxHash) => {
+            console.log(name + " submittedTxHash: " + submittedTxHash)
+            this.setState({submittedTxHash: submittedTxHash, transactionIdLocked: submittedTxHash, lovelaceLocked: this.state.lovelaceToSend});
+            return { submittedTxHash: submittedTxHash, dataHash: dataHash.to_hex() };
+        })
+    
+        return result;
     }
 
 
@@ -1453,7 +1453,7 @@ export default class App extends React.Component
 
         //this.refreshData();
 
-        this.setState({showWorking: false})
+        this.setState({showWorking: false, selectedLottery: this.state.lotteries[0]})
         console.log(name + " end");
     };
 
@@ -1545,6 +1545,7 @@ export default class App extends React.Component
                 }
             }
         } catch (err) {
+            this.showErrorAlert();
             console.log(err.stack)
             console.log(callName + ": error: " + err)
         }
@@ -1629,7 +1630,6 @@ export default class App extends React.Component
                         <Button variant="contained" onClick={this.handleLoadLotteries} disabled={working}>Reload List</Button>
                         <Button variant="contained" onClick={this.handleClickNewLottery} disabled={working}>Create new Lottery</Button>
                     </Stack>
-                    {(newLotteryCreatedAlert) && <Alert severity="info">New lottery created - please Reload to see it appear</Alert>}
                 </Grid>
                 }
                 {(createNewLottery)
@@ -1652,9 +1652,10 @@ export default class App extends React.Component
                     &&
                 <Grid item xs={12} md={6}>
                     <LottoView lottery={selectedLottery}></LottoView>
-                    {(errorAlert) && <Alert severity="info">Oops.  An error occurred.  Please refresh page and try again.</Alert>}
+                    {(errorAlert) && <Alert severity="error">Oops.  An error occurred.  Please refresh page and try again.</Alert>}
                     {(youWonAlert) && <Alert severity="success">Wow!! You Won!</Alert>}
                     {(youLostAlert) && <Alert severity="info">Sorry!  Try again...</Alert>}
+                    {(newLotteryCreatedAlert) && <Alert severity="info">New lottery created - please Reload to see it appear</Alert>}
                     {(winningNumbersAlert) && <Alert severity="error">Please choose your {maxChoices} winning numbers</Alert>}
                     {(createNewLottery && nameRequiredAlert) && <Alert severity="error">Please enter a name for this lottery</Alert>}
 
