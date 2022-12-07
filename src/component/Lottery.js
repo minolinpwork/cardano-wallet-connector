@@ -7,6 +7,8 @@ import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import Link from '@mui/material/Link';
+
 import { sha256 } from 'js-sha256';
 import { properties } from '../properties/properties.js'
 
@@ -174,6 +176,7 @@ export default class LottoView extends React.Component {
         const maxChoices = this.props.lottery?.maxChoices;
         const amount = this.props.lottery?.amount;
         const cost = this.props.lottery?.cost;
+        const link = window.location.origin+window.location.pathname+"?name="+name;
 
         //console.log("render choices: " + choices)
 
@@ -198,16 +201,20 @@ export default class LottoView extends React.Component {
         return (
 
             <Grid item xs={12} md={12} sx={{mt:2, mb: 4}}>
-                <Typography variant="h4" gutterBottom>
+                <Typography variant="h5" gutterBottom>
                     Name of Lottery: {name}
                 </Typography>                
-                <Typography variant="h4" gutterBottom>
+                <Typography variant="h5" gutterBottom>
                     Prize: {amount} ADA
                 </Typography>
-                <Typography variant="h4" gutterBottom>
+                <Typography variant="h5">
                     Cost to play: {cost} ADA
                 </Typography>
-                <Typography variant="h4" gutterBottom>
+
+                <Link href={link} variant="body2" sx={{mt: 1}}>
+                    Link to this lottery
+                </Link>
+                <Typography variant="h4" gutterBottom sx={{mt: 3, mb: 2}}>
                     Pick your {maxChoices} lucky numbers:
                 </Typography>
                 <LottoNumbers
@@ -215,7 +222,7 @@ export default class LottoView extends React.Component {
                     onClick={(i) => this.handleClick(i)}
                     />
                 <br></br>
-                <Typography variant="h4" gutterBottom>
+                <Typography variant="h4" gutterBottom  sx={{mt: 2}}>
                     Your {maxChoices} chosen numbers:
                 </Typography>
                 <div>{chosen}</div>

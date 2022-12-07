@@ -93,6 +93,7 @@ export default class App extends React.Component
     constructor(props)
     {
         super(props);
+        const queryParameters = new URLSearchParams(window.location.search)
 
         //const lotteriesX = this.createLotteries();
         //let newLottery = new Lottery("Bingo"+Date.now(), 5, 1);
@@ -168,10 +169,13 @@ export default class App extends React.Component
             youWonAlert: false,
             youLostAlert: false,
             nameRequiredAlert: false,
+            nameExistsAlert: false,
             errorAlert: false,
             newLotteryCreatedAlert: false,
 
             showWorking: true,
+
+            lottoName: queryParameters.get("name"),
 
 
 /**            
@@ -220,6 +224,7 @@ export default class App extends React.Component
             coinsPerUtxoWord: "34482",
         }
 
+        console.log("constructor: lottoName: " + this.state.lottoName);
         this.pollWallets = this.pollWallets.bind(this);
     }
 
@@ -966,58 +971,8 @@ export default class App extends React.Component
                     hashInd.toString()),
                 Value.new(BigNum.from_str(amount.toString()))
             )
-                /*
-            inputs.add_input(
-                ScriptAddress,
-                TransactionInput.new(
-                    TransactionHash.from_bytes(Buffer.from(hash, "hex")),
-                    hashInd.toString()),
-                Value.new(BigNum.from_str(amount.toString()))
-            )
-    
-            /*if (ind==0) {
-
-
-                //datums.add(datumFromJson)
-                //redeemers.add(redeemer);
-
-                txBuilder.add_plutus_script_input(
-                        PlutusWitness.new(script, datumFromJson, redeemer),
-                        TransactionInput.new(
-                            TransactionHash.from_bytes(Buffer.from(hash, "hex")),
-                            hashInd.toString()),
-                        Value.new(BigNum.from_str(amount.toString()))
-                )
-
-                /*
-                inputs.add_input(
-                    ScriptAddress,
-                    TransactionInput.new(
-                        TransactionHash.from_bytes(Buffer.from(hash, "hex")),
-                        hashInd.toString()),
-                    Value.new(BigNum.from_str(amount.toString()))
-                )
-
-                witnesses.add(PlutusWitness.new(script, datumFromJson, redeemer));
-                /*} else {
-                datums.add(datumFromJson)
-
-               
-            } */
-            //console.log(callName + "build tx unsafe: " + txBuilder.build_tx_unsafe().to_json());
-                    
         }, this);
 
-
-        //inputs.add_required_plutus_input_scripts(witnesses);
-
-        /*txBuilder.set_inputs(inputs);
-        console.log(callName + "count_missing_input_scripts: before: " + txBuilder.build_tx().to_json());
-
-        txBuilder.add_required_plutus_input_scripts(PlutusWitness.new(script, datumFromJson, redeemer));
-
-        console.log(callName + "count_missing_input_scripts: after: " + txBuilder.build_tx().to_json());
-*/
         var step = 1;
         console.log(callName + " step " + step++);
 
@@ -1034,39 +989,18 @@ export default class App extends React.Component
         });
         txBuilder.set_collateral(collateralI);
 
-        console.log(callName + " step " + step++);
-
-        //const costModel = TxBuilderConstants.plutus_vasil_cost_models().get(Language.new_plutus_v1());
-        //const costModels = Costmdls.new();
-        //costModels.insert(Language.new_plutus_v1(), costModel);
         txBuilder.calc_script_data_hash(TxBuilderConstants.plutus_vasil_cost_models());
-
-        console.log(callName + " step " + step++);
 
         const baseAddress = BaseAddress.from_address(shelleyChangeAddress)
         txBuilder.add_required_signer(baseAddress.payment_cred().to_keyhash())
         
-
-        console.log(callName + " step " + step++);
         //console.log(callName + "build tx 1: " + txBuilder.build_tx().to_json());
         console.log(callName + "min fee: " + txBuilder.min_fee().to_str());
-
-        const vKeys = Vkeywitnesses.new();
-        //txBuilder.add_required_signer.get(vKeys);
-
-        /*
-        vKeys.add(Vkeywitness.new(Vkey.new(PublicKey.from_bech32(this.state.changeAddress)), Ed25519Signature.from_bech32(this.state.changeAddress)));
-        vKeys.add(Vkeywitness.new(Vkey.new(PublicKey.from_bech32(this.state.changeAddress)), Ed25519Signature.from_bech32(this.state.changeAddress)));
-        vKeys.add(Vkeywitness.new(Vkey.new(PublicKey.from_bech32(this.state.changeAddress)), Ed25519Signature.from_bech32(this.state.changeAddress)));
-*/
-//console.log(callName + "build txBody 2: " + txBuilder.build_tx_unsafe().to_js_value());
-//console.log(callName + "build tx 2: " + txBuilder.build_tx().to_json());
 
         txBuilder.add_change_if_needed(shelleyChangeAddress)
 
         console.log(callName + "count_missing_input_scripts: " + txBuilder.count_missing_input_scripts());
         console.log(callName + "get_fee_if_set: " + txBuilder.get_fee_if_set().to_str());
-
 
         const tx = txBuilder.build_tx();
         console.log(callName + "build tx 3: " + tx.to_json());
@@ -1076,16 +1010,8 @@ export default class App extends React.Component
         console.log(callName + "txVkeyWitnesses 1: " + txVkeyWitnesses.to_json());
 
         const vkeys = txVkeyWitnesses.vkeys();
-        console.log(callName + "vkeys 1: " + JSON.stringify(vkeys));
-        console.log(callName + "vkeys 2: " + JSON.parse(JSON.stringify(vkeys)));
-
         const witnessSet = tx.witness_set();
         witnessSet.set_vkeys(vkeys);
-        console.log(callName + "witnessSet 1: " + witnessSet.to_json());
-        console.log(callName + "witnessSet 2: " + witnessSet.to_bytes().length);
-
-        //const newFee = tx.get_fee_if_set()+witnessSet.to_bytes().length*this.protocolParams.linearFee.minFeeA;
-
 
         const signedTx = Transaction.new(
             tx.body(),
@@ -1399,8 +1325,21 @@ export default class App extends React.Component
         console.log(callName + ": " + JSON.stringify(lotteries));
         this.setState({lotteries});
         if (lotteries.length>0) {
-            this.setState({selectedLottery: lotteries[0].clone()});
+            let selectedLottery = lotteries[0];
+            if (this.state.lottoName) {
+                const lottoByName = this.getLottoByName(this.state.lottoName);
+                if (lottoByName) {
+                    selectedLottery = lottoByName;
+                } else {
+                    this.setState({lottoName: undefined})
+                }
+            }
+            this.setState({selectedLottery: selectedLottery.clone()});
         }
+      }
+
+      getLottoByName(name) {
+        return this.state.lotteries.find(o => o.name === name);
       }
 
       handleClickCreateNewLottery = async () => {
@@ -1409,16 +1348,22 @@ export default class App extends React.Component
         this.setState({showWorking: true})
         const selectedLottery = this.state.selectedLottery;
 
-
+        let valid = true;        
         if (selectedLottery.name.length==0) {
             this.showNameRequireAlert();     
-            this.setState({showWorking: false})
-            return ;
+            valid = false;
+        }
+        if (this.getLottoByName(selectedLottery.name)) {
+            this.showNameExistsAlert(); 
+            valid = false;
         }
         if (!selectedLottery.isValidChoices()) {
-            this.showWinningNumbersAlert();     
+            this.showWinningNumbersAlert();   
+            valid = false;   
+        }
+        if (!valid) {
             this.setState({showWorking: false})
-            return ;   
+            return ;  
         }
 
         selectedLottery.sha256 = selectedLottery.calcSha256();
@@ -1477,6 +1422,14 @@ export default class App extends React.Component
             this.setState({nameRequiredAlert: false});
         }, 5000);      
       };     
+
+      showNameExistsAlert = () => {
+        this.setState({nameExistsAlert: true});
+        setTimeout(() => {
+            this.setState({nameExistsAlert: false});
+        }, 5000);      
+      };     
+
 
       showWinningNumbersAlert = () => {
         this.setState({winningNumbersAlert: true});
@@ -1604,6 +1557,7 @@ export default class App extends React.Component
         const youLostAlert = this.state.youLostAlert;
         const newLotteryCreatedAlert = this.state.newLotteryCreatedAlert;
         const nameRequiredAlert = this.state.nameRequiredAlert;
+        const nameExistsAlert = this.state.nameExistsAlert;
         const errorAlert = this.state.errorAlert;
         const maxChoices = this.state.selectedLottery?.maxChoices;
         const cost = this.state.selectedLottery?.cost;
@@ -1658,6 +1612,7 @@ export default class App extends React.Component
                     {(newLotteryCreatedAlert) && <Alert severity="info">New lottery created - please Reload to see it appear</Alert>}
                     {(winningNumbersAlert) && <Alert severity="error">Please choose your {maxChoices} winning numbers</Alert>}
                     {(createNewLottery && nameRequiredAlert) && <Alert severity="error">Please enter a name for this lottery</Alert>}
+                    {(nameExistsAlert) && <Alert severity="error">Name already exists.  Please choose another Lottery Name</Alert>}
 
                     {(working) &&  <LinearProgress  sx={{mb: 2}} />}
 

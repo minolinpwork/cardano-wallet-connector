@@ -83,7 +83,7 @@ export default class NewLottery extends React.Component {
       />
 
       <Typography id="amount-slider" gutterBottom mt={5} mb={4}>
-        Prize in ADA - From 10 to ...
+        Prize (ADA) - From 10 to ...
       </Typography>
       <Slider
         min={10}
@@ -96,7 +96,7 @@ export default class NewLottery extends React.Component {
       />
 
       <Typography id="feeToPlay-slider" gutterBottom mt={5} mb={4}>
-        Cost to Play ADA - From 3 to ...
+        Cost to Play (ADA) - From 3 to ...
       </Typography>
       <Slider
         min={3}
