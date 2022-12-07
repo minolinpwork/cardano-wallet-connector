@@ -9,6 +9,7 @@ import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import {Lottery} from './Lottery'
+import { properties } from '../properties/properties.js'
 
 export default class BasicTable extends React.Component {
     constructor(props) {
@@ -18,6 +19,7 @@ export default class BasicTable extends React.Component {
     }
     
     render() {
+        const dev=properties.dev;
         const utxoSelected=this.props.selectedLottery?.utxo;
         return (
             <TableContainer component={Paper} sx={{ maxWidth: 500, justifyContent: 'center', }}>
@@ -32,7 +34,7 @@ export default class BasicTable extends React.Component {
                     <TableCell align="right">Choices</TableCell>
                     <TableCell align="right">Prize</TableCell>
                     <TableCell align="right">Cost</TableCell>
-                    <TableCell align="right">Winning Nos</TableCell>
+                    {(dev) && <TableCell align="right">Winning Nos</TableCell>}
                 </TableRow>
                 </TableHead>
                 <TableBody>
@@ -47,7 +49,7 @@ export default class BasicTable extends React.Component {
                     <TableCell align="right">{row.maxChoices}</TableCell>
                     <TableCell align="right">{row.amount}</TableCell>
                     <TableCell align="right">{row.cost}</TableCell>
-                    <TableCell align="right">{row.selected().toString()}</TableCell>
+                    {(dev) && <TableCell align="right">{row.selected().toString()}</TableCell>}
                     </TableRow>
                 ))}
                 </TableBody>

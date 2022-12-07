@@ -8,6 +8,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import { sha256 } from 'js-sha256';
+import { properties } from '../properties/properties.js'
 
 function byteToHex(num) {
     // Turns a number (0-255) into a 2-character hex number (00-ff)
@@ -97,7 +98,9 @@ export class Lottery {
         lottery.dataHash = dataHash;
         lottery.utxos = [...utxos];
         lottery.choices = new Array(maxNo+1).fill(false);
-        selected.map(item => lottery.choices[item]=true);
+        if (properties.dev) {
+            selected.map(item => lottery.choices[item]=true);
+        }
         return lottery;
     }
 

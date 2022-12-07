@@ -1352,7 +1352,7 @@ export default class App extends React.Component
                 name: selectedLottery.name, 
                 maxNo: selectedLottery.maxNo, 
                 maxChoices: selectedLottery.maxChoices, 
-                selected: selectedLottery.selected(), 
+                selected: properties.dev ? selectedLottery.selected() : [], 
                 amount: selectedLottery.amount,
                 cost: selectedLottery.cost,
                 dataHash: selectedLottery.dataHash,
