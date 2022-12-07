@@ -168,6 +168,7 @@ export default class App extends React.Component
             youWonAlert: false,
             youLostAlert: false,
             nameRequiredAlert: false,
+            errorAlert: false,
             newLotteryCreatedAlert: false,
 
             showWorking: true,
@@ -774,21 +775,26 @@ export default class App extends React.Component
         )
         console.log(name + "transactionWitnessSet: " + transactionWitnessSet.to_json());
 
-        let txVkeyWitnesses = await this.API.signTx(Buffer.from(tx.to_bytes(), "utf8").toString("hex"), true);
-        txVkeyWitnesses = TransactionWitnessSet.from_bytes(Buffer.from(txVkeyWitnesses, "hex"));
+        await this.API.signTx(Buffer.from(tx.to_bytes(), "utf8").toString("hex"), true)
+        .then((txVkeyWitnessesRes) => {
+            const txVkeyWitnesses = TransactionWitnessSet.from_bytes(Buffer.from(txVkeyWitnessesRes, "hex"));
 
-        transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
+            transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
 
-        const signedTx = Transaction.new(
-            tx.body(),
-            transactionWitnessSet
-        );
+            const signedTx = Transaction.new(
+                tx.body(),
+                transactionWitnessSet
+            );
+    
+            this.API.submitTx(Buffer.from(signedTx.to_bytes(), "utf8").toString("hex"))
+            .then((submittedTxHash) => {
+                console.log(name + " submittedTxHash: " + submittedTxHash)
+                this.setState({submittedTxHash: submittedTxHash, transactionIdLocked: submittedTxHash, lovelaceLocked: this.state.lovelaceToSend});
+                return { submittedTxHash: submittedTxHash, dataHash: dataHash.to_hex() };
+            });
+        })
 
-        const submittedTxHash = await this.API.submitTx(Buffer.from(signedTx.to_bytes(), "utf8").toString("hex"));
-        console.log("buildSendAdaToPlutusScript submittedTxHash: " + submittedTxHash)
-        this.setState({submittedTxHash: submittedTxHash, transactionIdLocked: submittedTxHash, lovelaceLocked: this.state.lovelaceToSend});
 
-        return { submittedTxHash: submittedTxHash, dataHash: dataHash.to_hex() };
     }
 
 
@@ -1398,6 +1404,8 @@ export default class App extends React.Component
       }
 
       handleClickCreateNewLottery = async () => {
+        const name = "handleClickCreateNewLottery: "
+
         this.setState({showWorking: true})
         const selectedLottery = this.state.selectedLottery;
 
@@ -1418,30 +1426,36 @@ export default class App extends React.Component
         this.state.datumStr = selectedLottery.sha256;
         this.state.lovelaceToSend = selectedLottery.amount;
 
-        const result = await this.buildSendAdaToPlutusScript();
+        await this.buildSendAdaToPlutusScript()
+        .then((result) => {
+            selectedLottery.utxo = result.submittedTxHash;
+            selectedLottery.dataHash = result.dataHash;
+            selectedLottery.creatorAddr = this.state.rewardAddress;
+            selectedLottery.roiAddr = this.state.changeAddress;
+            this.axoisStoreDB();
+    
+            const createNewLottery = false;
+            this.setState({createNewLottery, selectedLottery: null});
+    
+            //this.setState({lotteries, createNewLottery});
+            //const lotteries = this.state.lotteries;
+            //lotteries.push(this.state.selectedLottery);
+            //const createNewLottery = !this.state.createNewLottery
+            //this.setState({createNewLottery});
+    
+            this.showNewLotteryCreatedAlertAlert();
+        })
+        .catch((err) => {
+            console.log(name + " error: " + err);
+            this.showErrorAlert();
 
-        selectedLottery.utxo = result.submittedTxHash;
-        selectedLottery.dataHash = result.dataHash;
-        selectedLottery.creatorAddr = this.state.rewardAddress;
-        selectedLottery.roiAddr = this.state.changeAddress;
-        await this.axoisStoreDB();
-
-        const createNewLottery = false;
-        this.setState({createNewLottery, selectedLottery: null});
-
-        //this.setState({lotteries, createNewLottery});
-        //const lotteries = this.state.lotteries;
-        //lotteries.push(this.state.selectedLottery);
-        //const createNewLottery = !this.state.createNewLottery
-        //this.setState({createNewLottery});
-
-        this.showNewLotteryCreatedAlertAlert();
+        })
 
         //this.refreshData();
 
         this.setState({showWorking: false})
-        console.log("handleClickCreateNewLottery done");
-      };
+        console.log(name + " end");
+    };
 
       showNewLotteryCreatedAlertAlert = () => {
         this.setState({newLotteryCreatedAlert: true});
@@ -1449,6 +1463,13 @@ export default class App extends React.Component
             this.setState({newLotteryCreatedAlert: false});
         }, 5000);      
       };     
+
+      showErrorAlert = () => {
+        this.setState({errorAlert: true});
+        setTimeout(() => {
+            this.setState({errorAlert: false});
+        }, 5000);      
+      };  
 
       showNameRequireAlert = () => {
         this.setState({nameRequiredAlert: true});
@@ -1582,6 +1603,7 @@ export default class App extends React.Component
         const youLostAlert = this.state.youLostAlert;
         const newLotteryCreatedAlert = this.state.newLotteryCreatedAlert;
         const nameRequiredAlert = this.state.nameRequiredAlert;
+        const errorAlert = this.state.errorAlert;
         const maxChoices = this.state.selectedLottery?.maxChoices;
         const cost = this.state.selectedLottery?.cost;
         const working = !this.state.balance || this.state.showWorking;
@@ -1604,7 +1626,7 @@ export default class App extends React.Component
                     <BasicTable selectedLottery={selectedLottery} lotteries={lotteries} lotteryClick={this.handleLotterySelect}></BasicTable>
                     <br></br>
                     <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
-                        <Button variant="contained" onClick={this.handleLoadLotteries}>Reload List</Button>
+                        <Button variant="contained" onClick={this.handleLoadLotteries} disabled={working}>Reload List</Button>
                         <Button variant="contained" onClick={this.handleClickNewLottery} disabled={working}>Create new Lottery</Button>
                     </Stack>
                     {(newLotteryCreatedAlert) && <Alert severity="info">New lottery created - please Reload to see it appear</Alert>}
@@ -1630,6 +1652,7 @@ export default class App extends React.Component
                     &&
                 <Grid item xs={12} md={6}>
                     <LottoView lottery={selectedLottery}></LottoView>
+                    {(errorAlert) && <Alert severity="info">Oops.  An error occurred.  Please refresh page and try again.</Alert>}
                     {(youWonAlert) && <Alert severity="success">Wow!! You Won!</Alert>}
                     {(youLostAlert) && <Alert severity="info">Sorry!  Try again...</Alert>}
                     {(winningNumbersAlert) && <Alert severity="error">Please choose your {maxChoices} winning numbers</Alert>}
@@ -1642,7 +1665,7 @@ export default class App extends React.Component
                     {(createNewLottery)
                     &&
                     <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
-                        <Button variant="contained" onClick={this.handleCancelNewLottery}>Cancel</Button>
+                        <Button variant="contained" onClick={this.handleCancelNewLottery} disabled={working}>Cancel</Button>
                         <Button variant="contained" onClick={this.handleClickCreateNewLottery} disabled={working}>Create new Lottery</Button>
                     </Stack>
                     } 
