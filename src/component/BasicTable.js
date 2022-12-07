@@ -23,7 +23,7 @@ export default class BasicTable extends React.Component {
         const utxoSelected=this.props.selectedLottery?.utxo;
         return (
             <TableContainer component={Paper} sx={{ maxWidth: 500, justifyContent: 'center', }}>
-            <Typography variant="h4" gutterBottom>
+            <Typography variant="h5" gutterBottom>
                 Select a lottery
             </Typography>
             <Table size="small" aria-label="simple table">

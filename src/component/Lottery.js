@@ -214,7 +214,7 @@ export default class LottoView extends React.Component {
                 <Link href={link} variant="body2" sx={{mt: 1}}>
                     Link to this lottery
                 </Link>
-                <Typography variant="h4" gutterBottom sx={{mt: 3, mb: 2}}>
+                <Typography variant="h5" gutterBottom sx={{mt: 3, mb: 2}}>
                     Pick your {maxChoices} lucky numbers:
                 </Typography>
                 <LottoNumbers
@@ -222,7 +222,7 @@ export default class LottoView extends React.Component {
                     onClick={(i) => this.handleClick(i)}
                     />
                 <br></br>
-                <Typography variant="h4" gutterBottom  sx={{mt: 2}}>
+                <Typography variant="h5" gutterBottom  sx={{mt: 2}}>
                     Your {maxChoices} chosen numbers:
                 </Typography>
                 <div>{chosen}</div>

@@ -1562,6 +1562,7 @@ export default class App extends React.Component
         const maxChoices = this.state.selectedLottery?.maxChoices;
         const cost = this.state.selectedLottery?.cost;
         const working = !this.state.balance || this.state.showWorking;
+        const tvl = this.state.lotteries.map(lotto => lotto.amount).reduce((a, b) => a+b, 0);
         //console.log("App.js: maxNo" + lottery1.maxNo)
         //console.log("App.js: maxChoices" + lottery1.maxChoices)
         //console.log("App.js: choices" + lottery1.choices)
@@ -1573,6 +1574,11 @@ export default class App extends React.Component
                     <Typography variant="h4" gutterBottom>
                         Cardano Lottery
                     </Typography>
+                    <Tooltip title={properties.addressScriptBech32}>
+                        <Typography variant="h6" gutterBottom>
+                            TVL: {tvl} ADA
+                        </Typography>
+                    </Tooltip>
                 </Grid>
 
                 {(!createNewLottery)
@@ -1601,6 +1607,9 @@ export default class App extends React.Component
                 </Grid>
                 }
 
+                <Grid item xs={12} md={0}>
+                    <Divider sx={{mt: 4}}></Divider>
+                </Grid>
 
                 {(selectedLottery)
                     &&

@@ -35,7 +35,7 @@ export default class NewLottery extends React.Component {
       ml={3}
       mr={3}
     >
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h5" gutterBottom>
         Parameters for your Lottery
       </Typography>
 
