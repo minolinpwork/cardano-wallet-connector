@@ -134,7 +134,7 @@ export class Lottery {
 
     calcSha256() {
         const str = this.toString();
-        const sha = sha256(str).toUpperCase();
+        const sha = sha256(str).toLowerCase();
         console.log("Lottery getSha256: " + str + " sha256: " + sha);
         return sha;
     }

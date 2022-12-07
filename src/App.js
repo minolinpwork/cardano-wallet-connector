@@ -44,7 +44,9 @@ import {
     ScriptDataHash, Ed25519KeyHash, NativeScript, StakeCredential,
     TxBuilderConstants,
     encode_json_str_to_plutus_datum,
-    PlutusDatumSchema
+    PlutusDatumSchema,
+    ExUnitPrices, UnitInterval, PlutusWitness, TxInputsBuilder, 
+    Vkeywitnesses, Vkeywitness, PublicKey, Vkey, Ed25519Signature,
 } from "@emurgo/cardano-serialization-lib-asmjs"
 import "./App.css";
 import {blake2b} from "blakejs";
@@ -78,6 +80,7 @@ import LottoView, {Lottery} from './component/Lottery'
 import BasicTable from './component/BasicTable'
 import NewLottery from './component/NewLottery'
 
+import clipboard from 'clipboardy';
 
 import { sha256 } from 'js-sha256';
 
@@ -203,7 +206,7 @@ export default class App extends React.Component
                 minFeeA: "44",
                 minFeeB: "155381",
             },
-            minUtxo: "34482",
+            minUtxo: "1000000",
             poolDeposit: "500000000",
             keyDeposit: "2000000",
             maxValSize: 5000,
@@ -686,7 +689,7 @@ export default class App extends React.Component
         //let str=this.state.datumStr
         let strUtf=Buffer.from(str, "utf-8")
         //let strHex=Buffer.from(str, "hex")
-        let strUtfToHex=strUtf.toString("hex").toUpperCase()
+        let strUtfToHex=strUtf.toString("hex").toLowerCase()
         console.log("Buffer0: " + str)
         //console.log("Buffer1: " + strUtf)
         //console.log("Buffer2: " + strHex)
@@ -704,7 +707,7 @@ export default class App extends React.Component
         //let strUtf=Buffer.from(str, "utf-8")
         let strHex=Buffer.from(str, "hex")
         //let strUtfToHex=strUtf.toString("hex").toUpperCase()
-        let strHexToHex=strHex.toString("hex").toUpperCase()
+        let strHexToHex=strHex.toString("hex").toLowerCase()
         //console.log("Buffer0: " + str)
         //console.log("Buffer1: " + strUtf)
         //console.log("Buffer2: " + strHex)
@@ -722,7 +725,7 @@ export default class App extends React.Component
         await this.refreshBeforeSubmit();
         const name = "buildSendAdaToPlutusScript: "
 
-        const txBuilder = await this.initTransactionBuilder();
+        const txBuilder = await this.initTransactionBuilderExUnits();
         const ScriptAddress = Address.from_bech32(this.state.addressScriptBech32);
         const shelleyChangeAddress = Address.from_bech32(this.state.changeAddress)
         console.log(name + "this.state.changeAddress: " + this.state.changeAddress);
@@ -864,8 +867,229 @@ export default class App extends React.Component
     }
 
 
+    initTransactionBuilderExUnits = async () => {
+        const exUnitPrices = ExUnitPrices.new(
+            UnitInterval.new(
+                BigNum.from_str(properties.exScriptMemStart.toString()), 
+                BigNum.from_str(properties.exScriptMemInc.toString())
+            ),
+            UnitInterval.new(
+                BigNum.from_str(properties.exScriptStepStart.toString()), 
+                BigNum.from_str(properties.exScriptStepInc.toString())
+            ),
+        )
+        const txBuilder = TransactionBuilder.new(
+            TransactionBuilderConfigBuilder.new()
+                .fee_algo(LinearFee.new(BigNum.from_str(this.protocolParams.linearFee.minFeeA), BigNum.from_str(this.protocolParams.linearFee.minFeeB)))
+                .pool_deposit(BigNum.from_str(this.protocolParams.poolDeposit))
+                .key_deposit(BigNum.from_str(this.protocolParams.keyDeposit))
+                .coins_per_utxo_byte(BigNum.from_str(this.protocolParams.coinsPerUtxoWord))
+                //.coins_per_utxo_word(BigNum.from_str(this.protocolParams.coinsPerUtxoWord))
+                .max_value_size(this.protocolParams.maxValSize)
+                .max_tx_size(this.protocolParams.maxTxSize)
+                .ex_unit_prices(exUnitPrices)
+                .prefer_pure_change(true)
+                .build()
+        );
+
+        return txBuilder
+    }
+
 
     buildRedeemAdaFromPlutusScript = async () => {
+        await this.refreshBeforeSubmit();
+
+        //this.state.datumStr = this.state.datumStr.toUpperCase();
+
+        const selectedLottery = this.state.selectedLottery;
+
+        const callName = "buildRedeemAdaFromPlutusScript: ";
+        console.log(callName + "this.state.addressScriptBech32: " + this.state.addressScriptBech32);
+        console.log(callName + "this.state.changeAddress: " + this.state.changeAddress);
+        console.log(callName + "this.state.transactionIdLocked: " + this.state.transactionIdLocked);
+        console.log(callName + "this.state.transactionIndxLocked: " + this.state.transactionIndxLocked);
+        console.log(callName + "this.state.datumStr: " + this.state.datumStr);
+        console.log(callName + "this.state.redeemStr: " + this.state.redeemStr);
+        console.log(callName + "this.state.lovelaceLocked: " + this.state.lovelaceLocked);
+
+        const txBuilder = await this.initTransactionBuilderExUnits();
+
+        const ScriptAddress = Address.from_bech32(this.state.addressScriptBech32);
+        const shelleyChangeAddress = Address.from_bech32(this.state.changeAddress)
+        //const amountToRedeem = this.state.lovelaceLocked*1000000
+
+        const noOfUtxos = selectedLottery.utxos.length;
+        console.log(callName + "noOfUtxos: " + noOfUtxos);
+
+        const inputs = TxInputsBuilder.new();
+
+        const datumFromJson=this.createStringDatum_hex_to_hex(this.state.datumStr, "buildRedeemAdaFromPlutusScript datum")
+        const redeemerFromJson=this.createStringDatum_utf_to_hex(this.state.redeemStr, "buildRedeemAdaFromPlutusScript redeem")
+        const script = PlutusScript.from_bytes(Buffer.from(this.state.plutusScriptCborHex, "hex"))
+
+        const ex = ExUnits.new(
+            BigNum.from_str(properties.scriptMem.toString()),
+            BigNum.from_str(properties.scriptStep.toString())
+        )
+
+        const redeemer = Redeemer.new(
+            RedeemerTag.new_spend(),
+            BigNum.from_str("0"),//ind.toString()),
+            redeemerFromJson,
+            ex
+        )
+        console.log(callName + "ex: " + ex.to_json());
+
+        console.log(callName + "redeemer: " + redeemer.to_json());
+
+        selectedLottery.utxos.forEach(function (utxo, ind) {
+            const hash = utxo.tx_hash
+            const hashInd = utxo.tx_index
+            const amount = utxo.amount
+
+            txBuilder.add_plutus_script_input(
+                PlutusWitness.new(script, datumFromJson, redeemer),
+                TransactionInput.new(
+                    TransactionHash.from_bytes(Buffer.from(hash, "hex")),
+                    hashInd.toString()),
+                Value.new(BigNum.from_str(amount.toString()))
+            )
+                /*
+            inputs.add_input(
+                ScriptAddress,
+                TransactionInput.new(
+                    TransactionHash.from_bytes(Buffer.from(hash, "hex")),
+                    hashInd.toString()),
+                Value.new(BigNum.from_str(amount.toString()))
+            )
+    
+            /*if (ind==0) {
+
+
+                //datums.add(datumFromJson)
+                //redeemers.add(redeemer);
+
+                txBuilder.add_plutus_script_input(
+                        PlutusWitness.new(script, datumFromJson, redeemer),
+                        TransactionInput.new(
+                            TransactionHash.from_bytes(Buffer.from(hash, "hex")),
+                            hashInd.toString()),
+                        Value.new(BigNum.from_str(amount.toString()))
+                )
+
+                /*
+                inputs.add_input(
+                    ScriptAddress,
+                    TransactionInput.new(
+                        TransactionHash.from_bytes(Buffer.from(hash, "hex")),
+                        hashInd.toString()),
+                    Value.new(BigNum.from_str(amount.toString()))
+                )
+
+                witnesses.add(PlutusWitness.new(script, datumFromJson, redeemer));
+                /*} else {
+                datums.add(datumFromJson)
+
+               
+            } */
+            //console.log(callName + "build tx unsafe: " + txBuilder.build_tx_unsafe().to_json());
+                    
+        }, this);
+
+
+        //inputs.add_required_plutus_input_scripts(witnesses);
+
+        /*txBuilder.set_inputs(inputs);
+        console.log(callName + "count_missing_input_scripts: before: " + txBuilder.build_tx().to_json());
+
+        txBuilder.add_required_plutus_input_scripts(PlutusWitness.new(script, datumFromJson, redeemer));
+
+        console.log(callName + "count_missing_input_scripts: after: " + txBuilder.build_tx().to_json());
+*/
+        var step = 1;
+        console.log(callName + " step " + step++);
+
+        const collateral = this.state.CollatUtxos;
+        const collateralI = TxInputsBuilder.new();
+        collateral.forEach((utxo) => {
+            const ti = utxo.input();
+            //console.log(callName + "collateral: " + utxo.to_json() + " " + ti.transaction_id().to_hex() + " " + ti.index());
+            collateralI.add_input(
+                utxo.output().address(), //ScriptAddress, //
+                utxo.input(),
+                utxo.output().amount(),
+            );
+        });
+        txBuilder.set_collateral(collateralI);
+
+        console.log(callName + " step " + step++);
+
+        //const costModel = TxBuilderConstants.plutus_vasil_cost_models().get(Language.new_plutus_v1());
+        //const costModels = Costmdls.new();
+        //costModels.insert(Language.new_plutus_v1(), costModel);
+        txBuilder.calc_script_data_hash(TxBuilderConstants.plutus_vasil_cost_models());
+
+        console.log(callName + " step " + step++);
+
+        const baseAddress = BaseAddress.from_address(shelleyChangeAddress)
+        txBuilder.add_required_signer(baseAddress.payment_cred().to_keyhash())
+        
+
+        console.log(callName + " step " + step++);
+        //console.log(callName + "build tx 1: " + txBuilder.build_tx().to_json());
+        console.log(callName + "min fee: " + txBuilder.min_fee().to_str());
+
+        const vKeys = Vkeywitnesses.new();
+        //txBuilder.add_required_signer.get(vKeys);
+
+        /*
+        vKeys.add(Vkeywitness.new(Vkey.new(PublicKey.from_bech32(this.state.changeAddress)), Ed25519Signature.from_bech32(this.state.changeAddress)));
+        vKeys.add(Vkeywitness.new(Vkey.new(PublicKey.from_bech32(this.state.changeAddress)), Ed25519Signature.from_bech32(this.state.changeAddress)));
+        vKeys.add(Vkeywitness.new(Vkey.new(PublicKey.from_bech32(this.state.changeAddress)), Ed25519Signature.from_bech32(this.state.changeAddress)));
+*/
+//console.log(callName + "build txBody 2: " + txBuilder.build_tx_unsafe().to_js_value());
+//console.log(callName + "build tx 2: " + txBuilder.build_tx().to_json());
+
+        txBuilder.add_change_if_needed(shelleyChangeAddress)
+
+        console.log(callName + "count_missing_input_scripts: " + txBuilder.count_missing_input_scripts());
+        console.log(callName + "get_fee_if_set: " + txBuilder.get_fee_if_set().to_str());
+
+
+        const tx = txBuilder.build_tx();
+        console.log(callName + "build tx 3: " + tx.to_json());
+        
+        let txVkeyWitnesses = await this.API.signTx(Buffer.from(tx.to_bytes(), "utf8").toString("hex"), true);
+        txVkeyWitnesses = TransactionWitnessSet.from_bytes(Buffer.from(txVkeyWitnesses, "hex"));
+        console.log(callName + "txVkeyWitnesses 1: " + txVkeyWitnesses.to_json());
+
+        const vkeys = txVkeyWitnesses.vkeys();
+        console.log(callName + "vkeys 1: " + JSON.stringify(vkeys));
+        console.log(callName + "vkeys 2: " + JSON.parse(JSON.stringify(vkeys)));
+
+        const witnessSet = tx.witness_set();
+        witnessSet.set_vkeys(vkeys);
+        console.log(callName + "witnessSet 1: " + witnessSet.to_json());
+        console.log(callName + "witnessSet 2: " + witnessSet.to_bytes().length);
+
+        //const newFee = tx.get_fee_if_set()+witnessSet.to_bytes().length*this.protocolParams.linearFee.minFeeA;
+
+
+        const signedTx = Transaction.new(
+            tx.body(),
+            witnessSet
+        );
+
+        console.log(callName + "submit tx: " + signedTx.to_json());
+        const submittedTxHash = await this.API.submitTx(Buffer.from(signedTx.to_bytes(), "utf8").toString("hex"));
+        console.log(callName + " submittedTxHash: " + submittedTxHash)
+        this.setState({submittedTxHash});
+
+        return submittedTxHash;    
+    }
+
+
+    buildRedeemAdaFromPlutusScript2 = async () => {
         await this.refreshBeforeSubmit();
 
         //this.state.datumStr = this.state.datumStr.toUpperCase();
@@ -994,8 +1218,8 @@ export default class App extends React.Component
         const costModels = Costmdls.new();
         costModels.insert(Language.new_plutus_v1(), costModel);
         /////////////////////
-        const scriptDataHash = hash_script_data(redeemers, costModels, datums);
-        //const scriptDataHash = hash_script_data(redeemers, TxBuilderConstants.plutus_alonzo_cost_models(), datums);
+        //const scriptDataHash = hash_script_data(redeemers, costModels, datums);
+        const scriptDataHash = hash_script_data(redeemers, TxBuilderConstants.plutus_vasil_cost_models(), datums);
         txBody.set_script_data_hash(scriptDataHash);
 
         txBody.set_collateral(inputs)
@@ -1011,7 +1235,6 @@ export default class App extends React.Component
             txBody,
             TransactionWitnessSet.from_bytes(transactionWitnessSet.to_bytes())
         )
-
         console.log(callName + "tx: " + tx.to_json());
 
         let txVkeyWitnesses = await this.API.signTx(Buffer.from(tx.to_bytes(), "utf8").toString("hex"), true);
@@ -1063,8 +1286,13 @@ export default class App extends React.Component
         this.handleConnect(value);
     };
   
-    copyToClipboard = (value) => {
 
+    copyToClipboard = (value) => {
+        (clipboard.write(value)).then((message)=>{  
+            console.log("copyToClipboard success. The message is:" + message)
+        }).catch((message)=>{  
+            console.log("copyToClipboard failed. The message is:" + message)  
+        })  
 
     };
 
