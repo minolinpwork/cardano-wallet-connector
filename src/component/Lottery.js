@@ -108,7 +108,23 @@ export class Lottery {
 
     setMaxNo(maxNo) {
         this.maxNo = maxNo;
-        this.choices = new Array(maxNo+1).fill(false);
+        this.choices = [ ...this.choices, ...Array(Math.max(maxNo+1 - this.choices.length, 0)).fill(false)];
+        this.choices.length = maxNo+1;
+        //this.choices = new Array(maxNo+1).fill(false);
+    }
+
+    setMaxChoices(maxChoices) {
+        this.maxChoices = maxChoices;
+        let chosenCount = 0;
+        this.choices.forEach(function (choice, index, arr) {
+            //console.log("setMaxChoice: " + choice + " " + index + " " + chosenCount + " " + arr.length);
+            if (choice) {
+                chosenCount++
+                if (chosenCount>maxChoices) {
+                    arr[index] = false;
+                }
+            }
+        });
     }
 
     selected() {

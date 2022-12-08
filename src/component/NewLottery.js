@@ -5,6 +5,7 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Unstable_Grid2';
 import Slider from '@mui/material/Slider';
+import { properties } from '../properties/properties';
 
 export default class NewLottery extends React.Component {
     constructor(props) {
@@ -13,17 +14,71 @@ export default class NewLottery extends React.Component {
       };
     }
 
-    handleCheck = () => {
-        console.log("check: " + this.input);
-        console.log("check 2: " + this.props.lottery.name);
-      };
-
-      handleChange = (e) => {
-        this.props.lottery.name = e.target.value;
-        //this.setState({[e.target.name]: e.target.value})
+    product_Range(a,b) {
+      var prd = a,i = a;
+     
+      while (i++< b) {
+        prd*=i;
       }
+      return prd;
+    }
+        
+    combinations(n, r) 
+    {
+      if (n==r || r==0) 
+      {
+        return 1;
+      } 
+      else 
+      {
+        r=(r < n-r) ? n-r : r;
+        return this.product_Range(r+1, n)/this.product_Range(1,n-r);
+      }
+    }
+
+    handleLotteryNameChange = (input) => {
+      const lottery = this.props.lottery;
+      lottery.name = input;
+      this.props.updateFromNewLottery(lottery);
+    }
+    handleLotteryMaxNoChange = (input) => {
+      //console.log("handleLotteryMaxNoChange: " + input)
+      const lottery = this.props.lottery;
+      lottery.setMaxNo(input);
+      if (input<lottery.maxChoices) {
+        lottery.setMaxChoices(input);
+      }
+      this.props.updateFromNewLottery(lottery);
+      //console.log("handleLotteryMaxNoChange: " + JSON.stringify(this.state.selectedLottery, null, 4))
+    }
+    handleLotteryMaxChoicesChange = (input) => {
+      const lottery = this.props.lottery;
+      lottery.setMaxChoices(input);
+      if (lottery.maxChoices>lottery.maxNo) {
+        lottery.setMaxNo(lottery.maxChoices);
+      }
+      this.props.updateFromNewLottery(lottery);
+      //console.log("handleLotteryMaxNoChange: " + JSON.stringify(this.state.selectedLottery, null, 4))
+    }
+    handleLotteryAmountChange = (input) => {
+      const lottery = this.props.lottery;
+      lottery.amount = input;
+      this.props.updateFromNewLottery(lottery);
+    }
+    handleLotteryCostChange = (input) => {
+      const lottery = this.props.lottery;
+      lottery.cost = input;
+      this.props.updateFromNewLottery(lottery);
+    }
 
     render() {
+      var lottery = this.props.lottery;
+
+      const chanceOfWinning = this.combinations(lottery.maxNo, lottery.maxChoices)
+      const roiAda = Math.round((lottery.cost-properties.profitAmount/1000000)*100)
+      const roiPerFor100Players = Math.round( roiAda / lottery.amount*100);
+      //const maxChoices = Math.min(lottery.maxNo, 7)
+
   return (
     <Box
       component="form"
@@ -43,9 +98,10 @@ export default class NewLottery extends React.Component {
       <TextField  
         required
         id="name"
+        defaultValue={properties.newLotteryMinName}
         //defaultValue="Dummy"
         label="Name of Lottery"
-        onChange={(e) => this.props.handleLotteryNameChange(e.target.value)}
+        onChange={(e) => this.handleLotteryNameChange(e.target.value)}
         sx={{ mt: 2, mb: 6 }}
         inputProps={{ maxLength: 10 }}
         //onChange={(e) => this.props.lottery.name=e.target.value}
@@ -58,13 +114,13 @@ export default class NewLottery extends React.Component {
         Range of numbers available - from 1 to 99
       </Typography>
       <Slider 
-        min={1}
-        max={99}
+        value={lottery.maxNo}
+        min={properties.newLotteryMinMaxNo}
+        max={properties.newLotteryMaxMaxNo}
         step={1}
         //defaultValue={this.props.lottery.maxNo}
-        defaultValue={1}
         valueLabelDisplay="on"
-        onChange={(e) => this.props.handleLotteryMaxNoChange(e.target.value)}
+        onChange={(e) => this.handleLotteryMaxNoChange(e.target.value)}
         aria-labelledby="input-slider"
       />
 
@@ -73,12 +129,12 @@ export default class NewLottery extends React.Component {
         How many numbers to choose - From 1 to 7
       </Typography>
       <Slider
-        min={1}
-        max={7}
+        value={lottery.maxChoices}
+        min={properties.newLotteryMinMaxChoices}
+        max={properties.newLotteryMaxMaxChoices}
         step={1}
-        defaultValue={1}
         valueLabelDisplay="on"
-        onChange={(e) => this.props.handleLotteryMaxChoicesChange(e.target.value)}
+        onChange={(e) => this.handleLotteryMaxChoicesChange(e.target.value)}
         aria-labelledby="input-slider"
       />
 
@@ -86,12 +142,12 @@ export default class NewLottery extends React.Component {
         Prize (ADA) - From 10 to ...
       </Typography>
       <Slider
-        min={10}
-        max={100}
+        value={lottery.amount}
+        min={properties.newLotteryMinAmount}
+        max={properties.newLotteryMaxAmount}
         step={1}
-        defaultValue={10}
         valueLabelDisplay="on"
-        onChange={(e) => this.props.handleLotteryAmountChange(e.target.value)}
+        onChange={(e) => this.handleLotteryAmountChange(e.target.value)}
         aria-labelledby="input-slider"
       />
 
@@ -99,16 +155,22 @@ export default class NewLottery extends React.Component {
         Cost to Play (ADA) - From 3 to ...
       </Typography>
       <Slider
-        min={3}
-        max={100}
+        value={lottery.cost}
+        min={properties.newLotteryMinCost}
+        max={properties.newLotteryMaxCost}
         step={1}
-        defaultValue={3}
         valueLabelDisplay="on"
-        onChange={(e) => this.props.handleLotteryCostChange(e.target.value)}
+        onChange={(e) => this.handleLotteryCostChange(e.target.value)}
         aria-labelledby="input-slider"
       />
 
 
+    <Typography id="changeOfWinning" gutterBottom mt={5}>
+        Chance of Winning: 1 in {chanceOfWinning}
+    </Typography>
+    <Typography id="changeOfWinning" gutterBottom>
+        ROI for 100 players: {roiPerFor100Players}% or {roiAda} ADA
+    </Typography>
 
     </Box>
   );

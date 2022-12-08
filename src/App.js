@@ -80,6 +80,7 @@ import { properties } from './properties/properties.js'
 import LottoView, {Lottery} from './component/Lottery'
 import BasicTable from './component/BasicTable'
 import NewLottery from './component/NewLottery'
+import EnhancedTable from './component/EnhancedTable'
 
 import clipboard from 'clipboardy';
 
@@ -569,9 +570,11 @@ export default class App extends React.Component
 
         console.log(callName + "start");
 
-        //await this.getUtxos();
-        //await this.getCollateral();
+        await this.getUtxos();
+        await this.getCollateral();
+        await this.getBalance();
 
+        /*
         try{
             const walletFound = this.checkIfWalletFound();
             if (walletFound) {
@@ -591,7 +594,7 @@ export default class App extends React.Component
         }  catch (err) {
             console.log(callName + " error: " + err)
         }
-
+        */
         console.log(callName + "end");
     }
 
@@ -1133,7 +1136,7 @@ export default class App extends React.Component
       };
 
       handleClickNewLottery = () => {
-        const selectedLottery = new Lottery("", 1, 1, 10, 3);//"Bingo"+Date.now(), 5, 1);
+        const selectedLottery = new Lottery(properties.newLotteryMinName, properties.newLotteryMinMaxNo, properties.newLotteryMinMaxChoices, properties.newLotteryMinAmount, properties.newLotteryMinCost);//"Bingo"+Date.now(), 5, 1);
         //selectedLottery.choices[1]=true;
         //selectedLottery.amount=1;
         const createNewLottery = true
@@ -1389,16 +1392,16 @@ export default class App extends React.Component
             //this.setState({createNewLottery});
     
             this.showNewLotteryCreatedAlertAlert();
+            this.setState({selectedLottery: this.state.lotteries[0]})
         })
         .catch((err) => {
             console.log(name + " error: " + err);
             this.showErrorAlert();
-
         })
 
         //this.refreshData();
+        this.setState({showWorking: false})
 
-        this.setState({showWorking: false, selectedLottery: this.state.lotteries[0]})
         console.log(name + " end");
     };
 
@@ -1442,6 +1445,7 @@ export default class App extends React.Component
         this.setState({youWonAlert: true});
         setTimeout(() => {
             this.setState({youWonAlert: false});
+            this.setState({selectedLottery: undefined})
         }, 5000);      
       };      
 
@@ -1488,8 +1492,7 @@ export default class App extends React.Component
                     const newLotteries = this.state.lotteries.filter(function(value, index, arr){ 
                         return value.utxo!=selectedLottery.utxo;
                     });
-                    const newSelectedLottery = newLotteries[0];
-                    this.setState({selectedLottery: newSelectedLottery, lotteries: newLotteries})
+                    this.setState({lotteries: newLotteries})
                 }
             } else {
                 const submittedTxHash = await this.buildSendAdaFailed();
@@ -1506,35 +1509,11 @@ export default class App extends React.Component
         //this.refreshData();        
       };
 
-      handleLotteryNameChange = (input) => {
-        const selectedLottery = this.state.selectedLottery;
-        selectedLottery.name = input;
-        this.setState({selectedLottery});
-        console.log("handleLotteryNameChange: " + this.state.selectedLottery.name);
+
+      updateFromNewLottery = (selectedLottery) => {
+        this.setState({selectedLottery: selectedLottery});
       }
-      handleLotteryMaxNoChange = (input) => {
-        //console.log("handleLotteryMaxNoChange: " + input)
-        const selectedLottery = this.state.selectedLottery;
-        selectedLottery.setMaxNo(input);
-        this.setState({selectedLottery});
-        //console.log("handleLotteryMaxNoChange: " + JSON.stringify(this.state.selectedLottery, null, 4))
-      }
-      handleLotteryMaxChoicesChange = (input) => {
-        const selectedLottery = this.state.selectedLottery;
-        selectedLottery.maxChoices = input;
-        this.setState({selectedLottery});
-        //console.log("handleLotteryMaxNoChange: " + JSON.stringify(this.state.selectedLottery, null, 4))
-      }
-      handleLotteryAmountChange = (input) => {
-        const selectedLottery = this.state.selectedLottery;
-        selectedLottery.amount = input;
-        this.setState({selectedLottery});
-      }
-      handleLotteryCostChange = (input) => {
-        const selectedLottery = this.state.selectedLottery;
-        selectedLottery.cost = input;
-        this.setState({selectedLottery});
-      }
+
 
       createLotteries() {
         let lotteries = [
@@ -1587,7 +1566,7 @@ export default class App extends React.Component
                     <BasicTable selectedLottery={selectedLottery} lotteries={lotteries} lotteryClick={this.handleLotterySelect}></BasicTable>
                     <br></br>
                     <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
-                        <Button variant="contained" onClick={this.handleLoadLotteries} disabled={working}>Reload List</Button>
+                        <Button variant="contained" onClick={this.handleLoadLotteries} disabled={working}>Refresh</Button>
                         <Button variant="contained" onClick={this.handleClickNewLottery} disabled={working}>Create new Lottery</Button>
                     </Stack>
                 </Grid>
@@ -1597,11 +1576,12 @@ export default class App extends React.Component
                 <Grid item xs={12} md={6}>
                     <NewLottery lotteries={lotteries} 
                     lottery={selectedLottery} 
-                    handleLotteryNameChange={this.handleLotteryNameChange} 
-                    handleLotteryMaxNoChange={this.handleLotteryMaxNoChange} 
-                    handleLotteryMaxChoicesChange={this.handleLotteryMaxChoicesChange} 
-                    handleLotteryAmountChange={this.handleLotteryAmountChange} 
-                    handleLotteryCostChange={this.handleLotteryCostChange} 
+                    updateFromNewLottery={this.updateFromNewLottery}
+                    //handleLotteryNameChange={this.handleLotteryNameChange} 
+                    //handleLotteryMaxNoChange={this.handleLotteryMaxNoChange} 
+                    //handleLotteryMaxChoicesChange={this.handleLotteryMaxChoicesChange} 
+                    //handleLotteryAmountChange={this.handleLotteryAmountChange} 
+                    //handleLotteryCostChange={this.handleLotteryCostChange} 
                     createLotteryClick={this.handleClickCreateNewLottery}>                        
                     </NewLottery>
                 </Grid>
@@ -1618,7 +1598,7 @@ export default class App extends React.Component
                     {(errorAlert) && <Alert severity="error">Oops.  An error occurred.  Please refresh page and try again.</Alert>}
                     {(youWonAlert) && <Alert severity="success">Wow!! You Won!</Alert>}
                     {(youLostAlert) && <Alert severity="info">Sorry!  Try again...</Alert>}
-                    {(newLotteryCreatedAlert) && <Alert severity="info">New lottery created - please Reload to see it appear</Alert>}
+                    {(newLotteryCreatedAlert) && <Alert severity="info">New lottery created - please Refresh in a few minutes to see it appear</Alert>}
                     {(winningNumbersAlert) && <Alert severity="error">Please choose your {maxChoices} winning numbers</Alert>}
                     {(createNewLottery && nameRequiredAlert) && <Alert severity="error">Please enter a name for this lottery</Alert>}
                     {(nameExistsAlert) && <Alert severity="error">Name already exists.  Please choose another Lottery Name</Alert>}

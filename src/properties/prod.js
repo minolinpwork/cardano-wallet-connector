@@ -20,5 +20,14 @@ export const properties = {
     blockfrostPageSize: 100,
     blockfrostMaxPage: 10,
 
+    newLotteryMinName: "",
+    newLotteryMinMaxNo: 1,
+    newLotteryMinMaxChoices: 1,
+    newLotteryMinAmount: 10,
+    newLotteryMinCost: 3,
+    newLotteryMaxMaxNo: 99,
+    newLotteryMaxMaxChoices: 7,
+    newLotteryMaxAmount: 1000,
+    newLotteryMaxCost: 100,
 
 };
