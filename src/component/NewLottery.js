@@ -63,11 +63,17 @@ export default class NewLottery extends React.Component {
     handleLotteryAmountChange = (input) => {
       const lottery = this.props.lottery;
       lottery.amount = input;
+      if (lottery.amount<lottery.cost) {
+        lottery.cost=lottery.amount;
+      }
       this.props.updateFromNewLottery(lottery);
     }
     handleLotteryCostChange = (input) => {
       const lottery = this.props.lottery;
       lottery.cost = input;
+      if (lottery.cost>lottery.amount) {
+        lottery.amount=lottery.cost;
+      }
       this.props.updateFromNewLottery(lottery);
     }
 
