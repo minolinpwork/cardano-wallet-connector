@@ -1128,11 +1128,15 @@ export default class App extends React.Component
       }
 
 
-      handleLotterySelect = (utxo) => {
+      handleLotterySelect = (event, utxo) => {
         const lotteries = this.state.lotteries;
-        console.log("handleLotterySelect: " + utxo);
-        let selectedLottery = lotteries.find(o => o.utxo === utxo).clone();
-        this.setState({selectedLottery})
+        console.log("handleLotterySelect: " + event + " " + utxo);
+        if (utxo===this.state.selectedLottery?.utxo) {
+            this.setState({selectedLottery: undefined})
+        } else {
+            let selectedLottery = lotteries.find(o => o.utxo === utxo).clone();
+            this.setState({selectedLottery})
+        }
       };
 
       handleClickNewLottery = () => {
@@ -1563,8 +1567,8 @@ export default class App extends React.Component
                 {(!createNewLottery)
                     &&
                 <Grid item xs={12} md={6} >
-                    <BasicTable selectedLottery={selectedLottery} lotteries={lotteries} lotteryClick={this.handleLotterySelect}></BasicTable>
-                    <br></br>
+                    <EnhancedTable selectedLottery={selectedLottery} lotteries={lotteries} handleLotterySelect={this.handleLotterySelect}></EnhancedTable>
+
                     <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
                         <Button variant="contained" onClick={this.handleLoadLotteries} disabled={working}>Refresh</Button>
                         <Button variant="contained" onClick={this.handleClickNewLottery} disabled={working}>Create new Lottery</Button>
