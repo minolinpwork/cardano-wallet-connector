@@ -89,6 +89,7 @@ import { sha256 } from 'js-sha256';
 
 let blake = require('blakejs')
 let Buffer = require('buffer/').Buffer
+var aesjs = require('aes-js');
 
 export default class App extends React.Component
 {
@@ -180,6 +181,9 @@ export default class App extends React.Component
 
             lottoName: queryParameters.get("name"),
 
+            aesKey: undefined,
+            rewardAddrSha: undefined,
+
 
 /**            
             selectedTabId: "5",
@@ -261,10 +265,25 @@ export default class App extends React.Component
         }, () => {
             this.refreshData().then(() => {
                 this.setState({showWorking: false})
+                this.setAESKey();
                 this.handleLoadPlayerHistory();
             })
         });
     }
+
+    setAESKey() {
+        const name="setAESKey: "
+        console.log(name + this.state.rewardAddress);
+        var addrBytes=Address.from_bech32(this.state.rewardAddress).to_bytes(); 
+        var addrBytesArr = []
+        for (let i=addrBytes.length-16; i<addrBytes.length; i++) {
+            addrBytesArr.push(addrBytes[i])
+        }
+        this.state.aesKey = new Uint8Array(addrBytesArr);
+        
+        //do sha here also
+        this.state.rewardAddrSha=sha256(this.state.rewardAddress);
+    }    
 
     /**
      * Generate address from the plutus contract cborhex
@@ -601,6 +620,72 @@ export default class App extends React.Component
         console.log(callName + "end");
     }
 
+    encrypt = async (text) => {
+        const name = "encrypt: "
+
+        var textBytes = aesjs.utils.utf8.toBytes(text);
+        var aesCtr = new aesjs.ModeOfOperation.ctr(this.state.aesKey, new aesjs.Counter(5));
+        var encryptedBytes = aesCtr.encrypt(textBytes);
+
+        var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
+        
+        console.log(name + encryptedHex)
+        return encryptedHex
+    }
+
+    helloWorld() {
+        console.log("HelloWorld")
+    }
+
+    decryptAES(encryptedHex) {
+      const name = "decrypt: "
+      console.log(name + encryptedHex);      
+
+      var encryptedBytes = aesjs.utils.hex.toBytes(encryptedHex);      
+      var aesCtr = new aesjs.ModeOfOperation.ctr(this.state.aesKey, new aesjs.Counter(5));
+      var decryptedBytes = aesCtr.decrypt(encryptedBytes);
+      
+      var decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
+      console.log(name + decryptedText);      
+      return decryptedText;
+    }
+
+    testCrypto = async () => {
+        console.log("testCrypto start");
+
+            var addressBuf=Address.from_bech32(this.state.rewardAddress).to_bytes(); 
+            console.log(addressBuf)
+            //var addr_256=new Uint8Array
+            var key_256 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+            16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
+            29, 30, 31];
+            var bits = []
+            for (let i=addressBuf.length-16; i<addressBuf.length; i++) {
+                bits.push(addressBuf[i])
+            }
+            var key = new Uint8Array(bits);
+            console.log(key);
+            var key_256_array = new Uint8Array(key_256);
+            //var key = key_256_array;//[ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ];
+
+            var text = 'Text may be any length you wish, no padding is required.';
+            var textBytes = aesjs.utils.utf8.toBytes(text);
+            var aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(5));
+            var encryptedBytes = aesCtr.encrypt(textBytes);
+    
+            var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
+            
+            console.log(encryptedHex);
+
+            var encryptedBytes = aesjs.utils.hex.toBytes(encryptedHex);      
+            var aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(5));
+            var decryptedBytes = aesCtr.decrypt(encryptedBytes);
+            
+            // Convert our bytes back into text
+            var decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
+            return decryptedText;
+    }
+
     /**
      * Refresh all the data from the user's wallet
      * @returns {Promise<void>}
@@ -663,7 +748,6 @@ export default class App extends React.Component
         } catch (err) {
             console.log(err)
         }
-
 
         console.log(callName + "end");
     }
@@ -1289,7 +1373,7 @@ export default class App extends React.Component
 
         var config = {
             method: 'get',
-            url: 'get/all/player/'+this.state.rewardAddress,
+            url: 'get/all/player/'+this.state.rewardAddrSha,
             baseURL: properties.beUrl,
             headers: { 
               'Accept': 'application/json', 
@@ -1373,6 +1457,7 @@ export default class App extends React.Component
             console.log(callName + " start");
             const selectedLottery = this.state.selectedLottery;
     
+            var selected = await this.encrypt(selectedLottery.selected());
             var config = {
                 method: 'put',
                 url: 'store/player',
@@ -1381,7 +1466,7 @@ export default class App extends React.Component
                   'Content-Type': 'application/json', 
                 },
                 data: {
-                    playerAddr: this.state.rewardAddress,
+                    playerAddr: this.state.rewardAddrSha,
                     type: type,
                     result: result,
                     utxo: selectedLottery.utxo, 
@@ -1389,7 +1474,7 @@ export default class App extends React.Component
                     name: selectedLottery.name, 
                     maxNo: selectedLottery.maxNo, 
                     maxChoices: selectedLottery.maxChoices, 
-                    selected: selectedLottery.selected(), 
+                    selected: selected, 
                     amount: selectedLottery.amount,
                     cost: selectedLottery.cost,
                     dataHash: selectedLottery.dataHash,
@@ -1459,9 +1544,12 @@ export default class App extends React.Component
 
         let lotteries = [];
 
+        var self = this;
         dbUtxos.forEach(function (dbUtxo, index) {
+            const selectedDecrypted = self.decryptAES(dbUtxo.selected);
+            const selectedArray = selectedDecrypted.split(',')
             let lottery = Lottery.restore(
-                dbUtxo.utxo, dbUtxo.sha256, dbUtxo.selected, 
+                dbUtxo.utxo, dbUtxo.sha256, selectedArray, 
                 dbUtxo.name, dbUtxo.maxNo, dbUtxo.maxChoices,
                 dbUtxo.amount, dbUtxo.cost, dbUtxo.dataHash, [], 
                 dbUtxo.creatorAddr, dbUtxo.roiAddr, dbUtxo.timestamp, dbUtxo.type, dbUtxo.result,
@@ -1509,7 +1597,7 @@ export default class App extends React.Component
         .then((result) => {
             selectedLottery.utxo = result.submittedTxHash;
             selectedLottery.dataHash = result.dataHash;
-            selectedLottery.creatorAddr = this.state.rewardAddress;
+            selectedLottery.creatorAddr = this.state.rewardAddrSha;
             selectedLottery.roiAddr = this.state.changeAddress;
             this.axiosDBStoreCreation();
             this.axiosDBStorePlayer("create", undefined);
