@@ -8,7 +8,17 @@ import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Link from '@mui/material/Link';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import Tooltip from '@mui/material/Tooltip';
 
+import { ListItemButton } from '@mui/material';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemAvatar from '@mui/material/ListItemAvatar';
+import ListItemText from '@mui/material/ListItemText';
+
+import clipboard from 'clipboardy';
 import { sha256 } from 'js-sha256';
 import { properties } from '../properties/properties.js'
 
@@ -20,6 +30,15 @@ function byteToHex(num) {
     console.log("byteToHex: " + num + " " + col);
     return col;
 }
+
+function copyToClipboard(value) {
+    (clipboard.write(value)).then((message)=>{  
+        console.log("copyToClipboard success. The value copied: " + value)
+    }).catch((message)=>{  
+        console.log("copyToClipboard failed. The message is:" + message)  
+    })  
+
+};
 
 function stringAvatar(name, selected) {
   return {
@@ -66,13 +85,13 @@ class LottoNumbers extends React.Component {
 
         return (
             <Grid container>
-                <Grid item xs={2} md={2}></Grid>
-                <Grid item xs={10} md={10}>
+                <Grid item xs={1} md={3} xl={4}></Grid>
+                <Grid item xs={10} md={6} xl={4}>
                     <Grid container>
                         {choices}
                     </Grid>
                 </Grid>
-                <Grid item xs={2} md={2}></Grid>
+                <Grid item xs={1} md={6} xl={4}></Grid>
             </Grid>
         );
     }
@@ -227,9 +246,17 @@ export default class LottoView extends React.Component {
                     Cost to play: {cost} ADA
                 </Typography>
 
-                <Link href={link} variant="body2" sx={{mt: 1}}>
-                    Link to this lottery
-                </Link>
+                <Tooltip title={link}>
+                    <Link href={link} variant="body2" sx={{mt: 1}}>
+                        Link to this lottery 
+                    </Link>
+                </Tooltip>                        
+                <Tooltip title="Copy">
+                    <IconButton onClick={() => copyToClipboard(link)} size="small">
+                        <ContentCopyIcon/>
+                    </IconButton>                    
+                </Tooltip>
+
                 <Typography variant="h5" gutterBottom sx={{mt: 3, mb: 2}}>
                     Pick your {maxChoices} lucky numbers:
                 </Typography>
@@ -237,7 +264,6 @@ export default class LottoView extends React.Component {
                     choices={choices}
                     onClick={(i) => this.handleClick(i)}
                     />
-                <br></br>
                 <Typography variant="h5" gutterBottom  sx={{mt: 2}}>
                     Your {maxChoices} chosen numbers:
                 </Typography>

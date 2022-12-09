@@ -1,5 +1,5 @@
 export const properties = {
-    beUrl: 'https://be-dot-cardano-gamble.uc.r.appspot.com/',
+    beUrl: 'http://localhost:8080/',
     dev: true,
     
     addressScriptBech32: "addr_test1wqv4ak0zq6tmw24n865204zs5j0d84p6ekn2qma65x5p0gg0qp8rn",

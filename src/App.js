@@ -1546,6 +1546,7 @@ export default class App extends React.Component
         const cost = this.state.selectedLottery?.cost;
         const working = !this.state.balance || this.state.showWorking;
         const tvl = this.state.lotteries.map(lotto => lotto.amount).reduce((a, b) => a+b, 0);
+        const showOnlyLotto = this.state.lottoName;
         //console.log("App.js: maxNo" + lottery1.maxNo)
         //console.log("App.js: maxChoices" + lottery1.maxChoices)
         //console.log("App.js: choices" + lottery1.choices)
@@ -1564,7 +1565,7 @@ export default class App extends React.Component
                     </Tooltip>
                 </Grid>
 
-                {(!createNewLottery)
+                {(!createNewLottery && !showOnlyLotto)
                     &&
                 <Grid item xs={12} md={6} >
                     <EnhancedTable selectedLottery={selectedLottery} lotteries={lotteries} handleLotterySelect={this.handleLotterySelect}></EnhancedTable>
@@ -1597,7 +1598,7 @@ export default class App extends React.Component
 
                 {(selectedLottery)
                     &&
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={showOnlyLotto ? 12 : 6}>
                     <LottoView lottery={selectedLottery}></LottoView>
                     {(errorAlert) && <Alert severity="error">Oops.  An error occurred.  Please refresh page and try again.</Alert>}
                     {(youWonAlert) && <Alert severity="success">Wow!! You Won!</Alert>}
