@@ -112,18 +112,22 @@ export class Lottery {
         this.cost = cost;
         this.choices = new Array(maxNo+1).fill(false);
         this.timestamp = "";
+        this.type = ""
+        this.result = undefined;
     }
-    static restore(utxo, sha256, selected, name, maxNo, maxChoices, amount, cost, dataHash, utxos, creatorAddr, roiAddr, timestamp) {
+    static restore(utxo, sha256, selected, name, maxNo, maxChoices, amount, cost, dataHash, utxos, creatorAddr, roiAddr, timestamp, type, result) {
         let lottery = new Lottery(name, maxNo, maxChoices, amount, cost, creatorAddr, roiAddr);
         lottery.utxo = utxo;
         lottery.sha256 = sha256;
         lottery.dataHash = dataHash;
         lottery.utxos = [...utxos];
         lottery.choices = new Array(maxNo+1).fill(false);
-        if (properties.dev) {
+        //if (properties.dev) {
             selected.map(item => lottery.choices[item]=true);
-        }
-        this.timestamp=timestamp;
+        //}
+        lottery.timestamp=timestamp;
+        lottery.type=type;
+        lottery.result=result;
         return lottery;
     }
 
@@ -182,7 +186,7 @@ export class Lottery {
     }
 
     clone() {
-        return Lottery.restore(this.utxo, this.sha256, this.selected(), this.name, this.maxNo, this.maxChoices, this.amount, this.cost, this.dataHash, this.utxos, this.creatorAddr, this.roiAddr, this.timestamp)
+        return Lottery.restore(this.utxo, this.sha256, this.selected(), this.name, this.maxNo, this.maxChoices, this.amount, this.cost, this.dataHash, this.utxos, this.creatorAddr, this.roiAddr, this.timestamp, this.type, this.result)
     }
 }
 
@@ -208,6 +212,7 @@ export default class LottoView extends React.Component {
     }
 
     render() {
+        const exists = this.props.lottery.utxo?.length>0
         const name = this.props.lottery?.name;
         const choices = this.props.lottery?.choices;
         const maxChoices = this.props.lottery?.maxChoices;
@@ -248,17 +253,20 @@ export default class LottoView extends React.Component {
                     Cost to play: {cost} ADA
                 </Typography>
 
+{(exists) &&
                 <Tooltip title={link}>
                     <Link href={link} variant="body2" sx={{mt: 1}}>
                         Link to this lottery 
                     </Link>
-                </Tooltip>                        
+                </Tooltip>        
+}           
+{(exists) &&     
                 <Tooltip title="Copy">
                     <IconButton onClick={() => copyToClipboard(link)} size="small">
                         <ContentCopyIcon/>
                     </IconButton>                    
                 </Tooltip>
-
+}
                 <Typography variant="h5" gutterBottom sx={{mt: 3, mb: 2}}>
                     Pick your {maxChoices} lucky numbers:
                 </Typography>

@@ -49,6 +49,18 @@ function stableSort(array, comparator) {
 
 const headCells = [
   {
+    id: 'timestamp',
+    numeric: true,
+    disablePadding: false,
+    label: 'Date',
+  },
+  {
+    id: 'type',
+    numeric: false,
+    disablePadding: false,
+    label: 'Action',
+  },
+  {
     id: 'name',
     numeric: false,
     disablePadding: false,
@@ -79,10 +91,10 @@ const headCells = [
     label: 'Cost',
   },
   {
-    id: 'winningNos',
+    id: 'selected',
     numeric: true,
     disablePadding: false,
-    label: 'Winning Nos',
+    label: 'Chosen',
   },
 ];
 
@@ -96,7 +108,7 @@ function EnhancedTableHead(props) {
   return (
     <TableHead>
       <TableRow>
-        {headCells.filter(headCell => properties.dev || headCell.id!='winningNos').map((headCell) => (
+        {headCells.map((headCell) => (
           <TableCell
             key={headCell.id}
             align={headCell.numeric ? 'right' : 'left'}
@@ -129,8 +141,8 @@ EnhancedTableHead.propTypes = {
 };
 
 export default function HistoryTable(props) {
-  const [order, setOrder] = React.useState('asc');
-  const [orderBy, setOrderBy] = React.useState('name');
+  const [order, setOrder] = React.useState('desc');
+  const [orderBy, setOrderBy] = React.useState('date');
   const [page, setPage] = React.useState(0);
   const [dense, setDense] = React.useState(true);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
@@ -154,7 +166,7 @@ export default function HistoryTable(props) {
     setDense(event.target.checked);
   };
 
-  const isSelected = (utxo) => utxo===props.selectedLottery?.utxo;
+  const isSelected = (timestamp) => timestamp===props.selectedLottery?.timestamp;
 
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
@@ -182,22 +194,24 @@ export default function HistoryTable(props) {
               {stableSort(props.lotteries, getComparator(order, orderBy))
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row, index) => {
-                  const isItemSelected = isSelected(row.utxo);
+                  const isItemSelected = isSelected(row.timestamp);
                   const selected = row.selected().toString();
                   return (
                     <TableRow
                       hover
-                      onClick={(event) => props.handleLotterySelect(event, row.utxo)}
+                      onClick={(event) => props.handleLotterySelect(event, row)}
                       tabIndex={-1}
-                      key={row.utxo}
+                      key={row.timestamp}
                       selected={isItemSelected}
                     >
+                      <TableCell align="right">{row.timestamp}</TableCell>
+                      <TableCell align="left">{row.type}</TableCell>
                       <TableCell align="left">{row.name}</TableCell>
                       <TableCell align="right">{row.maxNo}</TableCell>
                       <TableCell align="right">{row.maxChoices}</TableCell>
                       <TableCell align="right">{row.amount}</TableCell>
                       <TableCell align="right">{row.cost}</TableCell>
-                      {(properties.dev) && <TableCell align="right">{selected}</TableCell>}
+                      <TableCell align="right">{selected}</TableCell>
                     </TableRow>
                   );
                 })}

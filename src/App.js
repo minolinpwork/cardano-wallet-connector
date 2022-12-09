@@ -1144,6 +1144,17 @@ export default class App extends React.Component
         }
       };
 
+      handleLotteryHistorySelect = (event, lottery) => {
+        const lotteries = this.state.history;
+        const selectedLottery = this.state.selectedLottery;
+        console.log("handleLotteryHistorySelect: " + event + " " + lottery);
+        if (lottery.timestamp===selectedLottery?.timestamp) {
+            this.setState({selectedLottery: undefined})
+        } else {
+            this.setState({selectedLottery: lottery.clone()})
+        }
+      };
+      
       handleClickNewLottery = () => {
         const selectedLottery = new Lottery(properties.newLotteryMinName, properties.newLotteryMinMaxNo, properties.newLotteryMinMaxChoices, properties.newLotteryMinAmount, properties.newLotteryMinCost);//"Bingo"+Date.now(), 5, 1);
         //selectedLottery.choices[1]=true;
@@ -1274,7 +1285,7 @@ export default class App extends React.Component
         const callName = "axiosDBGetAllPlayerHistory";
         console.log(callName + " start");
 
-        var utxos = new Map();
+        var utxos = [];
 
         var config = {
             method: 'get',
@@ -1290,7 +1301,7 @@ export default class App extends React.Component
             console.log(callName + ": " + JSON.stringify(response.data));
             response.data.forEach(function (rec, index) {
                 //console.log(callName + ": utxo: " + rec.utxo); 
-                utxos.set(rec.utxo, rec);
+                utxos.push(rec);
             });            
             //console.log(callName + ": " + JSON.stringify(Array.from(utxos.entries())));
             console.log(callName + ": size: " + utxos.size);
@@ -1310,6 +1321,7 @@ export default class App extends React.Component
                         this.padStr(temp.getHours()) +
                         this.padStr(temp.getMinutes()) +
                         this.padStr(temp.getSeconds());
+        return dateStr;                        
       }
     
       padStr(i) {
@@ -1415,7 +1427,8 @@ export default class App extends React.Component
                     utxo, dbUtxo.sha256, dbUtxo.selected, 
                     dbUtxo.name, dbUtxo.maxNo, dbUtxo.maxChoices,
                     adaUtxo.amount/1000000, dbUtxo.cost, dbUtxo.dataHash, adaUtxo.utxos, 
-                    dbUtxo.creatorAddr, dbUtxo.roiAddr, dbUtxo.timestamp,
+                    dbUtxo.creatorAddr, dbUtxo.roiAddr, dbUtxo.timestamp, 
+                    undefined, undefined,
                 )
                 lotteries.push(lottery);
                 //console.log(callName + ": lottery: " + JSON.stringify(lottery));
@@ -1451,7 +1464,7 @@ export default class App extends React.Component
                 dbUtxo.utxo, dbUtxo.sha256, dbUtxo.selected, 
                 dbUtxo.name, dbUtxo.maxNo, dbUtxo.maxChoices,
                 dbUtxo.amount, dbUtxo.cost, dbUtxo.dataHash, [], 
-                dbUtxo.creatorAddr, dbUtxo.roiAddr, dbUtxo.timestamp,
+                dbUtxo.creatorAddr, dbUtxo.roiAddr, dbUtxo.timestamp, dbUtxo.type, dbUtxo.result,
             )
             lotteries.push(lottery);
         });
@@ -1662,6 +1675,7 @@ export default class App extends React.Component
         const working = !this.state.balance || this.state.showWorking;
         const tvl = this.state.lotteries.map(lotto => lotto.amount).reduce((a, b) => a+b, 0);
         const showOnlyLotto = this.state.lottoName;
+        const selectedLotteryActive = this.state.lotteries?.find(o => o.utxo === selectedLottery?.utxo);
         //console.log("App.js: maxNo" + lottery1.maxNo)
         //console.log("App.js: maxChoices" + lottery1.maxChoices)
         //console.log("App.js: choices" + lottery1.choices)
@@ -1727,7 +1741,7 @@ export default class App extends React.Component
 
                     {(working) &&  <LinearProgress  sx={{mb: 2}} />}
 
-                    {(!createNewLottery) && <Button variant="contained" onClick={this.handleClickPlay} disabled={working}>Play</Button>}
+                    {(!createNewLottery) && <Button variant="contained" onClick={this.handleClickPlay} disabled={working || !selectedLotteryActive}>Play</Button>}
 
                     {(createNewLottery)
                     &&
@@ -1739,15 +1753,18 @@ export default class App extends React.Component
                 </Grid>
                 }
 
-                <Grid item xs={12} md={0}>
+                <Grid item xs={12} md={12}>
                     <Divider sx={{mt: 4}}></Divider>
                 </Grid>
                 
-                <Grid item xs={0} md={2} xl={4}></Grid>
-                <Grid item xs={12} md={6} xl={4} sx={{mt: 4}}>
-                    <HistoryTable selectedLottery={selectedLottery} lotteries={history} handleLotterySelect={this.handleLotterySelect}></HistoryTable>
+                <Grid item xs={0} md={0} xl={0}></Grid>
+                <Grid item xs={12} md={12} xl={12} sx={{mt: 4}}>
+                    <HistoryTable selectedLottery={selectedLottery} lotteries={history} handleLotterySelect={this.handleLotteryHistorySelect}></HistoryTable>
+                    <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
+                        <Button variant="contained" onClick={this.handleLoadPlayerHistory} disabled={working}>Refresh</Button>
+                    </Stack>
                 </Grid>
-                <Grid item xs={0} md={2} xl={4}></Grid>
+                <Grid item xs={0} md={0} xl={0}></Grid>
 
             </Grid>
         )
