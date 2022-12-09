@@ -1513,11 +1513,9 @@ export default class App extends React.Component
         //this.refreshData();        
       };
 
-
       updateFromNewLottery = (selectedLottery) => {
         this.setState({selectedLottery: selectedLottery});
       }
-
 
       createLotteries() {
         let lotteries = [
@@ -1528,7 +1526,6 @@ export default class App extends React.Component
         ]
         return lotteries;
       }
-
       
       renderLotto()
       {
@@ -1555,9 +1552,11 @@ export default class App extends React.Component
 
             <Grid container>
                 <Grid item xs={12} md={12}>
+                    <Button onClick={() => {window.location = "/home";}}>
                     <Typography variant="h4" gutterBottom>
                         Cardano Lottery
                     </Typography>
+                    </Button>
                     <Tooltip title={properties.addressScriptBech32}>
                         <Typography variant="h6" gutterBottom>
                             TVL: {tvl} ADA
