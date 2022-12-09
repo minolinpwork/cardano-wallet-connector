@@ -128,17 +128,6 @@ EnhancedTableHead.propTypes = {
   orderBy: PropTypes.string.isRequired,
 };
 
-const createDataRows= (lotteries) => {
-  var rows = [];
-  if (lotteries) {
-    rows = lotteries.map(function (lottery) {
-      return {"name": lottery.name, "maxNo": lottery.maxNo, "maxChoices": lottery.maxChoices, "amount": lottery.amount, "cost": lottery.cost};
-    });
-  }
-  console.log("createDataRows: " + rows + " " + rows[0].name)
-  return rows;
-};
-
 export default function EnhancedTable(props) {
   const [order, setOrder] = React.useState('asc');
   const [orderBy, setOrderBy] = React.useState('name');
@@ -234,10 +223,10 @@ export default function EnhancedTable(props) {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
-      <FormControlLabel
+      {/*<FormControlLabel
         control={<Switch checked={dense} onChange={handleChangeDense} />}
         label="Dense padding"
-      />
+                />*/}
     </Box>
   );
 }

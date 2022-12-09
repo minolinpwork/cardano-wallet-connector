@@ -111,8 +111,9 @@ export class Lottery {
         this.amount = amount;
         this.cost = cost;
         this.choices = new Array(maxNo+1).fill(false);
+        this.timestamp = "";
     }
-    static restore(utxo, sha256, selected, name, maxNo, maxChoices, amount, cost, dataHash, utxos, creatorAddr, roiAddr) {
+    static restore(utxo, sha256, selected, name, maxNo, maxChoices, amount, cost, dataHash, utxos, creatorAddr, roiAddr, timestamp) {
         let lottery = new Lottery(name, maxNo, maxChoices, amount, cost, creatorAddr, roiAddr);
         lottery.utxo = utxo;
         lottery.sha256 = sha256;
@@ -122,6 +123,7 @@ export class Lottery {
         if (properties.dev) {
             selected.map(item => lottery.choices[item]=true);
         }
+        this.timestamp=timestamp;
         return lottery;
     }
 
@@ -180,7 +182,7 @@ export class Lottery {
     }
 
     clone() {
-        return Lottery.restore(this.utxo, this.sha256, this.selected(), this.name, this.maxNo, this.maxChoices, this.amount, this.cost, this.dataHash, this.utxos, this.creatorAddr, this.roiAddr)
+        return Lottery.restore(this.utxo, this.sha256, this.selected(), this.name, this.maxNo, this.maxChoices, this.amount, this.cost, this.dataHash, this.utxos, this.creatorAddr, this.roiAddr, this.timestamp)
     }
 }
 

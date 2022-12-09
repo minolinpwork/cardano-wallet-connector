@@ -81,6 +81,7 @@ import LottoView, {Lottery} from './component/Lottery'
 import BasicTable from './component/BasicTable'
 import NewLottery from './component/NewLottery'
 import EnhancedTable from './component/EnhancedTable'
+import HistoryTable from './component/HistoryTable'
 
 import clipboard from 'clipboardy';
 
@@ -161,6 +162,7 @@ export default class App extends React.Component
             statusUpdate: "",
 
             lotteries: [],
+            history: [],
             //selectedLottery: lotteriesX[0],
 
             selectedLottery : null,
@@ -259,6 +261,7 @@ export default class App extends React.Component
         }, () => {
             this.refreshData().then(() => {
                 this.setState({showWorking: false})
+                this.handleLoadPlayerHistory();
             })
         });
     }
@@ -660,6 +663,8 @@ export default class App extends React.Component
         } catch (err) {
             console.log(err)
         }
+
+
         console.log(callName + "end");
     }
 
@@ -1233,15 +1238,15 @@ export default class App extends React.Component
           return utxos;
       }
       
-      async axoisGetAllDB() {
-        const callName = "axoisGetAllDB";
+      async axiosDBGetAllCreation() {
+        const callName = "axiosDBGetAllCreation";
         console.log(callName + " start");
 
         var utxos = new Map();
 
         var config = {
             method: 'get',
-            url: 'get/all',
+            url: 'get/all/creation',
             baseURL: properties.beUrl,
             headers: { 
               'Accept': 'application/json', 
@@ -1265,8 +1270,54 @@ export default class App extends React.Component
           return utxos;
       }
       
-      async axoisStoreDB() {
-        const callName = "axoisStoreDB";
+      async axiosDBGetAllPlayerHistory() {
+        const callName = "axiosDBGetAllPlayerHistory";
+        console.log(callName + " start");
+
+        var utxos = new Map();
+
+        var config = {
+            method: 'get',
+            url: 'get/all/player/'+this.state.rewardAddress,
+            baseURL: properties.beUrl,
+            headers: { 
+              'Accept': 'application/json', 
+            }
+          };
+
+        await axios(config)
+          .then(function (response) {
+            console.log(callName + ": " + JSON.stringify(response.data));
+            response.data.forEach(function (rec, index) {
+                //console.log(callName + ": utxo: " + rec.utxo); 
+                utxos.set(rec.utxo, rec);
+            });            
+            //console.log(callName + ": " + JSON.stringify(Array.from(utxos.entries())));
+            console.log(callName + ": size: " + utxos.size);
+          })
+          .catch(function (error) {
+            console.log(callName + " error: " + error);
+          });    
+          console.log(callName + " end");
+          return utxos;
+      }
+      
+      dateFormatted() {
+        var temp = new Date();
+        var dateStr = this.padStr(temp.getFullYear()) +
+                        this.padStr(1 + temp.getMonth()) +
+                        this.padStr(temp.getDate()) +
+                        this.padStr(temp.getHours()) +
+                        this.padStr(temp.getMinutes()) +
+                        this.padStr(temp.getSeconds());
+      }
+    
+      padStr(i) {
+        return (i < 10) ? "0" + i : "" + i;
+      }
+
+      async axiosDBStoreCreation() {
+        const callName = "axiosDBStoreCreation";
         console.log(callName + " start");
         const selectedLottery = this.state.selectedLottery;
 
@@ -1274,7 +1325,7 @@ export default class App extends React.Component
 
         var config = {
             method: 'put',
-            url: 'store',
+            url: 'store/creation',
             baseURL: properties.beUrl,
             headers: { 
               'Content-Type': 'application/json', 
@@ -1291,6 +1342,7 @@ export default class App extends React.Component
                 dataHash: selectedLottery.dataHash,
                 creatorAddr: selectedLottery.creatorAddr,
                 roiAddr: selectedLottery.roiAddr,
+                timestamp: this.dateFormatted(),
             }
           };
 
@@ -1304,14 +1356,55 @@ export default class App extends React.Component
           console.log(callName + " end");
         }
 
+        async axiosDBStorePlayer(type, result) {
+            const callName = "axiosDBStorePlayer";
+            console.log(callName + " start");
+            const selectedLottery = this.state.selectedLottery;
+    
+            var config = {
+                method: 'put',
+                url: 'store/player',
+                baseURL: properties.beUrl,
+                headers: { 
+                  'Content-Type': 'application/json', 
+                },
+                data: {
+                    playerAddr: this.state.rewardAddress,
+                    type: type,
+                    result: result,
+                    utxo: selectedLottery.utxo, 
+                    sha256: selectedLottery.sha256, 
+                    name: selectedLottery.name, 
+                    maxNo: selectedLottery.maxNo, 
+                    maxChoices: selectedLottery.maxChoices, 
+                    selected: selectedLottery.selected(), 
+                    amount: selectedLottery.amount,
+                    cost: selectedLottery.cost,
+                    dataHash: selectedLottery.dataHash,
+                    creatorAddr: selectedLottery.creatorAddr,
+                    roiAddr: selectedLottery.roiAddr,
+                    timestamp: this.dateFormatted(),
+                }
+              };
+    
+            await axios(config)
+              .then(function (response) {
+                console.log(callName + ": " + response.data);
+              })
+              .catch(function (error) {
+                console.log(callName + "error: " + error);
+              });    
+              console.log(callName + " end");
+            }
+    
       handleLoadLotteries = async () => {
-        const callName = "handleLoadLotteries";
+        const callName = "handleLoadLotteries: ";
 
-        const dbUtxos = await this.axoisGetAllDB();
-        console.log(callName + ": handleClickCreateNewLottery axoisGetAllDB done");
+        const dbUtxos = await this.axiosDBGetAllCreation();
+        console.log(callName + "axiosDBGetAllCreation done");
 
         const adaUtxos = await this.axoisBlockfrost();
-        console.log(callName + ": handleClickCreateNewLottery axoisBlockfrost done");
+        console.log(callName + "axoisBlockfrost done");
 
         let lotteries = [];
 
@@ -1322,7 +1415,7 @@ export default class App extends React.Component
                     utxo, dbUtxo.sha256, dbUtxo.selected, 
                     dbUtxo.name, dbUtxo.maxNo, dbUtxo.maxChoices,
                     adaUtxo.amount/1000000, dbUtxo.cost, dbUtxo.dataHash, adaUtxo.utxos, 
-                    dbUtxo.creatorAddr, dbUtxo.roiAddr,
+                    dbUtxo.creatorAddr, dbUtxo.roiAddr, dbUtxo.timestamp,
                 )
                 lotteries.push(lottery);
                 //console.log(callName + ": lottery: " + JSON.stringify(lottery));
@@ -1344,6 +1437,27 @@ export default class App extends React.Component
             this.setState({selectedLottery: selectedLottery.clone()});
         }
       }
+
+      handleLoadPlayerHistory = async () => {
+        const callName = "handleLoadPlayerHistory: ";
+
+        const dbUtxos = await this.axiosDBGetAllPlayerHistory();
+        console.log(callName + "axiosDBGetAllPlayerHistory done");
+
+        let lotteries = [];
+
+        dbUtxos.forEach(function (dbUtxo, index) {
+            let lottery = Lottery.restore(
+                dbUtxo.utxo, dbUtxo.sha256, dbUtxo.selected, 
+                dbUtxo.name, dbUtxo.maxNo, dbUtxo.maxChoices,
+                dbUtxo.amount, dbUtxo.cost, dbUtxo.dataHash, [], 
+                dbUtxo.creatorAddr, dbUtxo.roiAddr, dbUtxo.timestamp,
+            )
+            lotteries.push(lottery);
+        });
+
+        this.setState({history: lotteries});
+    }
 
       getLottoByName(name) {
         return this.state.lotteries.find(o => o.name === name);
@@ -1384,7 +1498,8 @@ export default class App extends React.Component
             selectedLottery.dataHash = result.dataHash;
             selectedLottery.creatorAddr = this.state.rewardAddress;
             selectedLottery.roiAddr = this.state.changeAddress;
-            this.axoisStoreDB();
+            this.axiosDBStoreCreation();
+            this.axiosDBStorePlayer("create", undefined);
     
             const createNewLottery = false;
             this.setState({createNewLottery, selectedLottery: null});
@@ -1493,6 +1608,7 @@ export default class App extends React.Component
                 const submittedTxHash = await this.buildRedeemAdaFromPlutusScript();
                 if (submittedTxHash.length>10) {
                     this.showYouWonAlert();
+                    this.axiosDBStorePlayer("play", true);
                     const newLotteries = this.state.lotteries.filter(function(value, index, arr){ 
                         return value.utxo!=selectedLottery.utxo;
                     });
@@ -1502,6 +1618,7 @@ export default class App extends React.Component
                 const submittedTxHash = await this.buildSendAdaFailed();
                 if (submittedTxHash.length>10) {
                     this.showYouLostAlert();
+                    this.axiosDBStorePlayer("play", false);
                 }
             }
         } catch (err) {
@@ -1530,6 +1647,7 @@ export default class App extends React.Component
       renderLotto()
       {
         const lotteries = this.state.lotteries;
+        const history = this.state.history;
         const selectedLottery = this.state.selectedLottery;
         const createNewLottery = this.state.createNewLottery;
         const winningNumbersAlert = this.state.winningNumbersAlert;
@@ -1620,6 +1738,17 @@ export default class App extends React.Component
                     } 
                 </Grid>
                 }
+
+                <Grid item xs={12} md={0}>
+                    <Divider sx={{mt: 4}}></Divider>
+                </Grid>
+                
+                <Grid item xs={0} md={2} xl={4}></Grid>
+                <Grid item xs={12} md={6} xl={4} sx={{mt: 4}}>
+                    <HistoryTable selectedLottery={selectedLottery} lotteries={history} handleLotterySelect={this.handleLotterySelect}></HistoryTable>
+                </Grid>
+                <Grid item xs={0} md={2} xl={4}></Grid>
+
             </Grid>
         )
       }
