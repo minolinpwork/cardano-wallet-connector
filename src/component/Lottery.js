@@ -242,7 +242,7 @@ export default class LottoView extends React.Component {
 
         return (
 
-            <Grid item xs={12} md={12} sx={{mt:2, mb: 4}}>
+            <Grid item xs={12} md={12} sx={{mb: 4}}>
                 <Typography variant="h5" gutterBottom>
                     Name of Lottery: {name}
                 </Typography>                

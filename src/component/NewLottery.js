@@ -104,7 +104,7 @@ export default class NewLottery extends React.Component {
       <TextField  
         required
         id="name"
-        defaultValue={properties.newLotteryMinName}
+        value={lottery.name}
         //defaultValue="Dummy"
         label="Name of Lottery"
         onChange={(e) => this.handleLotteryNameChange(e.target.value)}

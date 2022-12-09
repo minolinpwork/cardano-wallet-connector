@@ -142,7 +142,7 @@ EnhancedTableHead.propTypes = {
 
 export default function HistoryTable(props) {
   const [order, setOrder] = React.useState('desc');
-  const [orderBy, setOrderBy] = React.useState('date');
+  const [orderBy, setOrderBy] = React.useState('timestamp');
   const [page, setPage] = React.useState(0);
   const [dense, setDense] = React.useState(true);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
@@ -196,6 +196,7 @@ export default function HistoryTable(props) {
                 .map((row, index) => {
                   const isItemSelected = isSelected(row.timestamp);
                   const selected = row.selected().toString();
+                  const active = props.activeLotteries?.find(o => o?.utxo === row?.utxo)
                   return (
                     <TableRow
                       hover
@@ -203,6 +204,7 @@ export default function HistoryTable(props) {
                       tabIndex={-1}
                       key={row.timestamp}
                       selected={isItemSelected}
+                      sx={{backgroundColor: active ? '' : 'lightgrey'}}
                     >
                       <TableCell align="right">{row.timestamp}</TableCell>
                       <TableCell align="left">{row.type}</TableCell>

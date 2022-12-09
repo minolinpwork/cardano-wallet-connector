@@ -1724,7 +1724,7 @@ export default class App extends React.Component
                 }
 
                 <Grid item xs={12} md={0}>
-                    <Divider sx={{mt: 4}}></Divider>
+                    <Divider sx={{mt: 4, mb: 4}}></Divider>
                 </Grid>
 
                 {(selectedLottery)
@@ -1757,14 +1757,14 @@ export default class App extends React.Component
                     <Divider sx={{mt: 4}}></Divider>
                 </Grid>
                 
-                <Grid item xs={0} md={0} xl={0}></Grid>
-                <Grid item xs={12} md={12} xl={12} sx={{mt: 4}}>
-                    <HistoryTable selectedLottery={selectedLottery} lotteries={history} handleLotterySelect={this.handleLotteryHistorySelect}></HistoryTable>
+                <Grid item xs={0} md={0} xl={1}></Grid>
+                <Grid item xs={12} md={12} xl={10} sx={{mt: 4}}>
+                    <HistoryTable selectedLottery={selectedLottery} activeLotteries={lotteries} lotteries={history} handleLotterySelect={this.handleLotteryHistorySelect}></HistoryTable>
                     <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
                         <Button variant="contained" onClick={this.handleLoadPlayerHistory} disabled={working}>Refresh</Button>
                     </Stack>
                 </Grid>
-                <Grid item xs={0} md={0} xl={0}></Grid>
+                <Grid item xs={0} md={0} xl={1}></Grid>
 
             </Grid>
         )
