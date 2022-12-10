@@ -96,6 +96,12 @@ const headCells = [
     disablePadding: false,
     label: 'Chosen',
   },
+  {
+    id: 'winNos',
+    numeric: true,
+    disablePadding: false,
+    label: 'Winning Nos',
+  },
 ];
 
 function EnhancedTableHead(props) {
@@ -196,7 +202,21 @@ export default function HistoryTable(props) {
                 .map((row, index) => {
                   const isItemSelected = isSelected(row.timestamp);
                   const selected = row.selected().toString();
-                  const active = props.activeLotteries?.find(o => o?.utxo === row?.utxo)
+                  const winNos = row.winNos.toString();
+                  let backgroundColor='';
+                  if (row.winPlayerAddrSha) {
+                    switch (row.winPlayerAddrSha) {
+                      case row.creatorAddr:
+                        backgroundColor='lightgrey'
+                        break;
+                      case props.myrewardaddrsha:
+                        backgroundColor='lightgreen'
+                        break;
+                      default:
+                        backgroundColor='lightyellow'
+                    }
+                  }
+
                   return (
                     <TableRow
                       hover
@@ -204,7 +224,7 @@ export default function HistoryTable(props) {
                       tabIndex={-1}
                       key={row.timestamp}
                       selected={isItemSelected}
-                      sx={{backgroundColor: active ? '' : 'lightgrey'}}
+                      sx={{backgroundColor}}
                     >
                       <TableCell align="right">{row.timestamp}</TableCell>
                       <TableCell align="left">{row.type}</TableCell>
@@ -214,6 +234,7 @@ export default function HistoryTable(props) {
                       <TableCell align="right">{row.amount}</TableCell>
                       <TableCell align="right">{row.cost}</TableCell>
                       <TableCell align="right">{selected}</TableCell>
+                      <TableCell align="right">{winNos}</TableCell>
                     </TableRow>
                   );
                 })}

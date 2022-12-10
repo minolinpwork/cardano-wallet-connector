@@ -620,8 +620,8 @@ export default class App extends React.Component
         console.log(callName + "end");
     }
 
-    encrypt = async (text) => {
-        const name = "encrypt: "
+    encryptAES(text) {
+        const name = "encryptAES: "
 
         var textBytes = aesjs.utils.utf8.toBytes(text);
         var aesCtr = new aesjs.ModeOfOperation.ctr(this.state.aesKey, new aesjs.Counter(5));
@@ -631,10 +631,6 @@ export default class App extends React.Component
         
         console.log(name + encryptedHex)
         return encryptedHex
-    }
-
-    helloWorld() {
-        console.log("HelloWorld")
     }
 
     decryptAES(encryptedHex) {
@@ -1333,15 +1329,30 @@ export default class App extends React.Component
           return utxos;
       }
       
-      async axiosDBGetAllCreation() {
-        const callName = "axiosDBGetAllCreation";
+      async axiosDBGetMap(url) {
+        const callName = "axiosDBGetMap: " + url + ": ";
         console.log(callName + " start");
 
-        var utxos = new Map();
+        const dataMap = new Map();
+        await this.axiosDBGet(url)
+        .then((data) => {
+            data.forEach((elem, index) => {
+                dataMap.set(elem.utxo, elem)
+            })
+        })
+
+        return dataMap;
+      }
+      
+      async axiosDBGet(url) {
+        const callName = "axiosDBGet: " + url + ": ";
+        console.log(callName + " start");
+
+        var data = [];
 
         var config = {
             method: 'get',
-            url: 'get/all/creation',
+            url: url,
             baseURL: properties.beUrl,
             headers: { 
               'Accept': 'application/json', 
@@ -1351,52 +1362,16 @@ export default class App extends React.Component
         await axios(config)
           .then(function (response) {
             console.log(callName + ": " + JSON.stringify(response.data));
-            response.data.forEach(function (rec, index) {
-                //console.log(callName + ": utxo: " + rec.utxo); 
-                utxos.set(rec.utxo, rec);
-            });            
-            //console.log(callName + ": " + JSON.stringify(Array.from(utxos.entries())));
-            console.log(callName + ": size: " + utxos.size);
+            data = response.data;
+            console.log(callName + ": size: " + data.size);
           })
           .catch(function (error) {
             console.log(callName + " error: " + error);
           });    
           console.log(callName + " end");
-          return utxos;
+          return data;
       }
-      
-      async axiosDBGetAllPlayerHistory() {
-        const callName = "axiosDBGetAllPlayerHistory";
-        console.log(callName + " start");
-
-        var utxos = [];
-
-        var config = {
-            method: 'get',
-            url: 'get/all/player/'+this.state.rewardAddrSha,
-            baseURL: properties.beUrl,
-            headers: { 
-              'Accept': 'application/json', 
-            }
-          };
-
-        await axios(config)
-          .then(function (response) {
-            console.log(callName + ": " + JSON.stringify(response.data));
-            response.data.forEach(function (rec, index) {
-                //console.log(callName + ": utxo: " + rec.utxo); 
-                utxos.push(rec);
-            });            
-            //console.log(callName + ": " + JSON.stringify(Array.from(utxos.entries())));
-            console.log(callName + ": size: " + utxos.size);
-          })
-          .catch(function (error) {
-            console.log(callName + " error: " + error);
-          });    
-          console.log(callName + " end");
-          return utxos;
-      }
-      
+            
       dateFormatted() {
         var temp = new Date();
         var dateStr = this.padStr(temp.getFullYear()) +
@@ -1412,55 +1387,14 @@ export default class App extends React.Component
         return (i < 10) ? "0" + i : "" + i;
       }
 
-      async axiosDBStoreCreation() {
-        const callName = "axiosDBStoreCreation";
-        console.log(callName + " start");
-        const selectedLottery = this.state.selectedLottery;
-
-        selectedLottery.sha256 = selectedLottery.calcSha256();
-
-        var config = {
-            method: 'put',
-            url: 'store/creation',
-            baseURL: properties.beUrl,
-            headers: { 
-              'Content-Type': 'application/json', 
-            },
-            data: {
-                utxo: selectedLottery.utxo, 
-                sha256: selectedLottery.sha256, 
-                name: selectedLottery.name, 
-                maxNo: selectedLottery.maxNo, 
-                maxChoices: selectedLottery.maxChoices, 
-                selected: properties.dev ? selectedLottery.selected() : [], 
-                amount: selectedLottery.amount,
-                cost: selectedLottery.cost,
-                dataHash: selectedLottery.dataHash,
-                creatorAddr: selectedLottery.creatorAddr,
-                roiAddr: selectedLottery.roiAddr,
-                timestamp: this.dateFormatted(),
-            }
-          };
-
-        await axios(config)
-          .then(function (response) {
-            console.log(callName + ": " + response.data);
-          })
-          .catch(function (error) {
-            console.log(callName + "error: " + error);
-          });    
-          console.log(callName + " end");
-        }
-
-        async axiosDBStorePlayer(type, result) {
-            const callName = "axiosDBStorePlayer";
+        async axiosDBStore(url, type, result, selected) {
+            const callName = "axiosDBStorePlay";
             console.log(callName + " start");
             const selectedLottery = this.state.selectedLottery;
     
-            var selected = await this.encrypt(selectedLottery.selected());
             var config = {
                 method: 'put',
-                url: 'store/player',
+                url: url, 
                 baseURL: properties.beUrl,
                 headers: { 
                   'Content-Type': 'application/json', 
@@ -1482,22 +1416,22 @@ export default class App extends React.Component
                     roiAddr: selectedLottery.roiAddr,
                     timestamp: this.dateFormatted(),
                 }
-              };
+            };
     
             await axios(config)
               .then(function (response) {
                 console.log(callName + ": " + response.data);
-              })
-              .catch(function (error) {
-                console.log(callName + "error: " + error);
-              });    
-              console.log(callName + " end");
-            }
+            })
+            .catch(function (error) {
+            console.log(callName + "error: " + error);
+            });    
+            console.log(callName + " end");
+      }
     
       handleLoadLotteries = async () => {
         const callName = "handleLoadLotteries: ";
 
-        const dbUtxos = await this.axiosDBGetAllCreation();
+        const dbUtxos = await this.axiosDBGetMap("get/all/create");
         console.log(callName + "axiosDBGetAllCreation done");
 
         const adaUtxos = await this.axoisBlockfrost();
@@ -1539,13 +1473,16 @@ export default class App extends React.Component
       handleLoadPlayerHistory = async () => {
         const callName = "handleLoadPlayerHistory: ";
 
-        const dbUtxos = await this.axiosDBGetAllPlayerHistory();
+        const dbHistory = await this.axiosDBGet('get/all/play/'+this.state.rewardAddrSha);
+        console.log(callName + "axiosDBGetAllPlayerHistory done");
+
+        const dbWins = await this.axiosDBGetMap('get/all/wins');
         console.log(callName + "axiosDBGetAllPlayerHistory done");
 
         let lotteries = [];
 
         var self = this;
-        dbUtxos.forEach(function (dbUtxo, index) {
+        dbHistory.forEach((dbUtxo, index) => {
             const selectedDecrypted = self.decryptAES(dbUtxo.selected);
             const selectedArray = selectedDecrypted.split(',')
             let lottery = Lottery.restore(
@@ -1554,6 +1491,11 @@ export default class App extends React.Component
                 dbUtxo.amount, dbUtxo.cost, dbUtxo.dataHash, [], 
                 dbUtxo.creatorAddr, dbUtxo.roiAddr, dbUtxo.timestamp, dbUtxo.type, dbUtxo.result,
             )
+            if (dbWins.has(dbUtxo.utxo)) {
+                const dbWin = dbWins.get(dbUtxo.utxo);
+                lottery.winNos = dbWin.selected;
+                lottery.winPlayerAddrSha = dbWin.playerAddr;
+            }
             lotteries.push(lottery);
         });
 
@@ -1599,8 +1541,8 @@ export default class App extends React.Component
             selectedLottery.dataHash = result.dataHash;
             selectedLottery.creatorAddr = this.state.rewardAddrSha;
             selectedLottery.roiAddr = this.state.changeAddress;
-            this.axiosDBStoreCreation();
-            this.axiosDBStorePlayer("create", undefined);
+            this.axiosDBStore("store/create", "create", true, properties.dev ? selectedLottery.selected() : []);
+            this.axiosDBStore("store/play", "create", true, this.encryptAES(selectedLottery.selected()));
     
             const createNewLottery = false;
             this.setState({createNewLottery, selectedLottery: null});
@@ -1709,7 +1651,8 @@ export default class App extends React.Component
                 const submittedTxHash = await this.buildRedeemAdaFromPlutusScript();
                 if (submittedTxHash.length>10) {
                     this.showYouWonAlert();
-                    this.axiosDBStorePlayer("play", true);
+                    this.axiosDBStore("store/play", "play", true, this.encryptAES(selectedLottery.selected()));
+                    this.axiosDBStore("store/win", "play", true, selectedLottery.selected());
                     const newLotteries = this.state.lotteries.filter(function(value, index, arr){ 
                         return value.utxo!=selectedLottery.utxo;
                     });
@@ -1719,7 +1662,7 @@ export default class App extends React.Component
                 const submittedTxHash = await this.buildSendAdaFailed();
                 if (submittedTxHash.length>10) {
                     this.showYouLostAlert();
-                    this.axiosDBStorePlayer("play", false);
+                    this.axiosDBStore("store/play", "play", false, this.encryptAES(selectedLottery.selected()));
                 }
             }
         } catch (err) {
@@ -1764,6 +1707,7 @@ export default class App extends React.Component
         const tvl = this.state.lotteries.map(lotto => lotto.amount).reduce((a, b) => a+b, 0);
         const showOnlyLotto = this.state.lottoName;
         const selectedLotteryActive = this.state.lotteries?.find(o => o.utxo === selectedLottery?.utxo);
+        const rewardAddrSha = this.state.rewardAddrSha;
         //console.log("App.js: maxNo" + lottery1.maxNo)
         //console.log("App.js: maxChoices" + lottery1.maxChoices)
         //console.log("App.js: choices" + lottery1.choices)
@@ -1773,12 +1717,12 @@ export default class App extends React.Component
             <Grid container>
                 <Grid item xs={12} md={12}>
                     <Button onClick={() => {window.location = "/home";}}>
-                    <Typography variant="h4" gutterBottom>
+                    <Typography variant="h4">
                         Cardano Lottery
                     </Typography>
                     </Button>
                     <Tooltip title={properties.addressScriptBech32}>
-                        <Typography variant="h6" gutterBottom>
+                        <Typography variant="h6" gutterBottom sx={{mt:-1}}>
                             TVL: {tvl} ADA
                         </Typography>
                     </Tooltip>
@@ -1847,7 +1791,7 @@ export default class App extends React.Component
                 
                 <Grid item xs={0} md={0} xl={1}></Grid>
                 <Grid item xs={12} md={12} xl={10} sx={{mt: 4}}>
-                    <HistoryTable selectedLottery={selectedLottery} activeLotteries={lotteries} lotteries={history} handleLotterySelect={this.handleLotteryHistorySelect}></HistoryTable>
+                    <HistoryTable myrewardaddrsha={rewardAddrSha} selectedLottery={selectedLottery} lotteries={history} handleLotterySelect={this.handleLotteryHistorySelect}></HistoryTable>
                     <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
                         <Button variant="contained" onClick={this.handleLoadPlayerHistory} disabled={working}>Refresh</Button>
                     </Stack>

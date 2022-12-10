@@ -114,6 +114,8 @@ export class Lottery {
         this.timestamp = "";
         this.type = ""
         this.result = undefined;
+        this.winNos = []
+        this.winPlayerAddrSha = undefined;
     }
     static restore(utxo, sha256, selected, name, maxNo, maxChoices, amount, cost, dataHash, utxos, creatorAddr, roiAddr, timestamp, type, result) {
         let lottery = new Lottery(name, maxNo, maxChoices, amount, cost, creatorAddr, roiAddr);
