@@ -79,7 +79,7 @@ const headCells = [
     label: 'Cost',
   },
   {
-    id: 'winningNos',
+    id: 'choices',
     numeric: true,
     disablePadding: false,
     label: 'Winning Nos',

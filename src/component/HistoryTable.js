@@ -91,7 +91,7 @@ const headCells = [
     label: 'Cost',
   },
   {
-    id: 'selected',
+    id: 'choices',
     numeric: true,
     disablePadding: false,
     label: 'Chosen',
