@@ -129,8 +129,8 @@ EnhancedTableHead.propTypes = {
 };
 
 export default function EnhancedTable(props) {
-  const [order, setOrder] = React.useState('asc');
-  const [orderBy, setOrderBy] = React.useState('name');
+  const [order, setOrder] = React.useState('desc');
+  const [orderBy, setOrderBy] = React.useState('amount');
   const [page, setPage] = React.useState(0);
   const [dense, setDense] = React.useState(true);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);

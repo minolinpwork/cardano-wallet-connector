@@ -82,6 +82,7 @@ import BasicTable from './component/BasicTable'
 import NewLottery from './component/NewLottery'
 import EnhancedTable from './component/EnhancedTable'
 import HistoryTable from './component/HistoryTable'
+import Link from '@mui/material/Link';
 
 import clipboard from 'clipboardy';
 
@@ -1716,13 +1717,14 @@ export default class App extends React.Component
 
             <Grid container>
                 <Grid item xs={12} md={12}>
-                    <Button onClick={() => {window.location = "/home";}}>
                     <Typography variant="h4">
-                        Cardano Lottery
+                        <Link href="/home" underline="none">CARDANO LOTTERY</Link>
                     </Typography>
-                    </Button>
+                    <Typography variant="h8">
+                        Earn yield by running your own lottery, or try your luck with an existing lottery.
+                    </Typography>
                     <Tooltip title={properties.addressScriptBech32}>
-                        <Typography variant="h6" gutterBottom sx={{mt:-1}}>
+                        <Typography variant="h6" gutterBottom sx={{mt:0}}>
                             TVL: {tvl} ADA
                         </Typography>
                     </Tooltip>
