@@ -30,4 +30,6 @@ export const properties = {
     newLotteryMaxAmount: 1000,
     newLotteryMaxCost: 100,
 
+    alertTimeout: 7500,
+
 };
