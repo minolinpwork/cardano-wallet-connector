@@ -1572,52 +1572,52 @@ export default class App extends React.Component
         this.setState({newLotteryCreatedAlert: true});
         setTimeout(() => {
             this.setState({newLotteryCreatedAlert: false});
-        }, 5000);      
+        }, properties.alertTimeout);      
       };     
 
       showErrorAlert = () => {
         this.setState({errorAlert: true});
         setTimeout(() => {
             this.setState({errorAlert: false});
-        }, 5000);      
-      };  
+        }, properties.alertTimeout);      
+    };  
 
       showNameRequireAlert = () => {
         this.setState({nameRequiredAlert: true});
         setTimeout(() => {
             this.setState({nameRequiredAlert: false});
-        }, 5000);      
-      };     
+        }, properties.alertTimeout);      
+    };     
 
       showNameExistsAlert = () => {
         this.setState({nameExistsAlert: true});
         setTimeout(() => {
             this.setState({nameExistsAlert: false});
-        }, 5000);      
-      };     
+        }, properties.alertTimeout);      
+    };     
 
 
       showWinningNumbersAlert = () => {
         this.setState({winningNumbersAlert: true});
         setTimeout(() => {
             this.setState({winningNumbersAlert: false});
-        }, 5000);      
-      };      
+        }, properties.alertTimeout);      
+    };      
 
       showYouWonAlert = () => {
         this.setState({youWonAlert: true});
         setTimeout(() => {
             this.setState({youWonAlert: false});
             this.setState({selectedLottery: undefined})
-        }, 5000);      
-      };      
+        }, properties.alertTimeout);      
+    };      
 
       showYouLostAlert = () => {
         this.setState({youLostAlert: true});
         setTimeout(() => {
             this.setState({youLostAlert: false});
-        }, 5000);      
-      };      
+        }, properties.alertTimeout);      
+    };      
 
       handleClickPlay = async () => {
         this.setState({showWorking: true})
@@ -1703,7 +1703,6 @@ export default class App extends React.Component
         const nameExistsAlert = this.state.nameExistsAlert;
         const errorAlert = this.state.errorAlert;
         const maxChoices = this.state.selectedLottery?.maxChoices;
-        const cost = this.state.selectedLottery?.cost;
         const working = !this.state.balance || this.state.showWorking;
         const tvl = this.state.lotteries.map(lotto => lotto.amount).reduce((a, b) => a+b, 0);
         const showOnlyLotto = this.state.lottoName;
@@ -1720,9 +1719,14 @@ export default class App extends React.Component
                     <Typography variant="h4">
                         <Link href="/home" underline="none">CARDANO LOTTERY</Link>
                     </Typography>
-                    <Typography variant="h8">
-                        Earn yield by running your own lottery, or try your luck with an existing lottery.
-                    </Typography>
+                    {(!showOnlyLotto) && 
+                    <Typography variant="body1" gutterBottom>
+                    Run your own lottery with immediate return on investment
+                    </Typography>}
+                    {(!showOnlyLotto && createNewLottery) &&
+                    <Typography variant="body1" mt={-1} gutterBottom>
+                    Share your lotto link to accelerate returns
+                    </Typography>}
                     <Tooltip title={properties.addressScriptBech32}>
                         <Typography variant="h6" gutterBottom sx={{mt:0}}>
                             TVL: {tvl} ADA
@@ -1764,7 +1768,7 @@ export default class App extends React.Component
                 {(selectedLottery)
                     &&
                 <Grid item xs={12} md={showOnlyLotto ? 12 : 6}>
-                    <LottoView lottery={selectedLottery}></LottoView>
+                    <LottoView lottery={selectedLottery} createNewLottery={createNewLottery}></LottoView>
                     {(errorAlert) && <Alert severity="error">Oops.  An error occurred.  Please refresh page and try again.</Alert>}
                     {(youWonAlert) && <Alert severity="success">Wow!! You Won!</Alert>}
                     {(youLostAlert) && <Alert severity="info">Sorry!  Try again...</Alert>}

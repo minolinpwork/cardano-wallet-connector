@@ -81,8 +81,10 @@ export default class NewLottery extends React.Component {
       var lottery = this.props.lottery;
 
       const chanceOfWinning = this.combinations(lottery.maxNo, lottery.maxChoices)
-      const roiAda = Math.round((lottery.cost-properties.profitAmount/1000000)*100)
+      const toCreator = lottery.cost-properties.profitAmount/1000000;
+      const roiAda = Math.round(toCreator*100)
       const roiPerFor100Players = Math.round( roiAda / lottery.amount*100);
+      const playsToBreakEven = Math.round(lottery.amount/toCreator);
       //const maxChoices = Math.min(lottery.maxNo, 7)
 
   return (
@@ -170,13 +172,18 @@ export default class NewLottery extends React.Component {
         aria-labelledby="input-slider"
       />
 
-
-    <Typography id="changeOfWinning" gutterBottom mt={5}>
-        Chance of Winning: 1 in {chanceOfWinning}
-    </Typography>
-    <Typography id="changeOfWinning" gutterBottom>
-        ROI for 100 players: {roiPerFor100Players}% or {roiAda} ADA
-    </Typography>
+      <Typography id="changeOfWinning" variant="h6" gutterBottom mt={2}>
+          Calculations with above parameters
+      </Typography>
+      <Typography id="changeOfWinning" variant="body1" gutterBottom>
+          Chance of Winning: 1 in {chanceOfWinning}
+      </Typography>
+      <Typography id="changeOfWinning" variant="body1" gutterBottom>
+          Cover your investment with: {playsToBreakEven} players
+      </Typography>
+      <Typography id="changeOfWinning" variant="body1" gutterBottom>
+          ROI for 100 players: {roiPerFor100Players}% or {roiAda} ADA
+      </Typography>
 
     </Box>
   );

@@ -96,7 +96,7 @@ function EnhancedTableHead(props) {
   return (
     <TableHead>
       <TableRow>
-        {headCells.filter(headCell => properties.dev || headCell.id!='winningNos').map((headCell) => (
+        {headCells.filter(headCell => properties.dev || headCell.id!='choices').map((headCell) => (
           <TableCell
             key={headCell.id}
             align={headCell.numeric ? 'right' : 'left'}

@@ -214,7 +214,7 @@ export default class LottoView extends React.Component {
     }
 
     render() {
-        const exists = this.props.lottery.utxo?.length>0
+        const createNewLottery = this.props.createNewLottery
         const name = this.props.lottery?.name;
         const choices = this.props.lottery?.choices;
         const maxChoices = this.props.lottery?.maxChoices;
@@ -255,22 +255,26 @@ export default class LottoView extends React.Component {
                     Cost to play: {cost} ADA
                 </Typography>
 
-{(exists) &&
-                <Tooltip title={link}>
-                    <Link href={link} variant="body2" sx={{mt: 1}}>
-                        Link to this lottery 
-                    </Link>
-                </Tooltip>        
-}           
-{(exists) &&     
-                <Tooltip title="Copy">
-                    <IconButton onClick={() => copyToClipboard(link)} size="small">
-                        <ContentCopyIcon/>
-                    </IconButton>                    
-                </Tooltip>
-}
+{(!createNewLottery) &&
+                <Stack direction="row" spacing={0} sx={{justifyContent: 'center',}}>
+                    <Tooltip title={link}>
+                        <Link href={link} target="_blank" variant="body2" sx={{mt: 1}}>
+                            Share the direct link to this lottery 
+                        </Link>
+                    </Tooltip>      
+                    <Tooltip title="Copy">
+                        <IconButton onClick={() => copyToClipboard(link)} size="small">
+                            <ContentCopyIcon/>
+                        </IconButton>                    
+                    </Tooltip>
+                </Stack>  
+ || 
+                    <Typography variant="caption" color="grey" gutterBottom>
+                            Link available once sync'd with blockchain 
+                    </Typography>
+}          
                 <Typography variant="h5" gutterBottom sx={{mt: 3, mb: 2}}>
-                    Pick your {maxChoices} lucky numbers:
+                    Pick your {maxChoices} winning numbers:
                 </Typography>
                 <LottoNumbers
                     choices={choices}
