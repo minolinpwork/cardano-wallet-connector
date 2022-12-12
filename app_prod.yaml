@@ -1,7 +1,5 @@
 runtime: nodejs16
 instance_class: F1
-#test
-service: devfe
 handlers:
   # Serve all static files with url ending with a file extension
   - url: /(.*\..+)$
