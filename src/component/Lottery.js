@@ -216,11 +216,12 @@ export default class LottoView extends React.Component {
     render() {
         const createNewLottery = this.props.createNewLottery
         const name = this.props.lottery?.name;
+        const utxo = this.props.lottery?.utxo;
         const choices = this.props.lottery?.choices;
         const maxChoices = this.props.lottery?.maxChoices;
         const amount = this.props.lottery?.amount;
         const cost = this.props.lottery?.cost;
-        const link = window.location.origin+window.location.pathname+"?name="+name;
+        const link = window.location.origin+window.location.pathname+"?utxo="+utxo;
 
         //console.log("render choices: " + choices)
 

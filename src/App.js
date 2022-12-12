@@ -180,7 +180,7 @@ export default class App extends React.Component
 
             showWorking: true,
 
-            lottoName: queryParameters.get("name"),
+            lottoUtxo: queryParameters.get("utxo"),
 
             aesKey: undefined,
             rewardAddrSha: undefined,
@@ -232,7 +232,7 @@ export default class App extends React.Component
             coinsPerUtxoWord: "34482",
         }
 
-        console.log("constructor: lottoName: " + this.state.lottoName);
+        console.log("constructor: lottoUtxo: " + this.state.lottoUtxo);
         this.pollWallets = this.pollWallets.bind(this);
     }
 
@@ -1459,12 +1459,12 @@ export default class App extends React.Component
         this.setState({lotteries});
         if (lotteries.length>0) {
             let selectedLottery = lotteries[0];
-            if (this.state.lottoName) {
-                const lottoByName = this.getLottoByName(this.state.lottoName);
-                if (lottoByName) {
-                    selectedLottery = lottoByName;
+            if (this.state.lottoUtxo) {
+                const lottoByUtxo = this.getLottoByUtxo(this.state.lottoUtxo);
+                if (lottoByUtxo) {
+                    selectedLottery = lottoByUtxo;
                 } else {
-                    this.setState({lottoName: undefined})
+                    this.setState({lottoUtxo: undefined})
                 }
             }
             this.setState({selectedLottery: selectedLottery.clone()});
@@ -1507,6 +1507,10 @@ export default class App extends React.Component
         return this.state.lotteries.find(o => o.name === name);
       }
 
+      getLottoByUtxo(utxo) {
+        return this.state.lotteries.find(o => o.utxo === utxo);
+      }
+      
       handleClickCreateNewLottery = async () => {
         const name = "handleClickCreateNewLottery: "
 
@@ -1705,7 +1709,7 @@ export default class App extends React.Component
         const maxChoices = this.state.selectedLottery?.maxChoices;
         const working = !this.state.balance || this.state.showWorking;
         const tvl = this.state.lotteries.map(lotto => lotto.amount).reduce((a, b) => a+b, 0);
-        const showOnlyLotto = this.state.lottoName;
+        const showOnlyLotto = this.state.lottoUtxo;
         const selectedLotteryActive = this.state.lotteries?.find(o => o.utxo === selectedLottery?.utxo);
         const rewardAddrSha = this.state.rewardAddrSha;
         //console.log("App.js: maxNo" + lottery1.maxNo)
