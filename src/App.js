@@ -1707,7 +1707,8 @@ export default class App extends React.Component
         const nameExistsAlert = this.state.nameExistsAlert;
         const errorAlert = this.state.errorAlert;
         const maxChoices = this.state.selectedLottery?.maxChoices;
-        const working = !this.state.balance || this.state.showWorking;
+        const working = this.state.showWorking;
+        const workingOrNoBalance = !this.state.balance || this.state.showWorking;
         const tvl = this.state.lotteries.map(lotto => lotto.amount).reduce((a, b) => a+b, 0);
         const showOnlyLotto = this.state.lottoUtxo;
         const selectedLotteryActive = this.state.lotteries?.find(o => o.utxo === selectedLottery?.utxo);
@@ -1783,13 +1784,13 @@ export default class App extends React.Component
 
                     {(working) &&  <LinearProgress  sx={{mb: 2}} />}
 
-                    {(!createNewLottery) && <Button variant="contained" onClick={this.handleClickPlay} disabled={working || !selectedLotteryActive}>Play</Button>}
+                    {(!createNewLottery) && <Button variant="contained" onClick={this.handleClickPlay} disabled={workingOrNoBalance || !selectedLotteryActive}>Play</Button>}
 
                     {(createNewLottery)
                     &&
                     <Stack direction="row" spacing={2} mt={4} sx={{justifyContent: 'center',}}>
                         <Button variant="contained" onClick={this.handleCancelNewLottery} disabled={working}>Cancel</Button>
-                        <Button variant="contained" onClick={this.handleClickCreateNewLottery} disabled={working}>Create new Lottery</Button>
+                        <Button variant="contained" onClick={this.handleClickCreateNewLottery} disabled={workingOrNoBalance}>Create new Lottery</Button>
                     </Stack>
                     } 
                 </Grid>
