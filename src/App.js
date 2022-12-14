@@ -87,8 +87,14 @@ import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
-
 import Box from '@mui/material/Box';
+
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import CircleIcon from '@mui/icons-material/Circle';
+
 import clipboard from 'clipboardy';
 
 import { sha256 } from 'js-sha256';
@@ -187,7 +193,7 @@ export default class App extends React.Component
             aesKey: undefined,
             rewardAddrSha: undefined,
 
-            showHelp: false,
+            showHelp: true,
             mobileOpen: false,
 
 
@@ -1702,7 +1708,7 @@ export default class App extends React.Component
         //console.log("App.js: maxChoices" + lottery1.maxChoices)
         //console.log("App.js: choices" + lottery1.choices)
         //console.log("App.js: lottery1: " + JSON.stringify(lottery1, null, 4));
-        return !this.state.showHelp && (
+        return (
             <Box component="main" sx={{ p: 3 }}>
             <Toolbar />
             <Grid container textAlign="center">
@@ -1833,7 +1839,8 @@ export default class App extends React.Component
         return (
             <div>
                 {this.renderAppBar()}        
-                {this.renderLotto()}
+                {!this.state.showHelp && this.renderLotto()}
+                {this.state.showHelp && this.renderHelp()}
             </div>
         );
       }            
@@ -1903,15 +1910,6 @@ export default class App extends React.Component
                 </Drawer>
               </Box>
 
-              {(this.state.showHelp)
-                    &&
-              <Box component="main" sx={{ p: 3 }}>
-                <Toolbar />
-                <Typography>
-                  Hello world
-                </Typography>
-              </Box>
-                }
             </Box>
           );
          
@@ -1986,6 +1984,81 @@ export default class App extends React.Component
                   }
                   </div>
           )
+      }
+
+      renderBullet(i, s) {
+        return (
+
+            <Typography variant="body1">
+                {i}.  {s}
+            </Typography>
+        );
+      }
+
+      renderHelp() {
+        let i=1;
+        let j=1;
+        let profit=properties.profitAmount/1000000;
+        return (
+
+        <Box component="main" sx={{ p: 3 }}>
+          <Toolbar />
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+              <Typography variant="h5">General</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography variant="body1">
+                This is an open lottery allowing anyone with a wallet to create or play a lottery.  The funds are locked in a Cardano Smart Contract.
+                In order to unlock the funds one would have to play and pick all winning numbers.
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+              <Typography variant="h5">Players - How to</Typography>
+            </AccordionSummary>
+            <AccordionDetails>   
+                {this.renderBullet(i++, "Connect your wallet on the top right.  Your wallet balance will be displayed if successfully connected and buttons are enabled.")}
+                {this.renderBullet(i++, "Select one the lotteries available in the table.  The table lists all the parameters of each lottery.  The lottery will be loaded and is ready to play.")}
+                {this.renderBullet(i++, "Choose your winning numbers for the lottery.  Once you have chosen click Play to pay and to submit your lottery.  The cost is the cost of the lottery you selected + standard cardano fees.")}
+                {this.renderBullet(i++, "Once you have successfully paid the result of whether you won / lost will appear directly above the Play button.  If you have won the money will be withdrawn from the smart contract and deposited into your account.")}
+                {this.renderBullet(i++, "A history table is available at the bottom of the page displaying your past selections.  Click Refresh below it to see the latest records")}
+                {this.renderBullet(i++, "Once a lottery is won or the creator of the lottery closes, you will see the winning numbers in the column of the history table.  You can compare it to your chosen numbers.")}
+            </AccordionDetails>
+          </Accordion>
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel2a-content"
+              id="panel2a-header"
+            >
+              <Typography variant="h5">Creators - How to</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+            {this.renderBullet(j++, "Connect your wallet on the top right.  Your wallet balance will be displayed if successfully connected and buttons are enabled.")}
+            {this.renderBullet(j++, "Click Create New Lottery to take you to the create new lottery page")}
+            {this.renderBullet(j++, "Enter the parameters for your Lottery.  It will show you as you change the parameters how this will affect how the lottery appears to clients.  Also, some basic calcuations are provided for you to get an estimate of profit.")}
+            {this.renderBullet(j++, "The prize is the amount in ADA that you will pay.  The cost is the amount in ADA that the player of your lottery will pay.")}
+            {this.renderBullet(j++, "Also, select the numbers that will result in your lottery being won.")}
+            {this.renderBullet(j++, "When all fields have been filled in, click Create New Lottery to pay and create your lottery.  This will need to be added to the blockchain, and in a few minutes click on Refresh to see it appear in the list of available lotteries.")}
+            {this.renderBullet(j++, "A direct link is provided that can be shared with anyone who you wish to play the lottery.")}
+            {this.renderBullet(j++, "Your history will be stored, important fields will be encrypted with your staking key.  So we dont have access to lottery numbers choosen by you or the player's side until the lottery is won.")}
+            {this.renderBullet(j++, "You can let the lottery run for as long as you like, or cancel it at any time.  To cancel it, lookup your history and find the winning numbers you selected and play the lottery with those numbers.  Your winnings will be deposited into your account.")}
+            {this.renderBullet(j++, "Each time a player plays your lottery and loses, you will receive that money which is the cost to play your lottery minus our standard fee which is 1 ADA.  If the person wins the prize you put in would go to them and your lottery will closed.")}
+            </AccordionDetails>
+          </Accordion>
+        </Box>
+
+        );
       }
            
 }
