@@ -63,7 +63,6 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import Tooltip from '@mui/material/Tooltip';
-import ButtonGroup from '@mui/material/ButtonGroup';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import Grid from '@mui/material/Unstable_Grid2';
@@ -79,7 +78,6 @@ import LottoView, {Lottery} from './component/Lottery'
 import NewLottery from './component/NewLottery'
 import EnhancedTable from './component/EnhancedTable'
 import HistoryTable from './component/HistoryTable'
-import Link from '@mui/material/Link';
 
 import AppBar from '@mui/material/AppBar';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -93,7 +91,6 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import CircleIcon from '@mui/icons-material/Circle';
 
 import clipboard from 'clipboardy';
 
@@ -193,7 +190,7 @@ export default class App extends React.Component
             aesKey: undefined,
             rewardAddrSha: undefined,
 
-            showHelp: true,
+            showHelp: false,
             mobileOpen: false,
 
 
@@ -1713,22 +1710,13 @@ export default class App extends React.Component
             <Toolbar />
             <Grid container textAlign="center">
                 <Grid item xs={12} md={12}>
-                    <Typography variant="h4">
-                        <Link href="/home" underline="none">CARDANO LOTTERY</Link>
-                    </Typography>
                     {(!showOnlyLotto) && 
-                    <Typography variant="body1" gutterBottom>
-                    Run your own lottery with immediate return on investment
-                    </Typography>}
-                    {(!showOnlyLotto && createNewLottery) &&
-                    <Typography variant="body1" mt={-1} gutterBottom>
-                    Share your lotto link to accelerate returns
-                    </Typography>}
                     <Tooltip title={properties.addressScriptBech32}>
-                        <Typography variant="h6" gutterBottom sx={{mt:0}}>
+                        <Typography variant="body1" gutterBottom sx={{mt:-2}}>
                             TVL: {tvl} ADA
                         </Typography>
                     </Tooltip>
+                    }
                 </Grid>
 
                 {(!createNewLottery && !showOnlyLotto)
@@ -1815,24 +1803,6 @@ export default class App extends React.Component
         this.setState({mobileOpen: !this.state.mobileOpen});
       };
 
-      drawer = (
-        <Box onClick={this.handleDrawerToggle} sx={{ textAlign: 'center' }}>
-          <Typography variant="h6" sx={{ my: 2 }}>
-            LOTTO
-          </Typography>
-          <Divider />
-          <List>
-            {this.navItems.map((item) => (
-              <ListItem key={item} disablePadding>
-                <ListItemButton sx={{ textAlign: 'center' }}>
-                  <ListItemText primary={item} />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-      );
-
       //container = window !== undefined ? () => window().document.body : undefined;
 
       render() {
@@ -1845,7 +1815,14 @@ export default class App extends React.Component
         );
       }            
 
+      textMsgs = ["Run your own lottery with immediate return on investment", 
+                    "Share your lotto link with friends and family",
+                    "Create a lottery to raise funds for a cause"
+                ]
+
       renderAppBar() {
+        const randomIndexTextMsg = (Math.round(new Date().getTime()/100000)) % this.textMsgs.length;
+        const textMsg = this.textMsgs[randomIndexTextMsg];
         return (
             <Box sx={{ display: 'flex' }}>
               <CssBaseline />
@@ -1867,8 +1844,17 @@ export default class App extends React.Component
                   >
                     CARDANO LOTTERY
                   </Typography>
+                  <Typography
+                    variant="body1"
+                    component="div"
+                    sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
+                  >
+                    {textMsg}
+                  </Typography>
+                  
+
                   <Box sx={{ display: { xs: 'none', sm: 'block', color: '#fff' } }}>
-                      <Button><Link href="/home" underline="none" sx={{ color: '#fff' }}>HOME</Link></Button>
+                      <Button  href="/home" sx={{ color: '#fff' }}>HOME</Button>
                       <Button key="PLAY" sx={{ color: '#fff' }} onClick={() => this.setState({showHelp: false})}>
                       PLAY
                       </Button>
@@ -1906,7 +1892,55 @@ export default class App extends React.Component
                     '& .MuiDrawer-paper': { boxSizing: 'border-box', width: this.drawerWidth },
                   }}
                 >
-                  {this.drawer}
+                <Box onClick={this.handleDrawerToggle} sx={{ textAlign: 'center' }}>
+                  <Typography variant="h6" sx={{ my: 2 }}>
+                    LOTTO
+                  </Typography>
+                  <Divider />
+                  <List>
+                      <ListItem key="Home" disablePadding>
+                        <ListItemButton sx={{ textAlign: 'center' }} href="/home">
+                            <ListItemText primary="Home" />
+                        </ListItemButton>
+                      </ListItem>
+                      <ListItem key="Play" disablePadding>
+                        <ListItemButton sx={{ textAlign: 'center' }} onClick={() => this.setState({showHelp: false})}>
+                          <ListItemText primary="Play" />
+                        </ListItemButton>
+                      </ListItem>
+                      <ListItem key="Help" disablePadding>
+                        <ListItemButton sx={{ textAlign: 'center' }} onClick={() => this.setState({showHelp: true})}>
+                          <ListItemText primary="Help" />
+                        </ListItemButton>
+                      </ListItem>
+                      <ListItem key="Wallet" disablePadding>
+                        {(this.state.walletIsEnabled)
+                        &&
+                        <ListItemButton key="walletDetailButton" onClick={this.clickOpenWalletDetailsDialog}
+                            >
+                            <ListItemIcon>
+                                <Avatar src={window.cardano[this.state.whichWalletSelected].icon}  sx={{ width: 20, height: 20}}/>
+                            </ListItemIcon>                   
+                            <ListItemText>
+                            {this.state.balance && this.formatAda(this.state.balance)} ADA                        
+                            </ListItemText>                         
+                        </ListItemButton>
+                        }             
+
+                    {(!this.state.walletIsEnabled)
+                        &&
+                        <ListItemButton key="walletConnectButton" onClick={this.clickOpenAvailableWalletsDialog} sx={{ textAlign: 'center' }}>                 
+                            <ListItemText>
+                            Connect Wallet                        
+                            </ListItemText>                         
+                        </ListItemButton>
+                        }          
+
+                      </ListItem>
+        
+        
+                  </List>
+                </Box>
                 </Drawer>
               </Box>
 
@@ -1998,7 +2032,6 @@ export default class App extends React.Component
       renderHelp() {
         let i=1;
         let j=1;
-        let profit=properties.profitAmount/1000000;
         return (
 
         <Box component="main" sx={{ p: 3 }}>
@@ -2009,12 +2042,12 @@ export default class App extends React.Component
               aria-controls="panel1a-content"
               id="panel1a-header"
             >
-              <Typography variant="h5">General</Typography>
+              <Typography variant="h6">General</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <Typography variant="body1">
                 This is an open lottery allowing anyone with a wallet to create or play a lottery.  The funds are locked in a Cardano Smart Contract.
-                In order to unlock the funds one would have to play and pick all winning numbers.
+                In order to unlock the funds one would have to play and pick all winning numbers in no specific order.
               </Typography>
             </AccordionDetails>
           </Accordion>
@@ -2024,7 +2057,7 @@ export default class App extends React.Component
               aria-controls="panel1a-content"
               id="panel1a-header"
             >
-              <Typography variant="h5">Players - How to</Typography>
+              <Typography variant="h6">Players - How to</Typography>
             </AccordionSummary>
             <AccordionDetails>   
                 {this.renderBullet(i++, "Connect your wallet on the top right.  Your wallet balance will be displayed if successfully connected and buttons are enabled.")}
@@ -2041,7 +2074,7 @@ export default class App extends React.Component
               aria-controls="panel2a-content"
               id="panel2a-header"
             >
-              <Typography variant="h5">Creators - How to</Typography>
+              <Typography variant="h6">Creators - How to</Typography>
             </AccordionSummary>
             <AccordionDetails>
             {this.renderBullet(j++, "Connect your wallet on the top right.  Your wallet balance will be displayed if successfully connected and buttons are enabled.")}
@@ -2051,7 +2084,7 @@ export default class App extends React.Component
             {this.renderBullet(j++, "Also, select the numbers that will result in your lottery being won.")}
             {this.renderBullet(j++, "When all fields have been filled in, click Create New Lottery to pay and create your lottery.  This will need to be added to the blockchain, and in a few minutes click on Refresh to see it appear in the list of available lotteries.")}
             {this.renderBullet(j++, "A direct link is provided that can be shared with anyone who you wish to play the lottery.")}
-            {this.renderBullet(j++, "Your history will be stored, important fields will be encrypted with your staking key.  So we dont have access to lottery numbers choosen by you or the player's side until the lottery is won.")}
+            {this.renderBullet(j++, "Your history will be stored, chosen lotto numbers will be encrypted with your staking key.  So we dont have access to lottery numbers chosen by you or the player's side until the lottery is won.")}
             {this.renderBullet(j++, "You can let the lottery run for as long as you like, or cancel it at any time.  To cancel it, lookup your history and find the winning numbers you selected and play the lottery with those numbers.  Your winnings will be deposited into your account.")}
             {this.renderBullet(j++, "Each time a player plays your lottery and loses, you will receive that money which is the cost to play your lottery minus our standard fee which is 1 ADA.  If the person wins the prize you put in would go to them and your lottery will closed.")}
             </AccordionDetails>
