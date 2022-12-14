@@ -49,7 +49,6 @@ import {
     Vkeywitnesses, Vkeywitness, PublicKey, Vkey, Ed25519Signature,
 } from "@emurgo/cardano-serialization-lib-asmjs"
 import "./App.css";
-import {blake2b} from "blakejs";
 
 import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
@@ -60,14 +59,13 @@ import ListItemText from '@mui/material/ListItemText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import Typography from '@mui/material/Typography';
-import { ListItemButton } from '@mui/material';
+import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import Tooltip from '@mui/material/Tooltip';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
-import Collapse from '@mui/material/Collapse';
 import Grid from '@mui/material/Unstable_Grid2';
 import Stack from '@mui/material/Stack';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -78,12 +76,19 @@ import axios from 'axios';
 
 import { properties } from './properties/properties.js'
 import LottoView, {Lottery} from './component/Lottery'
-import BasicTable from './component/BasicTable'
 import NewLottery from './component/NewLottery'
 import EnhancedTable from './component/EnhancedTable'
 import HistoryTable from './component/HistoryTable'
 import Link from '@mui/material/Link';
 
+import AppBar from '@mui/material/AppBar';
+import CssBaseline from '@mui/material/CssBaseline';
+import Drawer from '@mui/material/Drawer';
+import IconButton from '@mui/material/IconButton';
+import MenuIcon from '@mui/icons-material/Menu';
+import Toolbar from '@mui/material/Toolbar';
+
+import Box from '@mui/material/Box';
 import clipboard from 'clipboardy';
 
 import { sha256 } from 'js-sha256';
@@ -151,9 +156,6 @@ export default class App extends React.Component
 
             openAvailableWalletsDialog: false,
             openWalletDetailsDialog: false,
-            openNFTDetailsDialog: false,
-            openNFTSuccessAlert: false,
-            openNFTFailureAlert: false,
             showWalletInfo: false,
             connectWallet: true,
 
@@ -184,6 +186,9 @@ export default class App extends React.Component
 
             aesKey: undefined,
             rewardAddrSha: undefined,
+
+            showHelp: false,
+            mobileOpen: false,
 
 
 /**            
@@ -1193,26 +1198,6 @@ export default class App extends React.Component
         console.log("Min: " + x)
     };
 
-    render() {
-        return (
-            <div>
-                <div className='topDiv'>
-                    {this.renderLotto()}
-                </div>
-                {(this.state.connectWallet) &&
-                    <div className='newWalletConnect'>
-                    {this.renderNewButtonInfo()}
-                    </div>
-                }
-                {(this.state.showWalletInfo) &&
-                    <div className='bottomDiv'>
-                        {this.renderWalletInfo()}
-                    </div>
-                }
-            </div>
-        );
-      }
-
 
       handleLotterySelect = (event, utxo) => {
         const lotteries = this.state.lotteries;
@@ -1692,7 +1677,7 @@ export default class App extends React.Component
         ]
         return lotteries;
       }
-      
+
       renderLotto()
       {
         const lotteries = this.state.lotteries;
@@ -1717,9 +1702,10 @@ export default class App extends React.Component
         //console.log("App.js: maxChoices" + lottery1.maxChoices)
         //console.log("App.js: choices" + lottery1.choices)
         //console.log("App.js: lottery1: " + JSON.stringify(lottery1, null, 4));
-        return (
-
-            <Grid container>
+        return !this.state.showHelp && (
+            <Box component="main" sx={{ p: 3 }}>
+            <Toolbar />
+            <Grid container textAlign="center">
                 <Grid item xs={12} md={12}>
                     <Typography variant="h4">
                         <Link href="/home" underline="none">CARDANO LOTTERY</Link>
@@ -1810,9 +1796,126 @@ export default class App extends React.Component
                 <Grid item xs={0} md={0} xl={1}></Grid>
 
             </Grid>
+              </Box>
         )
       }
-            
+
+
+
+      drawerWidth = 240;
+      navItems = ['Home', 'About', 'Contact'];
+
+      handleDrawerToggle = () => {
+        this.setState({mobileOpen: !this.state.mobileOpen});
+      };
+
+      drawer = (
+        <Box onClick={this.handleDrawerToggle} sx={{ textAlign: 'center' }}>
+          <Typography variant="h6" sx={{ my: 2 }}>
+            LOTTO
+          </Typography>
+          <Divider />
+          <List>
+            {this.navItems.map((item) => (
+              <ListItem key={item} disablePadding>
+                <ListItemButton sx={{ textAlign: 'center' }}>
+                  <ListItemText primary={item} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      );
+
+      //container = window !== undefined ? () => window().document.body : undefined;
+
+      render() {
+        return (
+            <div>
+                {this.renderAppBar()}        
+                {this.renderLotto()}
+            </div>
+        );
+      }            
+
+      renderAppBar() {
+        return (
+            <Box sx={{ display: 'flex' }}>
+              <CssBaseline />
+              <AppBar component="nav">
+                <Toolbar>
+                  <IconButton
+                    color="inherit"
+                    aria-label="open drawer"
+                    edge="start"
+                    onClick={this.handleDrawerToggle}
+                    sx={{ mr: 2, display: { sm: 'none' } }}
+                  >
+                    <MenuIcon />
+                  </IconButton>
+                  <Typography
+                    variant="h6"
+                    component="div"
+                    sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
+                  >
+                    CARDANO LOTTERY
+                  </Typography>
+                  <Box sx={{ display: { xs: 'none', sm: 'block', color: '#fff' } }}>
+                      <Button><Link href="/home" underline="none" sx={{ color: '#fff' }}>HOME</Link></Button>
+                      <Button key="PLAY" sx={{ color: '#fff' }} onClick={() => this.setState({showHelp: false})}>
+                      PLAY
+                      </Button>
+                      <Button key="HELP" sx={{ color: '#fff' }} onClick={() => this.setState({showHelp: true})}>
+                      HELP
+                      </Button>
+                      {(!this.state.walletIsEnabled)
+                         &&
+                        <Button key="walletConnectButton" sx={{ color: '#fff' }} onClick={this.clickOpenAvailableWalletsDialog}>
+                            Connect Wallet
+                        </Button>
+                      }
+                      {(this.state.walletIsEnabled)
+                        &&
+                        <Button key="walletDetailButton" onClick={this.clickOpenWalletDetailsDialog} sx={{ color: '#fff' }} 
+                            startIcon={<Avatar src={window.cardano[this.state.whichWalletSelected].icon} sx={{ width: 15, height: 15 }}/>}>
+                            {this.state.balance && this.formatAda(this.state.balance)} ADA                        
+                        </Button>
+                        }
+                      {this.state.connectWallet && this.renderNewButtonInfo()}
+                  </Box>
+                </Toolbar>
+              </AppBar>
+              <Box component="nav">
+                <Drawer
+                  //container={this.container}
+                  variant="temporary"
+                  open={this.state.mobileOpen}
+                  onClose={this.handleDrawerToggle}
+                  ModalProps={{
+                    keepMounted: true, // Better open performance on mobile.
+                  }}
+                  sx={{
+                    display: { xs: 'block', sm: 'none' },
+                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: this.drawerWidth },
+                  }}
+                >
+                  {this.drawer}
+                </Drawer>
+              </Box>
+
+              {(this.state.showHelp)
+                    &&
+              <Box component="main" sx={{ p: 3 }}>
+                <Toolbar />
+                <Typography>
+                  Hello world
+                </Typography>
+              </Box>
+                }
+            </Box>
+          );
+         
+      }
 
       renderNewButtonInfo()
       {
@@ -1823,9 +1926,6 @@ export default class App extends React.Component
                   {(!this.state.walletIsEnabled)
                   &&
                   <div>
-                      <Button id="walletConnectButton" variant="contained" onClick={this.clickOpenAvailableWalletsDialog} size="large">
-                          Connect Wallet...
-                      </Button>
                       <Dialog onClose={this.closeAvailableWalletsDialog} open={this.state.openAvailableWalletsDialog} maxWidth='lg'>
                           <DialogTitle>Your installed wallets</DialogTitle>
                           {(this.state.wallets.length==0)
@@ -1859,20 +1959,6 @@ export default class App extends React.Component
                   {(this.state.walletIsEnabled)
                   &&
                   <div>
-                      <div id="walletConnectButton">
-                      <ButtonGroup variant="contained" aria-label="outlined primary button group">
-                          <Button onClick={this.clickOpenWalletDetailsDialog} size="large"
-                              startIcon={<Avatar src={window.cardano[this.state.whichWalletSelected].icon} sx={{ width: 12, height: 12 }}/>}>
-                              {this.state.balance && this.formatAda(this.state.balance)} ADA                        
-                          </Button>
-                      </ButtonGroup>     
-                      <Collapse in={this.state.openNFTSuccessAlert}>
-                          <Alert severity="info" onClose={() => {this.setState({openNFTSuccessAlert: false})}}>Success.  You will receive your NFT shortly.</Alert>
-                      </Collapse>
-                      <Collapse in={this.state.openNFTFailureAlert}>
-                          <Alert severity="error" onClose={() => {this.setState({openNFTFailureAlert: false})}}>An error has occurred.  Please try again</Alert>
-                      </Collapse>
-                      </div>               
                       <Dialog onClose={this.closeWalletDetailsDialog} open={this.state.openWalletDetailsDialog} maxWidth='lg'>
                           <DialogTitle>Connected Wallet</DialogTitle>
                           <List>
