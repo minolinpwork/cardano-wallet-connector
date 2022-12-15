@@ -164,6 +164,25 @@ export class Lottery {
         //console.log("selected", selected);
         return selected;
     }
+        
+    padStr(i) {
+        return (i < 10) ? "0" + i : "" + i;
+    }
+
+    dateFormatted() {
+        var temp = new Date();
+        var dateStr = this.padStr(temp.getFullYear()) +
+                        this.padStr(1 + temp.getMonth()) +
+                        this.padStr(temp.getDate()) +
+                        this.padStr(temp.getHours()) +
+                        this.padStr(temp.getMinutes()) +
+                        this.padStr(temp.getSeconds());
+        return dateStr;                        
+      }
+
+    setCurrentTimestamp() {
+        this.timestamp = this.dateFormatted();
+    }
 
     countTrue() {
         const count = this.choices.filter(obj => { return obj; }).length;
@@ -173,18 +192,6 @@ export class Lottery {
 
     isValidChoices() {
         return this.countTrue()==this.maxChoices;
-    }
-
-    toString() {
-        return this.name+" "+this.selected();
-        //return JSON.stringify({name: this.name, maxNo: this.maxNo, maxChoices: this.maxChoices, selected: this.selected()})
-    }
-
-    calcSha256() {
-        const str = this.toString();
-        const sha = sha256(str).toLowerCase();
-        console.log("Lottery getSha256: " + str + " sha256: " + sha);
-        return sha;
     }
 
     clone() {

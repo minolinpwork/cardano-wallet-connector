@@ -1038,7 +1038,7 @@ export default class App extends React.Component
         const inputs = TxInputsBuilder.new();
 
         const datumFromJson=this.createStringDatum_hex_to_hex(this.state.datumStr, "buildRedeemAdaFromPlutusScript datum")
-        const redeemerFromJson=this.createStringDatum_utf_to_hex(this.state.redeemStr, "buildRedeemAdaFromPlutusScript redeem")
+        const redeemerFromJson=this.createStringDatum_hex_to_hex(this.state.redeemStr, "buildRedeemAdaFromPlutusScript redeem")
         const script = PlutusScript.from_bytes(Buffer.from(this.state.plutusScriptCborHex, "hex"))
 
         const ex = ExUnits.new(
@@ -1360,21 +1360,6 @@ export default class App extends React.Component
           console.log(callName + " end");
           return data;
       }
-            
-      dateFormatted() {
-        var temp = new Date();
-        var dateStr = this.padStr(temp.getFullYear()) +
-                        this.padStr(1 + temp.getMonth()) +
-                        this.padStr(temp.getDate()) +
-                        this.padStr(temp.getHours()) +
-                        this.padStr(temp.getMinutes()) +
-                        this.padStr(temp.getSeconds());
-        return dateStr;                        
-      }
-    
-      padStr(i) {
-        return (i < 10) ? "0" + i : "" + i;
-      }
 
         async axiosDBStore(url, type, result, selected) {
             const callName = "axiosDBStorePlay";
@@ -1403,7 +1388,7 @@ export default class App extends React.Component
                     dataHash: selectedLottery.dataHash,
                     creatorAddr: selectedLottery.creatorAddr,
                     roiAddr: selectedLottery.roiAddr,
-                    timestamp: this.dateFormatted(),
+                    timestamp: selectedLottery.timestamp,
                 }
             };
     
@@ -1412,11 +1397,54 @@ export default class App extends React.Component
                 console.log(callName + ": " + response.data);
             })
             .catch(function (error) {
-            console.log(callName + "error: " + error);
+                console.log(callName + "error: " + error);
             });    
             console.log(callName + " end");
       }
     
+      async axiosDBSha256(url, selected) {
+        const callName = "axiosDBSha256";
+        console.log(callName + " start");
+        const selectedLottery = this.state.selectedLottery;
+
+        var data = undefined;
+
+        var config = {
+            method: 'post',
+            url: url, 
+            baseURL: properties.beUrl,
+            headers: { 
+              'Content-Type': 'application/json', 
+            },
+            data: {
+                utxo: selectedLottery.utxo, 
+                sha256: selectedLottery.sha256, 
+                name: selectedLottery.name, 
+                maxNo: selectedLottery.maxNo, 
+                maxChoices: selectedLottery.maxChoices, 
+                selected: selected, 
+                amount: selectedLottery.amount,
+                cost: selectedLottery.cost,
+                dataHash: selectedLottery.dataHash,
+                creatorAddr: selectedLottery.creatorAddr,
+                roiAddr: selectedLottery.roiAddr,
+                timestamp: selectedLottery.timestamp,
+            }
+        };
+
+        await axios(config)
+        .then(function (response) {
+            console.log(callName + ": " + response.data);
+            data = response.data;
+        })
+        .catch(function (error) {
+            console.log(callName + "error: " + error);
+        });    
+        console.log(callName + " end");
+        return data;
+      }
+
+
       handleLoadLotteries = async () => {
         const callName = "handleLoadLotteries: ";
 
@@ -1523,17 +1551,22 @@ export default class App extends React.Component
             return ;  
         }
 
-        selectedLottery.sha256 = selectedLottery.calcSha256();
-        
-        this.state.datumStr = selectedLottery.sha256;
-        this.state.lovelaceToSend = selectedLottery.amount;
+        selectedLottery.creatorAddr = this.state.rewardAddrSha;
+        selectedLottery.roiAddr = this.state.changeAddress;
+        selectedLottery.setCurrentTimestamp();
 
-        await this.buildSendAdaToPlutusScript()
+        await(this.axiosDBSha256("sha/2", selectedLottery.selected()))
+        .then((sha256) => {
+            selectedLottery.sha256 = sha256;
+            
+            this.state.datumStr = selectedLottery.sha256;
+            this.state.lovelaceToSend = selectedLottery.amount;
+
+            return this.buildSendAdaToPlutusScript();
+        })
         .then((result) => {
             selectedLottery.utxo = result.submittedTxHash;
             selectedLottery.dataHash = result.dataHash;
-            selectedLottery.creatorAddr = this.state.rewardAddrSha;
-            selectedLottery.roiAddr = this.state.changeAddress;
             this.axiosDBStore("store/create", "create", true, properties.dev ? selectedLottery.selected() : []);
             this.axiosDBStore("store/play", "create", true, this.encryptAES(selectedLottery.selected()));
     
@@ -1613,15 +1646,13 @@ export default class App extends React.Component
 
       handleClickPlay = async () => {
         this.setState({showWorking: true})
-        const callName = "handleClickPlay";
+        const callName = "handleClickPlay: ";
 
         const selectedLottery = this.state.selectedLottery;
         if (!selectedLottery.isValidChoices()) {
             this.showWinningNumbersAlert();     
             return ;   
         }
-
-        //this.state.selectedLottery.sha256=this.state.selectedLottery.calcSha256();
 
         //console.log(callName + ": before this.state.datumStr: " + this.state.datumStr);
         //console.log(callName + ": before this.state.selectedLottery.sha256: " + this.state.selectedLottery.sha256);
@@ -1631,7 +1662,6 @@ export default class App extends React.Component
         this.state.transactionIndxLocked = 0;
         this.state.lovelaceLocked = selectedLottery.amount;
         this.state.datumStr = selectedLottery.sha256;
-        this.state.redeemStr = selectedLottery.toString();
         this.state.lovelaceToSend = selectedLottery.cost;
 
         //console.log(callName + ": after this.state.datumStr: " + this.state.datumStr);
@@ -1640,28 +1670,41 @@ export default class App extends React.Component
 
 
         try {
-            if (selectedLottery.sha256==selectedLottery.calcSha256()) {
-                const submittedTxHash = await this.buildRedeemAdaFromPlutusScript();
-                if (submittedTxHash.length>10) {
-                    this.showYouWonAlert();
-                    this.axiosDBStore("store/play", "play", true, this.encryptAES(selectedLottery.selected()));
-                    this.axiosDBStore("store/win", "play", true, selectedLottery.selected());
-                    const newLotteries = this.state.lotteries.filter(function(value, index, arr){ 
-                        return value.utxo!=selectedLottery.utxo;
-                    });
-                    this.setState({lotteries: newLotteries})
+            const sha256 = await this.axiosDBSha256("sha/2", selectedLottery.selected());
+            console.log(callName + "sha256: " + sha256);
+            if (!sha256) {
+                this.showErrorAlert();
+                console.log(callName + " failed to calculate selected lottery sha")
+            } else if (selectedLottery.sha256==sha256) {
+                this.state.redeemStr = await this.axiosDBSha256("sha/1", selectedLottery.selected());
+                if (!this.state.redeemStr) {
+                    this.showErrorAlert();
+                    console.log(callName + " failed to get redeemer sha")
+                } else {
+                    const submittedTxHash = await this.buildRedeemAdaFromPlutusScript();
+                    if (submittedTxHash.length>10) {
+                        this.showYouWonAlert();
+                        selectedLottery.setCurrentTimestamp();
+                        this.axiosDBStore("store/play", "play", true, this.encryptAES(selectedLottery.selected()));
+                        this.axiosDBStore("store/win", "play", true, selectedLottery.selected());
+                        const newLotteries = this.state.lotteries.filter(function(value, index, arr){ 
+                            return value.utxo!=selectedLottery.utxo;
+                        });
+                        this.setState({lotteries: newLotteries})
+                    }
                 }
             } else {
                 const submittedTxHash = await this.buildSendAdaFailed();
                 if (submittedTxHash.length>10) {
                     this.showYouLostAlert();
+                    selectedLottery.setCurrentTimestamp();
                     this.axiosDBStore("store/play", "play", false, this.encryptAES(selectedLottery.selected()));
                 }
             }
         } catch (err) {
             this.showErrorAlert();
             console.log(err.stack)
-            console.log(callName + ": error: " + err)
+            console.log(callName + "error: " + err)
         }
         this.setState({showWorking: false})
         //this.refreshData();        
