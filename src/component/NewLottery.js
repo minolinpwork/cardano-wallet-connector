@@ -111,7 +111,7 @@ export default class NewLottery extends React.Component {
         label="Name of Lottery"
         onChange={(e) => this.handleLotteryNameChange(e.target.value)}
         sx={{ mt: 2, mb: 6 }}
-        inputProps={{ maxLength: 10 }}
+        inputProps={{ maxLength: 30 }}
         //onChange={(e) => this.props.lottery.name=e.target.value}
         //onChange={(e) => console.log(e.target.value)}
         //onChange={this.handleChange}//ref={myinput => (this.input = myinput)}
@@ -119,7 +119,7 @@ export default class NewLottery extends React.Component {
 
 
       <Typography id="maxNo-slider" gutterBottom mt={5} mb={4}>
-        Range of numbers available - from 1 to 99
+        Range of numbers available - from {properties.newLotteryMinMaxNo} to {properties.newLotteryMaxMaxNo}
       </Typography>
       <Slider 
         value={lottery.maxNo}
@@ -134,7 +134,7 @@ export default class NewLottery extends React.Component {
 
 
       <Typography id="maxChoices-slider" gutterBottom mt={5} mb={4}>
-        How many numbers to choose - From 1 to 7
+        How many numbers to choose - From {properties.newLotteryMinMaxChoices} to {properties.newLotteryMaxMaxChoices}
       </Typography>
       <Slider
         value={lottery.maxChoices}
@@ -147,7 +147,7 @@ export default class NewLottery extends React.Component {
       />
 
       <Typography id="amount-slider" gutterBottom mt={5} mb={4}>
-        Prize (ADA) - From 10 to ...
+        Prize (ADA) - From {properties.newLotteryMinAmount} to {properties.newLotteryMaxAmount}
       </Typography>
       <Slider
         value={lottery.amount}
@@ -160,7 +160,7 @@ export default class NewLottery extends React.Component {
       />
 
       <Typography id="feeToPlay-slider" gutterBottom mt={5} mb={4}>
-        Cost to Play (ADA) - From 3 to ...
+        Cost to Play (ADA) - From {properties.newLotteryMinCost} to {properties.newLotteryMaxCost}
       </Typography>
       <Slider
         value={lottery.cost}

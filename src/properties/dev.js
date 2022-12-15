@@ -27,10 +27,11 @@ export const properties = {
     newLotteryMinMaxChoices: 1,
     newLotteryMinAmount: 10,
     newLotteryMinCost: 3,
-    newLotteryMaxMaxNo: 99,
-    newLotteryMaxMaxChoices: 7,
-    newLotteryMaxAmount: 1000,
-    newLotteryMaxCost: 100,
+    newLotteryMaxMaxNo: 200,
+    newLotteryMaxMaxChoices: 20,
+    newLotteryMaxAmount: 10000,
+    newLotteryMaxCost: 1000,
+    maxNameDisplayLength: 25,
 
     alertTimeout: 7500,
 

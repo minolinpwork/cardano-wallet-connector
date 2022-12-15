@@ -182,6 +182,7 @@ export default function EnhancedTable(props) {
               {stableSort(props.lotteries, getComparator(order, orderBy))
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row, index) => {
+                  //const name = row.name.length>properties.maxNameDisplayLength ? row.name.substring(0, properties.maxNameDisplayLength) + "..." : row.name;
                   const isItemSelected = isSelected(row.utxo);
                   const selected = row.selected().toString();
                   return (
