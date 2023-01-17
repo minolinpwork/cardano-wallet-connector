@@ -193,6 +193,8 @@ export default class App extends React.Component
             showHelp: false,
             mobileOpen: false,
 
+            token: null,
+
 
 /**            
             selectedTabId: "5",
@@ -274,6 +276,7 @@ export default class App extends React.Component
         }, () => {
             this.refreshData().then(() => {
                 this.setState({showWorking: false})
+                this.setState({token: this.axiosLoadToken()});
                 this.setAESKey();
                 this.handleLoadPlayerHistory();
             })
@@ -570,7 +573,7 @@ export default class App extends React.Component
             const raw = await this.API.getRewardAddresses();
             const rawFirst = raw[0];
             const rewardAddress = Address.from_bytes(Buffer.from(rawFirst, "hex")).to_bech32()
-            // console.log(rewardAddress)
+            console.log("rewardAddress: " + rewardAddress)
             this.setState({rewardAddress})
 
         } catch (err) {
@@ -1360,6 +1363,37 @@ export default class App extends React.Component
           console.log(callName + " end");
           return data;
       }
+      
+      async axiosLoadToken() {
+        const callName = "axiosLoadToken: ";
+        console.log(callName + " start");
+
+        let token = "";
+
+        var config = {
+            method: 'post',
+            url: 'token',
+            baseURL: properties.beUrl,
+            headers: { 
+              'Content-Type': 'application/json', 
+              'Accept': 'text/plain', 
+            },
+            data: {
+              'addr': this.state.rewardAddress,
+            }
+          };
+
+        await axios(config)
+          .then(function (response) {
+            token = response.data;
+            console.log(callName + ": token: " + token);
+          })
+          .catch(function (error) {
+            console.log(callName + " error: " + error);
+          });    
+          console.log(callName + " end");
+          return token;
+      }
 
         async axiosDBStore(url, type, result, selected) {
             const callName = "axiosDBStorePlay";
@@ -1371,6 +1405,7 @@ export default class App extends React.Component
                 url: url, 
                 baseURL: properties.beUrl,
                 headers: { 
+                  'Authorization': this.state.token,
                   'Content-Type': 'application/json', 
                 },
                 data: {
@@ -1414,6 +1449,7 @@ export default class App extends React.Component
             url: url, 
             baseURL: properties.beUrl,
             headers: { 
+              'Authorization': this.state.token,
               'Content-Type': 'application/json', 
             },
             data: {
