@@ -276,9 +276,11 @@ export default class App extends React.Component
         }, () => {
             this.refreshData().then(() => {
                 this.setState({showWorking: false})
-                this.setState({token: this.axiosLoadToken()});
                 this.setAESKey();
                 this.handleLoadPlayerHistory();
+                this.axiosLoadToken().then((token) => {
+                    this.setState({token});
+                })
             })
         });
     }
