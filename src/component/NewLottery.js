@@ -5,6 +5,7 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Unstable_Grid2';
 import Slider from '@mui/material/Slider';
+import Input from '@mui/material/Input';
 import { properties } from '../properties/properties';
 
 export default class NewLottery extends React.Component {
@@ -64,17 +65,24 @@ export default class NewLottery extends React.Component {
       const lottery = this.props.lottery;
       lottery.amount = input;
       if (lottery.amount<lottery.cost) {
-        lottery.cost=lottery.amount;
+        lottery.cost=Math.min(properties.newLotteryMaxCost, lottery.amount);
       }
       this.props.updateFromNewLottery(lottery);
     }
+    handleLotteryAmountBlur = (input) => {
+      this.handleLotteryAmountChange(Math.min(properties.newLotteryMaxAmount, Math.max(properties.newLotteryMinAmount, input)))
+    }
+
     handleLotteryCostChange = (input) => {
       const lottery = this.props.lottery;
       lottery.cost = input;
       if (lottery.cost>lottery.amount) {
-        lottery.amount=lottery.cost;
+        lottery.amount=Math.min(properties.newLotteryMaxAmount, lottery.cost);
       }
       this.props.updateFromNewLottery(lottery);
+    }
+    handleLotteryCostBlur = (input) => {
+      this.handleLotteryCostChange(Math.min(properties.newLotteryMaxCost, Math.max(properties.newLotteryMinCost, input)))
     }
 
     render() {
@@ -149,28 +157,66 @@ export default class NewLottery extends React.Component {
       <Typography id="amount-slider" gutterBottom mt={5} mb={4}>
         Prize (ADA) - From {properties.newLotteryMinAmount} to {properties.newLotteryMaxAmount}
       </Typography>
-      <Slider
-        value={lottery.amount}
-        min={properties.newLotteryMinAmount}
-        max={properties.newLotteryMaxAmount}
-        step={1}
-        valueLabelDisplay="on"
-        onChange={(e) => this.handleLotteryAmountChange(e.target.value)}
-        aria-labelledby="amount-slider"
-      />
+      <Grid container spacing={2} alignItems="center">
+        <Grid item xs>
+        <Slider
+          value={lottery.amount}
+          min={properties.newLotteryMinAmount}
+          max={properties.newLotteryMaxAmount}
+          step={1}
+          valueLabelDisplay="on"
+          onChange={(e) => this.handleLotteryAmountChange(e.target.value)}
+          aria-labelledby="amount-slider"
+        />
+      </Grid>
+      <Grid item>
+          <Input
+            value={lottery.amount}
+            size="small"
+            onChange={(e) => this.handleLotteryAmountChange(e.target.value)}
+            onBlur={(e) => this.handleLotteryAmountBlur(e.target.value)}
+            inputProps={{
+              step: 1,
+              min: properties.newLotteryMinAmount,
+              max: properties.newLotteryMaxAmount,
+              type: 'number',
+              'aria-labelledby': 'amount-slider',
+            }}
+          />
+        </Grid>
+      </Grid>
 
       <Typography id="feeToPlay-slider" gutterBottom mt={5} mb={4}>
         Cost to Play (ADA) - From {properties.newLotteryMinCost} to {properties.newLotteryMaxCost}
       </Typography>
-      <Slider
-        value={lottery.cost}
-        min={properties.newLotteryMinCost}
-        max={properties.newLotteryMaxCost}
-        step={1}
-        valueLabelDisplay="on"
-        onChange={(e) => this.handleLotteryCostChange(e.target.value)}
-        aria-labelledby="feeToPlay-slider"
-      />
+      <Grid container spacing={2} alignItems="center">
+        <Grid item xs>
+          <Slider
+            value={lottery.cost}
+            min={properties.newLotteryMinCost}
+            max={properties.newLotteryMaxCost}
+            step={1}
+            valueLabelDisplay="on"
+            onChange={(e) => this.handleLotteryCostChange(e.target.value)}
+            aria-labelledby="feeToPlay-slider"
+          />
+      </Grid>
+      <Grid item>
+          <Input
+            value={lottery.cost}
+            size="small"
+            onChange={(e) => this.handleLotteryCostChange(e.target.value)}
+            onBlur={(e) => this.handleLotteryCostBlur(e.target.value)}
+            inputProps={{
+              step: 1,
+              min: properties.newLotteryMinCost,
+              max: properties.newLotteryMaxCost,
+              type: 'number',
+              'aria-labelledby': 'feeToPlay-slider',
+            }}
+          />
+        </Grid>
+      </Grid>
 
       <Typography id="changeOfWinning" variant="h6" gutterBottom mt={2}>
           Calculations with above parameters
