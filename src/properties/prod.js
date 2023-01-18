@@ -34,4 +34,29 @@ export const properties = {
 
     alertTimeout: 7500,
 
+    helpGeneral: [
+        ["1.  This is an open lottery allowing anyone with a wallet to create or play a lottery.  The funds are locked in a ","Cardano Smart Contract",".  In order to unlock the funds one would have to pick all winning numbers in no specific order."],
+    ],
+    helpPlayers: [
+        ["1.  Connect your wallet on the top right.  Your wallet balance will be displayed if successfully connected and buttons are then enabled."],
+        ["2.  Select one the lotteries available in the table.  The table lists all the parameters of each lottery.  The lottery will be loaded and now is ready for you to play."],
+        ["3.  Choose your winning numbers for the lottery.  Once you have chosen click ","PLAY"," to pay and to submit your lottery.  The amount is the cost of the lottery you selected + standard cardano fees."],
+        ["4.  Once you have successfully paid, the result of whether you won / lost, will appear directly above the ","PLAY"," button.  If you have won the money will be withdrawn from the smart contract and deposited into your account."],
+        ["5.  A history table is available at the bottom of the page displaying your past selections.  Click ","REFRESH"," below it to see the latest records."],
+        ["6.  After a lottery is won or the creator of the lottery closes, you will see the winning numbers in the column of the history table.  You can compare it to your chosen numbers."],
+    ],
+    helpCreators: [
+        ["1.  Connect your wallet on the top right.  Your wallet balance should be displayed if successfully connected and buttons are then enabled."],
+        ["2.  Click ","CREATE NEW LOTTERY"," to take you to the create new lottery page."],
+        ["3.  Enter the parameters for your Lottery.  It will show you as you change the parameters how this will affect how the lottery appears to clients.  It then clearly illustrates that as you change the parameters, the appearance of the lottery to clients changes simultaneously as well.  In addition, some basic calculations are provided for you to get an overall idea of estimated profit."],
+        ["4.  The prize is the amount in ADA that you will pay. The cost is the amount in ADA that the player of your lottery will pay."],
+        ["5.  Also, select the winning numbers that will result in your lottery being won."],
+        ["6.  When all fields have been filled in, click ","CREATE NEW LOTTERY"," to pay and create your lottery.  This will require a few minutes to be added to the blockchain, thereafter click on ","REFRESH"," to see it displayed in the list of available lotteries."],
+        ["7.  A direct link is provided to allow you to share with who you would to play your lottery."],
+        ["8.  Your history will be stored, chosen lotto numbers will be encrypted with your staking key, ensuring that we don't have access to lottery numbers chosen by you or the players until the lottery is won."],
+        ["9.  You can allow the lottery run for as long as you choose, or cancel it at any time.  To cancel it, retrieve your history and locate the winning numbers you selected and play the lottery yourself with those numbers.  Your winnings will be deposited into your account."],
+        ["10.  Each time a player plays your lottery and loses, you will receive the amount stipulated which is the cost to play your lottery minus our standard fee which is 1 ADA.  If the person wins, the prize amount you invested would go to them and your lottery will then be closed."],
+    ],
+
+
 };

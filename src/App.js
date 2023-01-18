@@ -190,7 +190,7 @@ export default class App extends React.Component
             aesKey: undefined,
             rewardAddrSha: undefined,
 
-            showHelp: false,
+            showHelp: true,
             mobileOpen: false,
 
             token: null,
@@ -2101,18 +2101,30 @@ export default class App extends React.Component
           )
       }
 
-      renderBullet(i, s) {
+      renderHelpBullets(arr) {  
+        console.log("renderHelpBullets")
+        console.log(arr)
         return (
-
-            <Typography variant="body1">
-                {i}.  {s}
-            </Typography>
-        );
+            <AccordionDetails>
+              {
+                arr.map( (lineArr, ind) => {
+                    let x = [];
+                    lineArr.map( (txt, i) => {
+                        x.push( (i%2===0) ?  <Typography variant="body1" display="inline">{txt}</Typography> : <Typography sx={{fontWeight: 'bold'}} display='inline'>{txt}</Typography> )
+                    })  
+                    x.push ( <br></br> )
+                    return x;
+                })
+              }
+            </AccordionDetails>
+        )
       }
 
-      renderHelp() {
-        let i=1;
-        let j=1;
+      renderHelp() {        
+        const helpGeneral = properties.helpGeneral;
+        const helpPlayers = properties.helpPlayers;
+        const helpCreators = properties.helpCreators;
+
         return (
 
         <Box component="main" sx={{ p: 3 }}>
@@ -2125,12 +2137,7 @@ export default class App extends React.Component
             >
               <Typography variant="h6">General</Typography>
             </AccordionSummary>
-            <AccordionDetails>
-              <Typography variant="body1">
-                This is an open lottery allowing anyone with a wallet to create or play a lottery.  The funds are locked in a Cardano Smart Contract.
-                In order to unlock the funds one would have to play and pick all winning numbers in no specific order.
-              </Typography>
-            </AccordionDetails>
+            {this.renderHelpBullets(helpGeneral)}
           </Accordion>
           <Accordion>
             <AccordionSummary
@@ -2140,14 +2147,7 @@ export default class App extends React.Component
             >
               <Typography variant="h6">Players - How to</Typography>
             </AccordionSummary>
-            <AccordionDetails>   
-                {this.renderBullet(i++, "Connect your wallet on the top right.  Your wallet balance will be displayed if successfully connected and buttons are enabled.")}
-                {this.renderBullet(i++, "Select one the lotteries available in the table.  The table lists all the parameters of each lottery.  The lottery will be loaded and is ready to play.")}
-                {this.renderBullet(i++, "Choose your winning numbers for the lottery.  Once you have chosen click Play to pay and to submit your lottery.  The cost is the cost of the lottery you selected + standard cardano fees.")}
-                {this.renderBullet(i++, "Once you have successfully paid the result of whether you won / lost will appear directly above the Play button.  If you have won the money will be withdrawn from the smart contract and deposited into your account.")}
-                {this.renderBullet(i++, "A history table is available at the bottom of the page displaying your past selections.  Click Refresh below it to see the latest records")}
-                {this.renderBullet(i++, "Once a lottery is won or the creator of the lottery closes, you will see the winning numbers in the column of the history table.  You can compare it to your chosen numbers.")}
-            </AccordionDetails>
+            {this.renderHelpBullets(helpPlayers)}
           </Accordion>
           <Accordion>
             <AccordionSummary
@@ -2157,18 +2157,7 @@ export default class App extends React.Component
             >
               <Typography variant="h6">Creators - How to</Typography>
             </AccordionSummary>
-            <AccordionDetails>
-            {this.renderBullet(j++, "Connect your wallet on the top right.  Your wallet balance will be displayed if successfully connected and buttons are enabled.")}
-            {this.renderBullet(j++, "Click Create New Lottery to take you to the create new lottery page")}
-            {this.renderBullet(j++, "Enter the parameters for your Lottery.  It will show you as you change the parameters how this will affect how the lottery appears to clients.  Also, some basic calcuations are provided for you to get an estimate of profit.")}
-            {this.renderBullet(j++, "The prize is the amount in ADA that you will pay.  The cost is the amount in ADA that the player of your lottery will pay.")}
-            {this.renderBullet(j++, "Also, select the numbers that will result in your lottery being won.")}
-            {this.renderBullet(j++, "When all fields have been filled in, click Create New Lottery to pay and create your lottery.  This will need to be added to the blockchain, and in a few minutes click on Refresh to see it appear in the list of available lotteries.")}
-            {this.renderBullet(j++, "A direct link is provided that can be shared with anyone who you wish to play the lottery.")}
-            {this.renderBullet(j++, "Your history will be stored, chosen lotto numbers will be encrypted with your staking key.  So we dont have access to lottery numbers chosen by you or the player's side until the lottery is won.")}
-            {this.renderBullet(j++, "You can let the lottery run for as long as you like, or cancel it at any time.  To cancel it, lookup your history and find the winning numbers you selected and play the lottery with those numbers.  Your winnings will be deposited into your account.")}
-            {this.renderBullet(j++, "Each time a player plays your lottery and loses, you will receive that money which is the cost to play your lottery minus our standard fee which is 1 ADA.  If the person wins the prize you put in would go to them and your lottery will closed.")}
-            </AccordionDetails>
+            {this.renderHelpBullets(helpCreators)}
           </Accordion>
         </Box>
 
