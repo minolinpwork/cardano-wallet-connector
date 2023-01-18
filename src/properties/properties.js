@@ -1,5 +1,5 @@
 export const properties = {
-    beUrl: 'https://devbe-dot-cardano-gamble.uc.r.appspot.com/',
+    beUrl: 'http://localhost:8080/',
     addressScriptBech32: "addr_test1wqv4ak0zq6tmw24n865204zs5j0d84p6ekn2qma65x5p0gg0qp8rn",
     blockfrostURL: "https://cardano-preprod.blockfrost.io/api/v0/",
     blockfrostAPIKey: "preprodHLwITFVjCypu0X5VcEUui8wusVWplOIy",
@@ -52,11 +52,12 @@ export const properties = {
         ["4.  The prize is the amount in ADA that you will pay. The cost is the amount in ADA that the player of your lottery will pay."],
         ["5.  Also, select the winning numbers that will result in your lottery being won."],
         ["6.  When all fields have been filled in, click ","CREATE NEW LOTTERY"," to pay and create your lottery.  This will require a few minutes to be added to the blockchain, thereafter click on ","REFRESH"," to see it displayed in the list of available lotteries."],
-        ["7.  A direct link is provided to allow you to share with who you would to play your lottery."],
+        ["7.  A direct link is provided to allow you to share with anyone you would to play your lottery."],
         ["8.  Your history will be stored, chosen lotto numbers will be encrypted with your staking key, ensuring that we don't have access to lottery numbers chosen by you or the players until the lottery is won."],
-        ["9.  You can allow the lottery run for as long as you choose, or cancel it at any time.  To cancel it, retrieve your history and locate the winning numbers you selected and play the lottery yourself with those numbers.  Your winnings will be deposited into your account."],
+        ["9.  You can allow the lottery to run for as long as you choose, or cancel it at any time.  To cancel it, retrieve your history and locate the winning numbers you selected and play the lottery yourself with those numbers.  Your winnings will be deposited into your account."],
         ["10.  Each time a player plays your lottery and loses, you will receive the amount stipulated which is the cost to play your lottery minus our standard fee which is 1 ADA.  If the person wins, the prize amount you invested would go to them and your lottery will then be closed."],
     ],
+
 
 
 };

@@ -190,7 +190,7 @@ export default class App extends React.Component
             aesKey: undefined,
             rewardAddrSha: undefined,
 
-            showHelp: true,
+            showHelp: false,
             mobileOpen: false,
 
             token: null,

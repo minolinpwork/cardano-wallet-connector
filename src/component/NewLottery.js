@@ -129,7 +129,7 @@ export default class NewLottery extends React.Component {
         //defaultValue={this.props.lottery.maxNo}
         valueLabelDisplay="on"
         onChange={(e) => this.handleLotteryMaxNoChange(e.target.value)}
-        aria-labelledby="input-slider"
+        aria-labelledby="maxNo-slider"
       />
 
 
@@ -143,7 +143,7 @@ export default class NewLottery extends React.Component {
         step={1}
         valueLabelDisplay="on"
         onChange={(e) => this.handleLotteryMaxChoicesChange(e.target.value)}
-        aria-labelledby="input-slider"
+        aria-labelledby="maxChoices-slider"
       />
 
       <Typography id="amount-slider" gutterBottom mt={5} mb={4}>
@@ -156,7 +156,7 @@ export default class NewLottery extends React.Component {
         step={1}
         valueLabelDisplay="on"
         onChange={(e) => this.handleLotteryAmountChange(e.target.value)}
-        aria-labelledby="input-slider"
+        aria-labelledby="amount-slider"
       />
 
       <Typography id="feeToPlay-slider" gutterBottom mt={5} mb={4}>
@@ -169,7 +169,7 @@ export default class NewLottery extends React.Component {
         step={1}
         valueLabelDisplay="on"
         onChange={(e) => this.handleLotteryCostChange(e.target.value)}
-        aria-labelledby="input-slider"
+        aria-labelledby="feeToPlay-slider"
       />
 
       <Typography id="changeOfWinning" variant="h6" gutterBottom mt={2}>
